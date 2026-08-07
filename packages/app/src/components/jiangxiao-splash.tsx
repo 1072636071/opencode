@@ -21,11 +21,11 @@ export function JiangxiaoSplash() {
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 9999,
+        "z-index": 9999,
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
+        "flex-direction": "column",
+        "align-items": "center",
+        "justify-content": "center",
         gap: "18px",
         background:
           "radial-gradient(ellipse at 50% 40%, #1f1a12 0%, #121008 60%, #0d0b08 100%)",
@@ -52,10 +52,10 @@ export function JiangxiaoSplash() {
           opacity: 0;
         }
       `}</style>
-      <div style={{ color: "#d6b34a", fontSize: "26px", fontWeight: 600, letterSpacing: "0.35em", textShadow: "0 0 18px rgba(214,179,74,0.45)" }}>
+      <div style={{ color: "#d6b34a", "font-size": "26px", "font-weight": 600, "letter-spacing": "0.35em", "text-shadow": "0 0 18px rgba(214,179,74,0.45)" }}>
         姜晓
       </div>
-      <div style={{ color: "#8d8474", fontSize: "12px", letterSpacing: "0.25em" }}>
+      <div style={{ color: "#8d8474", "font-size": "12px", "letter-spacing": "0.25em" }}>
         唐 风 开 发 助 手
       </div>
     </div>

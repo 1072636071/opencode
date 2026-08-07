@@ -67,11 +67,11 @@ export function JiangxiaoCharacterSidebar(props: { sessionID?: () => string | un
     const client = sdk()
     const sessionID = props.sessionID?.()
 
-    const onMessageUpdated = (evt: { payload: { type: string; properties: { sessionID?: string; info?: { role?: string } } } }) => {
-      const { type, properties } = evt.payload
-      if (type !== "message.updated" || !properties) return
-      if (sessionID && properties.sessionID !== sessionID) return
-      const role = properties.info?.role
+    const onMessageUpdated = (evt: { properties: { sessionID?: string; info?: { role?: string } } }) => {
+      const { sessionID: evtSessionID, info } = evt.properties
+      const currentSessionID = props.sessionID?.()
+      if (currentSessionID && evtSessionID !== currentSessionID) return
+      const role = info?.role
       if (role === "assistant") switchTo("replying")
       else if (role === "user") switchTo("thinking")
     }
@@ -81,10 +81,10 @@ export function JiangxiaoCharacterSidebar(props: { sessionID?: () => string | un
     const onSessionIdle = () => switchTo("idle")
 
     const unsubs = [
-      client.event.on("event", onMessageUpdated),
+      client.event.on("message.updated", onMessageUpdated),
       client.event.on("session.error", onSessionError),
       client.event.on("session.idle", onSessionIdle),
-      client.event.on("tool.execute.before", onToolExecute),
+      client.event.on("session.next.tool.called", onToolExecute),
     ]
 
     onCleanup(() => {
@@ -132,12 +132,12 @@ export function JiangxiaoCharacterSidebar(props: { sessionID?: () => string | un
         <button
           data-component="jiangxiao-character-toggle"
           data-state="closed"
-          style={{ position: "absolute", insetBlockStart: "12px", insetInlineEnd: "8px" }}
+          style={{ position: "absolute", "inset-block-start": "12px", "inset-inline-end": "8px" }}
           onClick={() => setOpen(true)}
           title="展开角色"
           aria-label="展开角色"
         >
-          <span style={{ fontSize: "14px" }}>✦</span>
+          <span style={{ "font-size": "14px" }}>✦</span>
         </button>
       }
     >
@@ -149,7 +149,7 @@ export function JiangxiaoCharacterSidebar(props: { sessionID?: () => string | un
           title="收起角色"
           aria-label="收起角色"
         >
-          <span style={{ fontSize: "12px" }}>✕</span>
+          <span style={{ "font-size": "12px" }}>✕</span>
         </button>
 
         <div data-slot="character-video" onClick={handleClick}>
@@ -179,17 +179,17 @@ export function JiangxiaoCharacterSidebar(props: { sessionID?: () => string | un
             data-slot="character-bubble"
             style={{
               position: "absolute",
-              insetInlineStart: "12px",
-              insetBlockEnd: "70px",
-              maxWidth: "180px",
+              "inset-inline-start": "12px",
+              "inset-block-end": "70px",
+              "max-width": "180px",
               padding: "8px 12px",
               background: "#17130d",
               border: "1px solid #d6b34a",
-              borderRadius: "8px",
+              "border-radius": "8px",
               color: "#f2ead8",
-              fontSize: "12px",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
-              zIndex: 2,
+              "font-size": "12px",
+              "box-shadow": "0 4px 16px rgba(0,0,0,0.5)",
+              "z-index": 2,
             }}
           >
             {bubble()}
