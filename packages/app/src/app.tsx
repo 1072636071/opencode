@@ -58,6 +58,7 @@ import { TabsProvider, useTabs, type DraftTab } from "@/context/tabs"
 import { SDKProvider, useSDK } from "@/context/sdk"
 import { WslServersProvider } from "@/wsl/context"
 import DirectoryLayout, { DirectoryDataProvider } from "@/pages/directory-layout"
+import { JiangxiaoSplash } from "@/components/jiangxiao-splash"
 import LegacyLayout from "@/pages/layout"
 import NewLayout from "@/pages/layout-new"
 import { ErrorPage } from "./pages/error"
@@ -582,6 +583,7 @@ export function AppInterface(props: {
       canonicalLocalServer={props.canonicalLocalServer}
       servers={props.servers}
     >
+      <JiangxiaoSplash />
       <GlobalProvider>
         <SettingsProvider>
           <ConnectionGate disableHealthCheck={props.disableHealthCheck} startup={props.startup}>

@@ -37,6 +37,7 @@ import { createAutoScroll } from "@opencode-ai/ui/hooks"
 import { previewSelectedLines } from "@opencode-ai/session-ui/pierre/selection-bridge"
 import { Button } from "@opencode-ai/ui/button"
 import { showToast } from "@/utils/toast"
+import { JiangxiaoCharacterSidebar } from "@/components/jiangxiao-character-sidebar"
 import { base64Encode, checksum } from "@opencode-ai/core/util/encode"
 import { useLocation, useNavigate, useParams, useSearchParams } from "@solidjs/router"
 import { NewSessionView, SessionHeader } from "@/components/session"
@@ -2378,6 +2379,11 @@ export default function Page() {
           </Show>
         </Show>
       </div>
+
+      {/* 姜晓角色侧边栏（仅桌面端 + 姜晓主题时显示） */}
+      <Show when={isDesktop()}>
+        <JiangxiaoCharacterSidebar sessionID={() => params.id} />
+      </Show>
 
       <Show when={!newSessionDesign()}>
         <TerminalPanel />

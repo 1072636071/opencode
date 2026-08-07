@@ -44,6 +44,7 @@ function knownThemes() {
 }
 
 const names: Record<string, string> = {
+  jiangxiao: "姜晓",
   "oc-2": "OC-2",
   amoled: "AMOLED",
   aura: "Aura",
@@ -85,8 +86,12 @@ const names: Record<string, string> = {
 const oc2Theme = oc2ThemeJson as DesktopTheme
 
 function normalize(id: string | null | undefined) {
-  return id === "oc-1" ? "oc-2" : id
+  if (id === "oc-1") return "oc-2"
+  return id
 }
+
+/** Default theme id for fresh installs (个人魔改版默认启用姜晓主题)。 */
+const DEFAULT_THEME_ID = "jiangxiao"
 
 function read(key: string) {
   if (typeof localStorage !== "object") return null
@@ -177,7 +182,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
     defaultTheme?: string
     onThemeApplied?: (theme: DesktopTheme, mode: "light" | "dark", scheme: ColorScheme) => void
   }) => {
-    const themeId = normalize(read(STORAGE_KEYS.THEME_ID) ?? props.defaultTheme) ?? "oc-2"
+    const themeId = normalize(read(STORAGE_KEYS.THEME_ID) ?? props.defaultTheme) ?? DEFAULT_THEME_ID
     const colorScheme = (read(STORAGE_KEYS.COLOR_SCHEME) as ColorScheme | null) ?? "system"
     const mode = colorScheme === "system" ? getSystemMode() : colorScheme
     const [store, setStore] = createStore({
@@ -263,7 +268,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
       makeEventListener(mediaQuery, "change", onMedia)
 
       const rawTheme = read(STORAGE_KEYS.THEME_ID)
-      const savedTheme = normalize(rawTheme ?? props.defaultTheme) ?? "oc-2"
+      const savedTheme = normalize(rawTheme ?? props.defaultTheme) ?? DEFAULT_THEME_ID
       const savedScheme = (read(STORAGE_KEYS.COLOR_SCHEME) as ColorScheme | null) ?? "system"
       if (rawTheme && rawTheme !== savedTheme) {
         write(STORAGE_KEYS.THEME_ID, savedTheme)
