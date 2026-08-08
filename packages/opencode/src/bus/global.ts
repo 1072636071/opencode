@@ -11,6 +11,8 @@ export type GlobalEvent = {
 class GlobalBusEmitter extends EventEmitter<{
   event: [GlobalEvent]
 }> {
+  override emit(eventName: "event", event: GlobalEvent): boolean
+  override emit(eventName: string | symbol, ...args: any[]): boolean
   override emit(eventName: string | symbol, ...args: any[]): boolean {
     const emit = super.emit as unknown as (eventName: string | symbol, ...args: any[]) => boolean
     if (eventName !== "event") return emit.call(this, eventName, ...args)
