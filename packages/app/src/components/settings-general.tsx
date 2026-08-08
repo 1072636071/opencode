@@ -31,6 +31,7 @@ import { decode64 } from "@/utils/base64"
 import { playSoundById, SOUND_OPTIONS } from "@/utils/sound"
 import { ExternalLink } from "./external-link"
 import { SettingsList } from "./settings-list"
+import { getCharacterOpacity, setCharacterOpacity } from "@/components/jiangxiao-character-sidebar"
 
 let demoSoundState = {
   cleanup: undefined as (() => void) | undefined,
@@ -570,6 +571,27 @@ export const SettingsGeneral: Component = () => {
             />
           </div>
         </SettingsRow>
+
+        {/* 工单 05：角色透明度滑块（仅姜晓主题显示，20%~100%，叠加在抠绿透明之上）
+            TODO i18n：姜晓主题专属功能，暂用中文硬编码；后续可提取为 language key */}
+        <Show when={theme.themeId() === "jiangxiao"}>
+          <SettingsRow title="角色透明度" description="调节姜晓角色存在感（20%~100%），叠加在抠绿透明之上，偏好跨刷新保持">
+            <div data-action="settings-character-opacity" class="flex items-center gap-3">
+              <input
+                type="range"
+                min="20"
+                max="100"
+                step="5"
+                value={Math.round(getCharacterOpacity() * 100)}
+                onInput={(e) => setCharacterOpacity(e.currentTarget.valueAsNumber / 100)}
+                class="w-[120px] accent-[var(--jx-gold-dim)]"
+              />
+              <span class="text-12-regular text-text-weak w-[42px] text-right">
+                {Math.round(getCharacterOpacity() * 100)}%
+              </span>
+            </div>
+          </SettingsRow>
+        </Show>
       </SettingsList>
     </div>
   )

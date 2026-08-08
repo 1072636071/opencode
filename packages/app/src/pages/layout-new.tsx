@@ -5,10 +5,14 @@ import { TabsInfoPopup } from "@/components/help-button"
 import { Titlebar, type TitlebarUpdate } from "@/components/titlebar"
 import { usePlatform } from "@/context/platform"
 import { setV2Toast, ToastRegion } from "@/utils/toast"
+import { createMediaQuery } from "@solid-primitives/media"
+import { JiangxiaoCharacterSidebar } from "@/components/jiangxiao-character-sidebar"
 
 export default function NewLayout(props: ParentProps) {
   const platform = usePlatform()
   const [state, setState] = createStore({ debugTools: true })
+  // 桌面端媒体查询仅用于主内容区避让 padding；角色悬浮窗全断点常驻（ADR-007：窄屏缩小不隐藏）
+  const isDesktop = createMediaQuery("(min-width: 768px)")
 
   createEffect(() => setV2Toast(true))
 
@@ -38,12 +42,17 @@ export default function NewLayout(props: ParentProps) {
             : undefined
         }
       />
-      <main class="flex-1 min-h-0 min-w-0 overflow-x-hidden flex flex-col items-start contain-strict">
+      <main
+        class="flex-1 min-h-0 min-w-0 overflow-x-hidden flex flex-col items-start contain-strict"
+        style={{ "padding-inline-start": isDesktop() ? "72px" : "0px" }}
+      >
         <Suspense>{props.children}</Suspense>
       </main>
       {import.meta.env.DEV && state.debugTools && <DebugBar inline />}
       <TabsInfoPopup />
       <ToastRegion v2 />
+      {/* 姜晓角色透明悬浮窗（ADR-007：fixed 左下、透明无底、全页面常驻、窄屏缩小不隐藏；z-index:40 低于 dialog/toast） */}
+      <JiangxiaoCharacterSidebar />
     </div>
   )
 }

@@ -34,3 +34,10 @@ logs/
 tsconfig.tsbuildinfo
 /models-dev-api.json
 /app-dev.log
+
+# 本地调试临时文件
+packages/desktop/etest*.mjs
+packages/desktop/etest*.cjs
+packages/desktop/min-test*.cjs
+packages/desktop/electron.vite.config.*.mjs
+packages/desktop/start-dev.bat

@@ -1,63 +1,209 @@
-import { onMount } from "solid-js"
+import { onMount, Show, createSignal } from "solid-js"
+import { useTheme } from "@opencode-ai/ui/theme/context"
 
 /**
- * 姜晓启动画面：冷启动时展示（黑金唐风 + 姜晓主题字）
- * - 仅姜晓主题下生效，1.8s 后淡出
- * - 纯视觉组件，不影响任何功能
+ * 姜晓启动画面（ADR-007 定稿）：冷启动时展示信使链接品牌 + 姜晓欢迎图
+ * - 仅姜晓主题下生效（响应式主题判断，主题切换时自动更新）
+ * - 烫金楷书主标题「信使链接」+ 副标题「跨越时空为你而来的伙伴」+ 拉丁小标
+ * - 欢迎图主视觉；右下角 AI 水印以墨晕 + 竖排诗句 + 朱砂印章叠层遮盖（原图只读）
+ * - 加载动画保留（朱砂印章旋转），1.8s 后淡出进入工作
+ * - 纯视觉组件，不影响任何功能逻辑
  */
+
+const MIN_DISPLAY_MS = 1500
+const FADE_MS = 600
+
 export function JiangxiaoSplash() {
+  // 响应式主题判断：useTheme().themeId() 是 SolidJS 响应式 accessor，
+  // 主题切换时 <Show> 自动重新求值。
+  const theme = useTheme()
+  const [hidden, setHidden] = createSignal(false)
+
   onMount(() => {
     const el = document.getElementById("jiangxiao-splash")
     if (!el) return
-    setTimeout(() => {
-      el.classList.add("jiangxiao-splash-hidden")
-      setTimeout(() => el.remove(), 600)
-    }, 1800)
+    const t = setTimeout(() => {
+      setHidden(true)
+      setTimeout(() => el.remove(), FADE_MS)
+    }, MIN_DISPLAY_MS)
+    return () => clearTimeout(t)
   })
 
   return (
-    <div
-      id="jiangxiao-splash"
-      style={{
-        position: "fixed",
-        inset: 0,
-        "z-index": 9999,
-        display: "flex",
-        "flex-direction": "column",
-        "align-items": "center",
-        "justify-content": "center",
-        gap: "18px",
-        background:
-          "radial-gradient(ellipse at 50% 40%, #1f1a12 0%, #121008 60%, #0d0b08 100%)",
-        transition: "opacity 0.6s ease",
-      }}
-    >
-      {/* 宝相花纹 */}
+    <Show when={theme.themeId() === "jiangxiao"}>
       <div
-        style={{
-          width: "88px",
-          height: "88px",
-          opacity: 0.9,
-          background: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23d6b34a' stroke-opacity='0.85'%3E%3Cpath d='M60 14c7 9 22 10 28 0 4-7-2-15-11-15-7 0-15 7-17 15z'/%3E%3Ccircle cx='60' cy='52' r='16'/%3E%3Ccircle cx='60' cy='52' r='8'/%3E%3Ccircle cx='60' cy='52' r='3' fill='%23d6b34a' fill-opacity='0.2'/%3E%3Cpath d='M60 74c-5 7-5 16 0 23 5-7 5-16 0-23z'/%3E%3Cpath d='M36 50c-9-2-16 3-18 9-2 7 3 13 10 15 7 2 11-3 9-9-2-7-11-12-11-12z'/%3E%3Cpath d='M84 50c9-2 16 3 18 9 2 7-3 13-10 15-7 2-11-3-9-9 2-7 11-12 11-12z'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat`,
-          animation: "jiangxiao-splash-spin 3.2s linear infinite",
-        }}
-      />
-      <style>{`
-        @keyframes jiangxiao-splash-spin {
-          0% { transform: rotate(0deg) scale(1); }
-          50% { transform: rotate(180deg) scale(1.05); }
-          100% { transform: rotate(360deg) scale(1); }
-        }
-        #jiangxiao-splash.jiangxiao-splash-hidden {
-          opacity: 0;
-        }
-      `}</style>
-      <div style={{ color: "#d6b34a", "font-size": "26px", "font-weight": 600, "letter-spacing": "0.35em", "text-shadow": "0 0 18px rgba(214,179,74,0.45)" }}>
-        姜晓
+        id="jiangxiao-splash"
+        class="jiangxiao-splash-root"
+        classList={{ "jiangxiao-splash-hidden": hidden() }}
+      >
+        {/* 欢迎图主视觉（派生压缩资产，原图 docs/image/欢迎16-9.png 只读） */}
+        <img class="jiangxiao-splash-bg" src="/splash-welcome.jpg" alt="" aria-hidden="true" />
+
+        {/* 底部墨晕渐晕，保证标题列可读 */}
+        <div class="jiangxiao-splash-vignette" />
+
+        {/* 右下角水印遮盖叠层 1/3：墨晕 */}
+        <div class="jiangxiao-splash-ink-corner" />
+
+        {/* 标题列：左缘 8%，垂直居中偏上 */}
+        <div class="jiangxiao-splash-title">
+          <div class="jiangxiao-splash-latin">Opencode · Messenger Link</div>
+          <h1 class="jiangxiao-splash-h1">信使链接</h1>
+          <div class="jiangxiao-splash-subtitle">跨越时空为你而来的伙伴</div>
+          <div class="jiangxiao-splash-loading">
+            <div class="jiangxiao-splash-seal-spinner" />
+            <span>正在连通灵犀……</span>
+          </div>
+        </div>
+
+        {/* 右缘竖排诗句 + 朱砂印章（水印遮盖叠层 2/3 + 3/3） */}
+        <div class="jiangxiao-splash-poem">
+          <span>海上生明月</span>
+          <span>天涯共此时</span>
+          <div class="jiangxiao-splash-seal-stamp">姜晓</div>
+        </div>
+
+        <style>{`
+          .jiangxiao-splash-root {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            overflow: hidden;
+            background: #0b090d;
+            transition: opacity ${FADE_MS}ms ease;
+          }
+          .jiangxiao-splash-root.jiangxiao-splash-hidden {
+            opacity: 0;
+          }
+          .jiangxiao-splash-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+          }
+          .jiangxiao-splash-vignette {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+              linear-gradient(to top, rgba(11,9,13,0.92) 0%, rgba(11,9,13,0.3) 30%, transparent 55%),
+              linear-gradient(to right, rgba(11,9,13,0.7) 0%, transparent 30%);
+          }
+          .jiangxiao-splash-ink-corner {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 26%;
+            height: 16%;
+            pointer-events: none;
+            background: radial-gradient(120% 120% at 100% 100%, rgba(11,9,13,0.95) 30%, rgba(11,9,13,0.6) 60%, transparent 100%);
+          }
+          .jiangxiao-splash-title {
+            position: absolute;
+            left: 8%;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            z-index: 2;
+          }
+          .jiangxiao-splash-latin {
+            color: #B8860B;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            opacity: 0.85;
+          }
+          .jiangxiao-splash-h1 {
+            margin: 0;
+            color: #F6D365;
+            font-family: "Ma Shan Zheng", "TangKai", "KaiTi", "STKaiti", serif;
+            font-size: 64px;
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            line-height: 1.15;
+            text-shadow: 0 0 24px rgba(246, 211, 101, 0.35);
+          }
+          @supports (background-clip: text) or (-webkit-background-clip: text) {
+            .jiangxiao-splash-h1 {
+              background: linear-gradient(135deg, #F6D365 0%, #FDA085 50%, #B8860B 100%);
+              -webkit-background-clip: text;
+              background-clip: text;
+              color: transparent;
+              -webkit-text-fill-color: transparent;
+            }
+          }
+          .jiangxiao-splash-subtitle {
+            color: #f2ead8;
+            font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+            font-size: 16px;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            opacity: 0.9;
+          }
+          .jiangxiao-splash-loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+            color: #a99c8a;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+          }
+          .jiangxiao-splash-seal-spinner {
+            width: 20px;
+            height: 20px;
+            border: 1.5px solid #C3272B;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: jiangxiao-splash-spin 1.4s linear infinite;
+            flex-shrink: 0;
+          }
+          @keyframes jiangxiao-splash-spin {
+            to { transform: rotate(360deg); }
+          }
+          .jiangxiao-splash-poem {
+            position: absolute;
+            right: 4.5%;
+            bottom: 8%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            z-index: 2;
+            pointer-events: none;
+          }
+          .jiangxiao-splash-poem span {
+            color: #dfb793;
+            font-family: "Ma Shan Zheng", "TangKai", "KaiTi", "STKaiti", serif;
+            font-size: 15px;
+            letter-spacing: 0.12em;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            opacity: 0.7;
+          }
+          .jiangxiao-splash-seal-stamp {
+            margin-top: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #C3272B;
+            border-radius: 4px;
+            color: #f2ead8;
+            font-family: "Ma Shan Zheng", "TangKai", "KaiTi", "STKaiti", serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0;
+            box-shadow: 0 0 12px rgba(194, 39, 43, 0.4), inset 0 0 0 1px rgba(242, 234, 216, 0.3);
+          }
+        `}</style>
       </div>
-      <div style={{ color: "#8d8474", "font-size": "12px", "letter-spacing": "0.25em" }}>
-        唐 风 开 发 助 手
-      </div>
-    </div>
+    </Show>
   )
 }

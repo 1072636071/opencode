@@ -44,6 +44,7 @@ import { Binary } from "@opencode-ai/core/util/binary"
 import { retry } from "@opencode-ai/core/util/retry"
 import { playSoundById } from "@/utils/sound"
 import { createAim } from "@/utils/aim"
+import { createMediaQuery } from "@solid-primitives/media"
 import { Worktree as WorktreeState } from "@/utils/worktree"
 import { setSessionHandoff } from "@/pages/session/handoff"
 import { SessionRouteKey, SessionStateKey } from "@/utils/server-scope"
@@ -55,6 +56,7 @@ import { useCommand, type CommandOption } from "@/context/command"
 import { ConstrainDragXAxis, getDraggableId } from "@/utils/solid-dnd"
 import { DebugBar } from "@/components/debug-bar"
 import { TabsInfoPopup } from "@/components/help-button"
+import { JiangxiaoCharacterSidebar } from "@/components/jiangxiao-character-sidebar"
 import { Titlebar, type TitlebarUpdate } from "@/components/titlebar"
 import { useDirectoryPicker } from "@/components/directory-picker"
 import { ServerConnection, useServer } from "@/context/server"
@@ -113,6 +115,8 @@ export default function LegacyLayout(props: ParentProps) {
   const pickDirectory = useDirectoryPicker()
   const settings = useSettings()
   const server = useServer()
+  // 工单 04：桌面端媒体查询，控制角色悬浮层显示与主内容区避让 padding
+  const isDesktop = createMediaQuery("(min-width: 768px)")
   const notification = useNotification()
   const permission = usePermission()
   const navigate = useNavigate()
@@ -2365,6 +2369,7 @@ export default function LegacyLayout(props: ParentProps) {
                 classList={{
                   "size-full overflow-x-hidden flex flex-col items-start contain-strict border-t border-border-weak-base bg-background-base xl:border-s xl:rounded-ss-[12px]": true,
                 }}
+                style={{ "padding-inline-start": isDesktop() ? "72px" : "0px" }}
               >
                 <Show when={!autoselecting.loading} fallback={<div class="size-full" />}>
                   {props.children}
@@ -2416,6 +2421,8 @@ export default function LegacyLayout(props: ParentProps) {
       </div>
       <TabsInfoPopup />
       <ToastRegion v2={false} />
+      {/* 姜晓角色透明悬浮窗（ADR-007：fixed 左下、透明无底、全页面常驻、窄屏缩小不隐藏；z-index:40 低于 dialog/toast） */}
+      <JiangxiaoCharacterSidebar />
     </div>
   )
 }

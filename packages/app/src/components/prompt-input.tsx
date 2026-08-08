@@ -41,6 +41,8 @@ import { KeybindV2 } from "@opencode-ai/ui/v2/keybind-v2"
 import { MenuV2 } from "@opencode-ai/ui/v2/menu-v2"
 import { TooltipV2 } from "@opencode-ai/ui/v2/tooltip-v2"
 import { IconButton } from "@opencode-ai/ui/icon-button"
+import { useTheme } from "@opencode-ai/ui/theme/context"
+import { JiangxiaoIcon } from "@/components/jiangxiao-icons"
 import { Select } from "@opencode-ai/ui/select"
 import { useDialog } from "@opencode-ai/ui/context/dialog"
 import { ModelSelectorPopover, ModelSelectorPopoverV2 } from "@/components/dialog-select-model"
@@ -115,6 +117,8 @@ const EXAMPLES = [
 ] as const
 
 export const PromptInput: Component<PromptInputProps> = (props) => {
+  // 姜晓主题守卫：发送按钮图标在 jiangxiao 主题下换为唐风线描（纯视觉，逻辑不变）
+  const theme = useTheme()
   const sdk = useSDK()
 
   const sync = useSync()
@@ -1575,18 +1579,41 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
             />
 
             <div class="flex items-center gap-1 pointer-events-auto">
-              <Tooltip placement="top" inactive={!working() && blank()} value={tip()}>
-                <IconButton
-                  data-action="prompt-submit"
-                  type="submit"
-                  disabled={!working() && blank()}
-                  tabIndex={store.mode === "normal" ? undefined : -1}
-                  icon={stopping() ? "stop" : store.mode === "shell" ? "arrow-undo-down" : "arrow-up"}
-                  variant="primary"
-                  class="size-8"
-                  aria-label={stopping() ? language.t("prompt.action.stop") : language.t("prompt.action.send")}
-                />
-              </Tooltip>
+              <Show
+                when={theme.themeId() === "jiangxiao"}
+                fallback={
+                  <Tooltip placement="top" inactive={!working() && blank()} value={tip()}>
+                    <IconButton
+                      data-action="prompt-submit"
+                      type="submit"
+                      disabled={!working() && blank()}
+                      tabIndex={store.mode === "normal" ? undefined : -1}
+                      icon={stopping() ? "stop" : store.mode === "shell" ? "arrow-undo-down" : "arrow-up"}
+                      variant="primary"
+                      class="size-8"
+                      aria-label={stopping() ? language.t("prompt.action.stop") : language.t("prompt.action.send")}
+                    />
+                  </Tooltip>
+                }
+              >
+                {/* 姜晓主题：发送按钮换唐风线描图标（send/enter/x），印章圆钮样式由 jiangxiao.css 提供 */}
+                <Tooltip placement="top" inactive={!working() && blank()} value={tip()}>
+                  <button
+                    type="submit"
+                    data-action="prompt-submit"
+                    disabled={!working() && blank()}
+                    tabIndex={store.mode === "normal" ? undefined : -1}
+                    aria-label={stopping() ? language.t("prompt.action.stop") : language.t("prompt.action.send")}
+                    class="flex size-8 items-center justify-center"
+                  >
+                    <JiangxiaoIcon
+                      name={stopping() ? "x" : store.mode === "shell" ? "enter" : "send"}
+                      size={16}
+                      aria-label={stopping() ? language.t("prompt.action.stop") : language.t("prompt.action.send")}
+                    />
+                  </button>
+                </Tooltip>
+              </Show>
             </div>
           </div>
 

@@ -4,6 +4,13 @@
 @import "tw-animate-css";
 @import "./jiangxiao.css";
 
+/* B1 兜底：姜晓角色悬浮窗默认隐藏，仅姜晓主题下显示。
+   jiangxiao.css 中 html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] { display: flex }
+   特异性更高会覆盖此处的 display:none。组件内另有 useTheme() 守卫，此为 CSS 层第二道防线。 */
+[data-component="jiangxiao-character"] {
+  display: none;
+}
+
 @font-face {
   font-family: "JetBrainsMono Nerd Font Mono";
   src: url("/assets/JetBrainsMonoNerdFontMono-Regular.woff2") format("woff2");

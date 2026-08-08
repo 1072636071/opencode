@@ -8,6 +8,15 @@ import { getCACertificates, setDefaultCACertificates } from "node:tls"
 import type { Event } from "electron"
 import { app } from "electron"
 
+// 必须在 app ready 之前（模块顶层同步执行）：
+// 无 GPU / 虚拟化环境下独立 GPU 进程反复初始化失败崩溃
+// （GPU process isn't usable. Goodbye.），改为进程内软件渲染，保证稳定启动。
+// 注意：不能加 disable-software-rasterizer / disable-gpu-compositing，
+// 否则 renderer 无 GPU 且无法软件合成时会崩溃（ContextResult::kFatalFailure）。
+app.disableHardwareAcceleration()
+app.commandLine.appendSwitch("disable-gpu")
+app.commandLine.appendSwitch("in-process-gpu")
+
 import { Deferred, Effect, Fiber } from "effect"
 import contextMenu from "electron-context-menu"
 

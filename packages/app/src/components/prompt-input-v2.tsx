@@ -9,6 +9,8 @@ import type { ReferenceInfo } from "@opencode-ai/sdk/v2/client"
 import { createEffect, createMemo, on, Show } from "solid-js"
 import { ModelSelectorPopoverV2 } from "@/components/dialog-select-model"
 import { DialogSelectModelUnpaidV2 } from "@/components/dialog-select-model-unpaid-v2"
+import { JiangxiaoIcon } from "@/components/jiangxiao-icons"
+import { useTheme } from "@opencode-ai/ui/theme/context"
 import type { PromptInputProps } from "@/components/prompt-input/contracts"
 import { normalizePromptHistoryEntry, promptLength, type PromptHistoryComment } from "@/components/prompt-input/history"
 import { createPersistedPromptInputHistory } from "@/components/prompt-input/history-store"
@@ -480,6 +482,7 @@ function PromptInputV2ModelControl(props: {
   onUnpaidClick: () => void
 }) {
   const shouldAnimate = createMemo<boolean>((previous) => previous ?? props.loading)
+  const theme = useTheme()
   const content = () => (
     <>
       <Show when={props.providerID}>
@@ -493,7 +496,10 @@ function PromptInputV2ModelControl(props: {
       </Show>
       <span class="truncate leading-4">{props.modelName}</span>
       <span class="-ml-0.5 -mr-1 flex shrink-0">
-        <Icon name="chevron-down" />
+        {/* 姜晓主题：模型选择器下拉箭头换唐风线描 chevron（纯视觉，逻辑不变） */}
+        <Show when={theme.themeId() === "jiangxiao"} fallback={<Icon name="chevron-down" />}>
+          <JiangxiaoIcon name="chev-d" size={13} />
+        </Show>
       </span>
     </>
   )
