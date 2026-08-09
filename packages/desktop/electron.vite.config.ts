@@ -55,6 +55,17 @@ const require = __cjs_mod__.createRequire(import.meta.url);
     },
     plugins: [
       {
+        name: "opencode:electron-require-interop",
+        renderChunk(code: string) {
+          const m = code.match(/^import\s+(?:(\w+)\s*,\s*)?\{([^}]*)\}\s+from\s+["']electron["'];\s*$/m)
+          if (!m) return null
+          const parts = ['const __opencode_electron__ = __cjs_mod__.createRequire(import.meta.url)("electron");']
+          if (m[1]) parts.push(`const ${m[1]} = __opencode_electron__;`)
+          if (m[2].trim()) parts.push(`const { ${m[2].trim()} } = __opencode_electron__;`)
+          return code.replace(m[0], parts.join(" "))
+        },
+      },
+      {
         name: "opencode:node-pty-narrower",
         enforce: "pre",
         resolveId(s) {

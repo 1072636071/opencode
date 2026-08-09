@@ -294,6 +294,7 @@ export const dict = {
   "prompt.slash.badge.custom": "custom",
   "prompt.slash.badge.skill": "skill",
   "prompt.slash.badge.mcp": "mcp",
+  "prompt.slash.hiddenSkillsHint": "{{count}} skill commands hidden",
   "prompt.context.active": "active",
   "prompt.context.includeActiveFile": "Include active file",
   "prompt.context.removeActiveFile": "Remove active file from context",
@@ -687,6 +688,9 @@ export const dict = {
   "session.review.noChanges": "No changes",
   "session.review.noUncommittedChanges": "No uncommitted changes yet",
   "session.review.noBranchChanges": "No branch changes yet",
+  "time.yesterday": "Yesterday",
+  "session.review.collapse": "Collapse",
+  "session.review.collapse.ariaLabel": "Collapse review panel",
 
   "session.files.selectToOpen": "Select a file to open",
   "session.files.all": "All files",
@@ -939,6 +943,7 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Bottom navigation",
   "settings.general.row.mobileTitlebarBottom.description":
     "Place the title bar and session tabs at the bottom of the screen on mobile",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Show agent",
   "settings.general.row.showCustomAgents.description":
     "Switch between agents in the composer. When hidden, defaults to Build agent.",

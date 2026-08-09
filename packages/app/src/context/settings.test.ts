@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import {
+  defaultSettings,
   hasExistingWebState,
   initialAgentVisibility,
   isAppUpgrade,
@@ -10,6 +11,7 @@ import {
   resolveNewLayoutDesigns,
   shouldDisplayTabsToast,
   shouldEnableNewLayout,
+  toggleHiddenSkill,
 } from "./settings"
 
 describe("agent visibility", () => {
@@ -92,5 +94,27 @@ describe("layout transition", () => {
     expect(shouldEnableNewLayout("1.17.20", "1.17.21")).toBe(false)
     expect(shouldEnableNewLayout(undefined, "1.17.19")).toBe(false)
     expect(shouldEnableNewLayout("dev", "1.17.20")).toBe(false)
+  })
+})
+
+describe("hidden skills", () => {
+  test("defaults to an empty list", () => {
+    expect(defaultSettings.general.hiddenSkills).toEqual([])
+  })
+
+  test("hides a command by appending its name to the list", () => {
+    expect(toggleHiddenSkill([], "skill-a", false)).toEqual(["skill-a"])
+  })
+
+  test("hides without duplicating an existing entry", () => {
+    expect(toggleHiddenSkill(["skill-a"], "skill-a", false)).toEqual(["skill-a"])
+  })
+
+  test("restores a hidden command by removing its name from the list", () => {
+    expect(toggleHiddenSkill(["skill-a", "skill-b"], "skill-a", true)).toEqual(["skill-b"])
+  })
+
+  test("restoring a visible command leaves the list unchanged", () => {
+    expect(toggleHiddenSkill(["skill-a"], "skill-b", true)).toEqual(["skill-a"])
   })
 })

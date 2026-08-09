@@ -19,7 +19,7 @@ import { useTheme } from "@opencode-ai/ui/theme/context"
  * 清单（DESIGN.md Iconography）：
  * send / enter / x / chev-l / chev-r / chev-u / chev-d / plus / search / gear /
  * help / file / read / brush / term / shield / cmd / clip / bot / spark /
- * menu / eye / leaf / swap / diff
+ * menu / eye / leaf / swap / diff / msg / alert / check / clock / move
  *
  * 纯视觉组件，不影响任何功能逻辑。作用域：自研组件内引用，不影响其他主题。
  */
@@ -50,6 +50,11 @@ export type JiangxiaoIconName =
   | "leaf"
   | "swap"
   | "diff"
+  | "msg"
+  | "alert"
+  | "check"
+  | "clock"
+  | "move"
 
 export type JiangxiaoIconSize = 13 | 16 | 20
 
@@ -96,11 +101,21 @@ const ICON_PATHS: Record<JiangxiaoIconName, string> = {
   // 眼睛（eye=review）
   eye: "M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z M12 9a3 3 0 1 0 0 .01",
   // 银杏叶（leaf=项目/主题）
-  leaf: "M12 3c-4 4-6 8-6 12 0 2 1 4 3 4 M12 3c4 4 6 8 6 12 0 2-1 4-3 4 M12 3v18 M9 15l3 3 3-3",
+  leaf: "M12 22v-8.5 M12 13.5C6.5 13 3.5 8.5 4.5 3.5 8 7 10.5 8 12 8.5c1.5-.5 4-1.5 7.5-5 1 5-2 9.5-7.5 10z",
   // 交换
   swap: "M4 8h13l-3-3 M20 16H7l3 3",
   // diff
   diff: "M9 4v6h6 M9 10l-4 4h8l-4-4z M15 20v-6h-6 M15 14l4-4h-8l4 4z",
+  // 消息：对话气泡 + 左下角尾巴（唐风信使对白）
+  msg: "M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+  // 警示：三角 + 感叹号（留白圆点）
+  alert: "M12 3 2.5 19.5h19z M12 10v4 M12 17.5h.01",
+  // 对勾：单笔线描
+  check: "M4 12.5l5 5L20 6.5",
+  // 时钟：圆盘 + 指针
+  clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 7v5l3.5 2",
+  // 四向移动：拖拽手柄（ADR-010）
+  move: "M12 4v16 M4 12h16 M12 4l-3 3 M12 4l3 3 M12 20l-3-3 M12 20l3-3 M4 12l3-3 M4 12l3 3 M20 12l-3-3 M20 12l-3 3",
 }
 
 /**

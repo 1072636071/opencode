@@ -115,7 +115,7 @@ export default function LegacyLayout(props: ParentProps) {
   const pickDirectory = useDirectoryPicker()
   const settings = useSettings()
   const server = useServer()
-  // 工单 04：桌面端媒体查询，控制角色悬浮层显示与主内容区避让 padding
+  // 工单 04：桌面端媒体查询仅用于主内容区避让 padding；角色悬浮窗全断点常驻（ADR-007：窄屏缩小不隐藏）
   const isDesktop = createMediaQuery("(min-width: 768px)")
   const notification = useNotification()
   const permission = usePermission()

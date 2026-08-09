@@ -48,7 +48,9 @@ type PromptPopoverProps = {
   commandKeybind: (id: string) => string | undefined
   commandKeybindParts: (id: string) => string[]
   newLayoutDesigns: boolean
-  t: (key: string) => string
+  t: (key: string, params?: Record<string, string | number | boolean>) => string
+  hiddenSkillCount?: number
+  onOpenHiddenSkills?: () => void
 }
 
 export const PromptPopover: Component<PromptPopoverProps> = (props) => {
@@ -367,6 +369,26 @@ export const PromptPopover: Component<PromptPopoverProps> = (props) => {
                   )
                 }}
               </For>
+              <Show when={!!props.hiddenSkillCount && props.hiddenSkillCount > 0}>
+                <button
+                  type="button"
+                  data-action="slash-open-hidden-skills"
+                  onClick={() => props.onOpenHiddenSkills?.()}
+                  class="w-full mt-1 px-2 py-1 text-left"
+                  classList={{
+                    "rounded-[4px]": props.newLayoutDesigns,
+                    "rounded-md": !props.newLayoutDesigns,
+                    "hover:bg-v2-overlay-simple-overlay-hover": props.newLayoutDesigns,
+                    "hover:bg-surface-raised-base-hover": !props.newLayoutDesigns,
+                    "text-v2-text-text-muted": props.newLayoutDesigns,
+                    "text-text-weak": !props.newLayoutDesigns,
+                  }}
+                >
+                  <span class="text-[13px] leading-5">
+                    {props.t("prompt.slash.hiddenSkillsHint", { count: props.hiddenSkillCount ?? 0 })}
+                  </span>
+                </button>
+              </Show>
             </Show>
           </Match>
         </Switch>

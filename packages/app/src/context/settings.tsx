@@ -33,6 +33,7 @@ export interface Settings {
     shellToolPartsExpanded: boolean
     editToolPartsExpanded: boolean
     showCustomAgents: boolean
+    hiddenSkills: string[]
     mobileTitlebarPosition: "top" | "bottom"
     newLayoutDesigns?: boolean
     layoutTransitionEligible?: boolean
@@ -180,7 +181,13 @@ export function terminalFontFamily(font: string | undefined) {
   return stack(font, terminalBase)
 }
 
-const defaultSettings: Settings = {
+/** 切换某命令在 slash 弹窗中的可见性：checked=true 表示显示（从隐藏名单移除），false 表示隐藏（加入名单）。 */
+export function toggleHiddenSkill(current: string[], name: string, visible: boolean): string[] {
+  if (visible) return current.filter((n) => n !== name)
+  return current.includes(name) ? current : [...current, name]
+}
+
+export const defaultSettings: Settings = {
   general: {
     autoSave: true,
     releaseNotes: true,
@@ -194,6 +201,7 @@ const defaultSettings: Settings = {
     shellToolPartsExpanded: false,
     editToolPartsExpanded: false,
     showCustomAgents: false,
+    hiddenSkills: [],
     mobileTitlebarPosition: "top",
   },
   appearance: {
@@ -420,6 +428,10 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
         showCustomAgents,
         setShowCustomAgents(value: boolean) {
           setStore("general", "showCustomAgents", value)
+        },
+        hiddenSkills: withFallback(() => store.general?.hiddenSkills, defaultSettings.general.hiddenSkills),
+        setHiddenSkills(value: string[]) {
+          setStore("general", "hiddenSkills", value)
         },
         mobileTitlebarPosition: withFallback(
           () => store.general?.mobileTitlebarPosition,

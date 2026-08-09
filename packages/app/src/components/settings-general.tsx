@@ -584,7 +584,7 @@ export const SettingsGeneral: Component = () => {
                 step="5"
                 value={Math.round(getCharacterOpacity() * 100)}
                 onInput={(e) => setCharacterOpacity(e.currentTarget.valueAsNumber / 100)}
-                class="w-[120px] accent-[var(--jx-gold-dim)]"
+                class="w-[120px] accent-[var(--jx-gold-deep)]"
               />
               <span class="text-12-regular text-text-weak w-[42px] text-right">
                 {Math.round(getCharacterOpacity() * 100)}%

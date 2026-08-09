@@ -26,7 +26,6 @@ import { debounce } from "@solid-primitives/scheduled"
 import { useLocal } from "@/context/local"
 import { FileProvider, selectionFromLines, useFile, type FileSelection, type SelectedLineRange } from "@/context/file"
 import { createStore } from "solid-js/store"
-import type { SessionReviewLineComment } from "@opencode-ai/session-ui/session-review"
 import { ResizeHandle } from "@opencode-ai/ui/resize-handle"
 import { Select } from "@opencode-ai/ui/select"
 import { SelectV2 } from "@opencode-ai/ui/v2/select-v2"
@@ -1315,32 +1314,10 @@ export default function Page() {
       return activeReviewFile()
     },
     onSelectFile: focusReviewDiff,
-    get diffStyle() {
-      return layout.review.diffStyle()
-    },
-    onDiffStyleChange: layout.review.setDiffStyle,
+    onCollapse: () => view().reviewPanel.toggle(),
     state: reviewV2State,
-    onLineComment: (comment: SessionReviewLineComment) => addCommentToContext({ ...comment, origin: "review" }),
-    onLineCommentUpdate: updateCommentInContext,
-    onLineCommentDelete: removeCommentFromContext,
-    get lineCommentActions() {
-      return reviewCommentActions()
-    },
-    get comments() {
-      return comments.all()
-    },
     get focusedComment() {
       return comments.focus()
-    },
-    onFocusedCommentChange: (focus: { file: string; id: string } | null) => {
-      // The preview clears the focus once it has opened the comment; persist the
-      // focused file as the active selection so the preview stays on it. Skip
-      // files outside the current diff set (their focus is cleared unhandled).
-      if (!focus) {
-        const current = comments.focus()
-        if (current && reviewDiffs().some((diff) => diff.file === current.file)) focusReviewDiff(current.file)
-      }
-      comments.setFocus(focus)
     },
   })
 
@@ -2251,6 +2228,10 @@ export default function Page() {
         class="flex-1 min-h-0 flex flex-col md:flex-row"
         classList={{
           "gap-2 p-2": settings.general.newLayoutDesigns(),
+          // 工单 09：Review 面板收起态。基准 `session-body.no-review`（网格变单列、面板隐藏）；
+          // 打开态为 `session-body`。Review 面板可见与否由 reviewPanel.opened() 驱动（零功能改动）。
+          "session-body": true,
+          "no-review": !(newSessionDesign() ? desktopV2ReviewOpen() : desktopReviewOpen()),
         }}
       >
         <Show when={!isDesktop() && !!params.id && !settings.general.newLayoutDesigns()}>{mobileTabs()}</Show>

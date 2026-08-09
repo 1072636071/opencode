@@ -1,4 +1,6 @@
-import { createSignal, createEffect, onCleanup, Show, For, on } from "solid-js"
+import { createSignal, createEffect, onCleanup, onMount, Show, For, on } from "solid-js"
+import { Portal } from "solid-js/web"
+import { createStore } from "solid-js/store"
 import { useServerSDK } from "@/context/server-sdk"
 import { useTheme } from "@opencode-ai/ui/theme/context"
 import {
@@ -8,7 +10,16 @@ import {
   type CharacterState,
   type CharacterStatus,
 } from "@/components/character-state"
-import { JiangxiaoIcon } from "@/components/jiangxiao-icons"
+import { JiangxiaoIcon, type JiangxiaoIconName } from "@/components/jiangxiao-icons"
+import {
+  clampPosition,
+  clearPosition,
+  isNarrowViewport,
+  loadPosition,
+  resolvePosition,
+  savePosition,
+  type Position,
+} from "@/components/character-position"
 
 /**
  * 姜晓角色悬浮层（唐风二次元主题）
@@ -16,7 +27,7 @@ import { JiangxiaoIcon } from "@/components/jiangxiao-icons"
  * - 10 状态 WebP 动画由 character-state reducer 驱动，全局会话事件归一化后喂入
  * - 交叉淡入淡出切换（0.1s），高优先级打断低优先级
  * - 点击角色弹气泡 + 提示音
- * - 仅桌面端显示（由挂载处 isDesktop() 控制）
+ * - 全断点常驻：挂载处（layout/layout-new）无条件渲染，窄屏由 CSS 等比缩小而非隐藏（ADR-007）
  * - 纯视觉组件，不改任何功能逻辑
  */
 
@@ -80,12 +91,13 @@ function writeLS(key: string, value: number | boolean) {
 const LS_OPACITY = "jiangxiao.character.opacity"
 const LS_COLLAPSED = "jiangxiao.character.collapsed"
 
+// 透明度 clamp 到 [0.2, 1]（无完全隐藏）
+const clampOpacity = (v: number) => Math.max(0.2, Math.min(1, v))
+
 // 模块级透明度 signal：角色组件与设置面板共享同一 signal，天然同步。
 // 初始值从 localStorage 读取并 clamp 到 [0.2, 1]，默认 1（100%）。
 const initialOpacity = readLS(LS_OPACITY, 1)
-const [characterOpacity, setCharacterOpacityInternal] = createSignal(
-  Math.max(0.2, Math.min(1, initialOpacity)),
-)
+const [characterOpacity, setCharacterOpacityInternal] = createSignal(clampOpacity(initialOpacity))
 
 /** 读取当前角色透明度（0.2~1） */
 export function getCharacterOpacity() {
@@ -94,7 +106,7 @@ export function getCharacterOpacity() {
 
 /** 设置角色透明度：clamp 到 [0.2, 1]（无完全隐藏），持久化到 localStorage，更新 signal */
 export function setCharacterOpacity(v: number) {
-  const clamped = Math.max(0.2, Math.min(1, v))
+  const clamped = clampOpacity(v)
   writeLS(LS_OPACITY, clamped)
   setCharacterOpacityInternal(clamped)
 }
@@ -106,38 +118,56 @@ const OPACITY_PRESETS = [
   { label: "30%", value: 0.3 },
 ] as const
 
+// ---------- 工单 07：状态演示面板（char-tools 落地） ----------
+// 状态 → 图标映射参照 preview jiangxiao-ui-preview.html 的 STATES 表（idle→leaf、thinking→spark、
+// thinking2→read、replying→msg、working→term、error→alert、welcome→enter、complete→check、
+// permission→shield、waiting→clock），用到新图标 msg/alert/check/clock。
+const DEMO_STATES: { id: CharacterState; label: string; icon: JiangxiaoIconName }[] = [
+  { id: "idle", label: "待机", icon: "leaf" },
+  { id: "thinking", label: "思考", icon: "spark" },
+  { id: "thinking2", label: "思考·看书", icon: "read" },
+  { id: "replying", label: "回复", icon: "msg" },
+  { id: "working", label: "工作", icon: "term" },
+  { id: "error", label: "报错", icon: "alert" },
+  { id: "welcome", label: "欢迎", icon: "enter" },
+  { id: "complete", label: "完成", icon: "check" },
+  { id: "permission", label: "权限", icon: "shield" },
+  { id: "waiting", label: "等待输入", icon: "clock" },
+]
+
 export function JiangxiaoCharacterSidebar() {
   // 主题守卫（B1）：仅姜晓主题下渲染，避免非姜晓主题下裸 DOM 破坏布局。
   // useTheme() 在 ThemeProvider 内可用（角色组件挂在 layout 根，ThemeProvider 在 AppBaseProviders 中包裹整个 AppInterface）。
   const theme = useTheme()
   const sdk = useServerSDK()
-  const [status, setStatus] = createSignal<CharacterStatus>(initialCharacterStatus(Date.now()))
-  const [prevDisplay, setPrevDisplay] = createSignal<CharacterState>("idle")
-  const [transitioning, setTransitioning] = createSignal(false)
-  const [bubble, setBubble] = createSignal<string | undefined>(undefined)
-  // 右键菜单位置（undefined 表示关闭）
-  const [menu, setMenu] = createSignal<{ x: number; y: number } | undefined>(undefined)
-  // 折叠状态（localStorage 持久化，ADR-007：可折叠）
-  const [collapsed, setCollapsed] = createSignal(readLS(LS_COLLAPSED, false))
+  const [state, setState] = createStore({
+    status: initialCharacterStatus(Date.now()) as CharacterStatus,
+    prevDisplay: "idle" as CharacterState,
+    transitioning: false,
+    bubble: undefined as string | undefined,
+    menu: undefined as { x: number; y: number } | undefined,
+    collapsed: readLS(LS_COLLAPSED, false),
+    demoOpen: false,
+  })
 
   let fadeTimer: ReturnType<typeof setTimeout> | undefined
   let autoBubbleTimer: ReturnType<typeof setTimeout> | undefined
 
   // 归一化事件 → reducer → 新状态。reducer 是纯函数，所有时序由 Date.now() 驱动。
   function dispatch(event: CharacterEvent) {
-    setStatus(reduceCharacter(status(), event, Date.now()))
+    setState("status", reduceCharacter(state.status, event, Date.now()))
   }
 
   // 状态变化触发 crossfade：记录前一状态并标记 transitioning，CROSSFADE_MS 后清除。
   createEffect(
     on(
-      () => status().state,
+      () => state.status.state,
       (next, prev) => {
         if (prev === undefined || next === prev) return
-        setPrevDisplay(prev)
-        setTransitioning(true)
+        setState("prevDisplay", prev)
+        setState("transitioning", true)
         if (fadeTimer) clearTimeout(fadeTimer)
-        fadeTimer = setTimeout(() => setTransitioning(false), CROSSFADE_MS)
+        fadeTimer = setTimeout(() => setState("transitioning", false), CROSSFADE_MS)
       },
       { defer: true },
     ),
@@ -210,14 +240,15 @@ export function JiangxiaoCharacterSidebar() {
   const tickInterval = setInterval(() => dispatch({ type: "tick" }), TICK_INTERVAL_MS)
   onCleanup(() => clearInterval(tickInterval))
 
-  // 右键角色：弹出透明度快捷菜单（100%/60%/30%）
+  // 右键角色：弹出透明度快捷菜单（100%/60%/30%）+ 重置位置 + 状态演示入口
   function handleContextMenu(e: MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    // 边界检查：菜单不超出视口
+    // 边界检查：菜单不超出视口。菜单含 3 透明度档 + 分隔线 + 重置位置 + 分隔线 + 状态演示
+    // 共 7 行，每行 ~32px + 分隔线 2×7px + 容器 padding 8px ≈ 222px，取 230 留余量。
     const MENU_W = 120
-    const MENU_H = 130
-    setMenu({
+    const MENU_H = 230
+    setState("menu", {
       x: Math.min(e.clientX, window.innerWidth - MENU_W),
       y: Math.min(e.clientY, window.innerHeight - MENU_H),
     })
@@ -225,9 +256,9 @@ export function JiangxiaoCharacterSidebar() {
 
   // 菜单打开期间：点击或右键外部时关闭
   createEffect(() => {
-    const m = menu()
+    const m = state.menu
     if (!m) return
-    const close = () => setMenu(undefined)
+    const close = () => setState("menu", undefined)
     document.addEventListener("click", close)
     document.addEventListener("contextmenu", close)
     onCleanup(() => {
@@ -239,10 +270,10 @@ export function JiangxiaoCharacterSidebar() {
   // 点击角色：弹气泡 + 提示音
   function handleClick() {
     const line = IDLE_LINES[Math.floor(Math.random() * IDLE_LINES.length)]
-    setBubble(line)
+    setState("bubble", line)
     playChime()
     if (autoBubbleTimer) clearTimeout(autoBubbleTimer)
-    autoBubbleTimer = setTimeout(() => setBubble(undefined), 3500)
+    autoBubbleTimer = setTimeout(() => setState("bubble", undefined), 3500)
   }
 
   function playChime() {
@@ -269,32 +300,153 @@ export function JiangxiaoCharacterSidebar() {
     if (autoBubbleTimer) clearTimeout(autoBubbleTimer)
   })
 
-  const currentState = () => status().state
+  const currentState = () => state.status.state
 
   // 折叠/展开切换（持久化到 localStorage）
   function toggleCollapsed() {
-    const next = !collapsed()
-    setCollapsed(next)
+    const next = !state.collapsed
+    setState("collapsed", next)
     writeLS(LS_COLLAPSED, next)
   }
+
+  // ---------- 工单 07：状态演示 ----------
+  // 强制切态：dispatch force 覆盖事件驱动，台词气泡按态弹出 + 提示音（样式语义同 preview setCharState(s.id)）
+  function forceState(s: CharacterState) {
+    dispatch({ type: "force", state: s })
+    setState("bubble", STATUS_TEXT[s])
+    playChime()
+    if (autoBubbleTimer) clearTimeout(autoBubbleTimer)
+    autoBubbleTimer = setTimeout(() => setState("bubble", undefined), 3500)
+  }
+
+  // 回到自动：清除 override 恢复事件驱动
+  function returnToAuto() {
+    dispatch({ type: "auto" })
+  }
+
+  // 右键菜单「状态演示」入口：toggle 演示面板开合
+  function toggleDemo() {
+    setState("menu", undefined)
+    setState("demoOpen", !state.demoOpen)
+  }
+
+  // ---------- 工单 02：拖动移动位置（ADR-010） ----------
+  // 拖拽手柄 pointerdown → window pointermove/up；位置用 transform 叠加偏移（不改 CSS inset）。
+  // 偏移相对拖动起点累积；clamp 用 getBoundingClientRect 的起点尺寸保证角色+手柄不超出视口。
+  const [dragOffset, setDragOffset] = createSignal<Position>({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = createSignal(false)
+  let asideEl: HTMLElement | undefined
+  let dragStart:
+    | { px: number; py: number; originLeft: number; originTop: number; w: number; h: number }
+    | undefined
+
+  // 视口尺寸（handleDragMove / syncPosition 共用）
+  const getViewport = () => ({ width: window.innerWidth, height: window.innerHeight })
+
+  function handleDragStart(e: PointerEvent) {
+    if (!asideEl) return
+    // 工单 04：窄屏强制回左下默认，不允许拖动
+    if (isNarrowViewport(window.innerWidth)) return
+    e.preventDefault()
+    e.stopPropagation()
+    const rect = asideEl.getBoundingClientRect()
+    dragStart = { px: e.clientX, py: e.clientY, originLeft: rect.left, originTop: rect.top, w: rect.width, h: rect.height }
+    setIsDragging(true)
+    window.addEventListener("pointermove", handleDragMove)
+    window.addEventListener("pointerup", handleDragEnd)
+    // 指针设备取消（触摸中断等）同样结束拖动，避免残留监听
+    window.addEventListener("pointercancel", handleDragEnd)
+  }
+
+  function handleDragMove(e: PointerEvent) {
+    if (!dragStart) return
+    const clamped = clampPosition(
+      { x: dragStart.originLeft + e.clientX - dragStart.px, y: dragStart.originTop + e.clientY - dragStart.py },
+      getViewport(),
+      { width: dragStart.w, height: dragStart.h },
+    )
+    setDragOffset({ x: clamped.x - dragStart.originLeft, y: clamped.y - dragStart.originTop })
+  }
+
+  function handleDragEnd() {
+    dragStart = undefined
+    setIsDragging(false)
+    window.removeEventListener("pointermove", handleDragMove)
+    window.removeEventListener("pointerup", handleDragEnd)
+    window.removeEventListener("pointercancel", handleDragEnd)
+    // 工单 03：拖动结束保存绝对视口位置（已被 clamp 到视口内），刷新/重启后恢复
+    if (asideEl) {
+      const rect = asideEl.getBoundingClientRect()
+      savePosition({ x: rect.left, y: rect.top }, localStorage)
+    }
+  }
+
+  // ---------- 工单 03/04：位置持久化 + 窄屏回默认 + resize 实时 ----------
+  // 统一位置同步：反推 CSS 默认基准（当前 rect - 当前 offset），再经 resolvePosition 判定最终位置——
+  // 窄屏回默认（offset 归零）、宽屏恢复并 clamp 存储位置。用于挂载恢复与 resize 时重新计算。
+  function syncPosition() {
+    if (!asideEl) return
+    const rect = asideEl.getBoundingClientRect()
+    const cssDefault = { x: rect.left - dragOffset().x, y: rect.top - dragOffset().y }
+    const stored = loadPosition(localStorage, cssDefault)
+    const resolved = resolvePosition(stored, cssDefault, getViewport(), { width: rect.width, height: rect.height })
+    setDragOffset({ x: resolved.x - cssDefault.x, y: resolved.y - cssDefault.y })
+  }
+
+  // 挂载时恢复存储位置（宽屏）或回默认（窄屏）；resize 时实时窄屏判定 + 重 clamp 到新视口
+  onMount(() => {
+    syncPosition()
+    window.addEventListener("resize", syncPosition)
+  })
+
+  // 右键菜单「重置位置」：回左下默认并清空存储
+  function resetPosition() {
+    setDragOffset({ x: 0, y: 0 })
+    clearPosition(localStorage)
+    setState("menu", undefined)
+  }
+
+  onCleanup(() => {
+    window.removeEventListener("pointermove", handleDragMove)
+    window.removeEventListener("pointerup", handleDragEnd)
+    window.removeEventListener("pointercancel", handleDragEnd)
+    window.removeEventListener("resize", syncPosition)
+  })
 
   return (
     <Show when={theme.themeId() === "jiangxiao"}>
       <aside
+        ref={asideEl}
         data-component="jiangxiao-character"
-        data-collapsed={collapsed() ? "true" : undefined}
-        style={{ opacity: characterOpacity() }}
+        data-collapsed={state.collapsed ? "true" : undefined}
+        data-dragging={isDragging() ? "true" : undefined}
+        style={{
+          opacity: characterOpacity(),
+          // offset 为 0 时不输出 transform：避免恒建 containing block 使 fixed 菜单定位错乱（ADR-010 审查修复）
+          transform: dragOffset().x === 0 && dragOffset().y === 0 ? undefined : `translate(${dragOffset().x}px, ${dragOffset().y}px)`,
+        }}
       onContextMenu={handleContextMenu}
     >
+      {/* 拖拽手柄（ADR-010）：角色头顶上方，线描四向移动图标，默认半透 hover 变亮，pointerdown 发起拖动 */}
+      <div
+        data-slot="character-drag-handle"
+        onPointerDown={handleDragStart}
+        role="button"
+        aria-label="拖动移动姜晓"
+        title="拖动移动姜晓"
+      >
+        <JiangxiaoIcon name="move" size={16} />
+      </div>
       <div data-slot="character-video" onClick={handleClick}>
         <For each={VIDEO_STATES}>
           {(v) => (
             <img
+              draggable={false}
               src={`/character/${v}.webp`}
               loading={v === "idle" ? "eager" : "lazy"}
               data-state={v}
               data-active={currentState() === v ? true : undefined}
-              data-prev={prevDisplay() === v && transitioning() ? true : undefined}
+              data-prev={state.prevDisplay === v && state.transitioning ? true : undefined}
               onError={(e) => {
                 // 素材缺失时静默隐藏，不报错
                 ;(e.currentTarget as HTMLImageElement).style.display = "none"
@@ -305,7 +457,7 @@ export function JiangxiaoCharacterSidebar() {
       </div>
 
       {/* 点击气泡：漫画对白气泡，浮于角色头部上方，带小箭头指向角色，纯装饰穿透 */}
-      <Show when={bubble()}>
+      <Show when={state.bubble}>
         <div
           data-slot="character-bubble"
           style={{
@@ -315,11 +467,11 @@ export function JiangxiaoCharacterSidebar() {
             transform: "translateX(-50%)",
             "max-width": "200px",
             padding: "8px 12px",
-            background: "#0a0a0a",
-            border: "1px solid #B8860B",
+            background: "var(--jx-ink-950)",
+            border: "1px solid var(--jx-gold-deep)",
             "border-radius": "10px",
-            color: "#f2ead8",
-            "font-size": "12px",
+            color: "var(--jx-cream)",
+            "font-size": "var(--jx-fs-small)",
             "text-align": "center",
             "box-shadow": "0 4px 16px rgba(0,0,0,0.6)",
             "pointer-events": "none",
@@ -327,7 +479,7 @@ export function JiangxiaoCharacterSidebar() {
             "z-index": 3,
           }}
         >
-          {bubble()}
+          {state.bubble}
           {/* 向下小箭头，指向角色头部 */}
           <span
             aria-hidden="true"
@@ -340,7 +492,7 @@ export function JiangxiaoCharacterSidebar() {
               height: 0,
               "border-left": "6px solid transparent",
               "border-right": "6px solid transparent",
-              "border-top": "8px solid #B8860B",
+              "border-top": "8px solid var(--jx-gold-deep)",
               "pointer-events": "none",
             }}
           />
@@ -354,32 +506,90 @@ export function JiangxiaoCharacterSidebar() {
         type="button"
         data-slot="character-toggle"
         onClick={toggleCollapsed}
-        aria-label={collapsed() ? "展开姜晓" : "收起姜晓"}
-        title={collapsed() ? "展开姜晓" : "收起姜晓"}
+        aria-label={state.collapsed ? "展开姜晓" : "收起姜晓"}
+        title={state.collapsed ? "展开姜晓" : "收起姜晓"}
       >
         {/* chevron 图标：折叠时显示向下（展开方向），展开时显示向上（收起方向） */}
-        <JiangxiaoIcon name={collapsed() ? "chev-d" : "chev-u"} size={16} />
+        <JiangxiaoIcon name={state.collapsed ? "chev-d" : "chev-u"} size={16} />
       </button>
 
-      {/* 工单 05：透明度快捷菜单（右键角色弹出，100%/60%/30% 常用档位） */}
-      <Show when={menu()}>
+      {/* 右键菜单（工单 05：透明度 100%/60%/30%；工单 03：重置位置；工单 07：状态演示入口）。
+          Portal 到 body：角色拖动后 aside 带 transform（创建 containing block），fixed 菜单若留在
+          aside 内会相对 aside 定位而错位（ADR-010 审查修复）。 */}
+      <Show when={state.menu}>
         {(m) => (
-          <div data-slot="character-opacity-menu" style={{ left: `${m().x}px`, top: `${m().y}px` }}>
-            <For each={OPACITY_PRESETS}>
-              {(preset) => (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCharacterOpacity(preset.value)
-                    setMenu(undefined)
-                  }}
-                >
-                  {preset.label}
-                </button>
-              )}
-            </For>
-          </div>
+          <Portal>
+            <div data-slot="character-opacity-menu" style={{ left: `${m().x}px`, top: `${m().y}px` }}>
+              <For each={OPACITY_PRESETS}>
+                {(preset) => (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCharacterOpacity(preset.value)
+                      setState("menu", undefined)
+                    }}
+                  >
+                    {preset.label}
+                  </button>
+                )}
+              </For>
+              <span data-slot="opacity-menu-sep" aria-hidden="true" />
+              <button type="button" onClick={resetPosition}>
+                重置位置
+              </button>
+              <span data-slot="opacity-menu-sep" aria-hidden="true" />
+              <button
+                type="button"
+                class={state.demoOpen ? "on" : undefined}
+                onClick={toggleDemo}
+                aria-pressed={state.demoOpen}
+              >
+                {state.demoOpen ? "关闭演示" : "状态演示"}
+              </button>
+            </div>
+          </Portal>
         )}
+      </Show>
+
+      {/* 工单 07：状态演示面板（默认收起；竖排 10 态按钮 + 分隔线 + 「回到自动」+ 折叠钮，样式同 preview #char-tools）。
+          角色折叠（collapsed）时隐藏——演示态看不到动画无意义，展开角色后可从右键菜单重新唤起。 */}
+      <Show when={state.demoOpen && !state.collapsed}>
+        <div data-slot="character-demo-tools" role="group" aria-label="角色状态演示">
+          <For each={DEMO_STATES}>
+            {(d) => (
+              <button
+                type="button"
+                data-state={d.id}
+                title={d.label}
+                aria-label={d.label}
+                aria-pressed={currentState() === d.id}
+                class={currentState() === d.id ? "on" : undefined}
+                onClick={() => forceState(d.id)}
+              >
+                <JiangxiaoIcon name={d.icon} size={13} />
+              </button>
+            )}
+          </For>
+          <span data-slot="char-demo-sep" aria-hidden="true" />
+          <button
+            type="button"
+            class="char-demo-auto"
+            onClick={returnToAuto}
+            title="回到自动"
+            aria-label="回到自动，恢复事件驱动"
+          >
+            <JiangxiaoIcon name="spark" size={13} />
+            <span>回到自动</span>
+          </button>
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            title="收起姜晓"
+            aria-label="收起姜晓"
+          >
+            <JiangxiaoIcon name="chev-u" size={13} />
+          </button>
+        </div>
       </Show>
     </aside>
     </Show>

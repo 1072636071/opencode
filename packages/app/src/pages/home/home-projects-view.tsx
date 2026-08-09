@@ -20,6 +20,7 @@ import { ServerRowMenuView, serverMenuLabels } from "@/components/server/server-
 import { ServerHealthIndicator } from "@/components/server/server-row"
 import { type ServerHealth } from "@/utils/server-health"
 import { fileManagerApp } from "@/utils/file-manager"
+import { JiangxiaoIcon } from "@/components/jiangxiao-icons"
 
 const HOME_PROJECT_NAV_LABEL = "min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
 
@@ -66,6 +67,13 @@ export function HomeProjectsView(props: HomeProjectsViewProps) {
     contextMenuOpen: (id: string) => contextMenu.open === id,
     onSetContextMenuOpen: (id: string, open: boolean) => setContextMenu("open", open ? id : undefined),
   }
+  // 当前聚焦项目：选中的优先；否则取第一个。
+  const focusedProject = createMemo<LocalProject | undefined>(() => {
+    const list = props.projects()
+    if (list.length === 0) return undefined
+    const dir = props.selection().directory
+    return list.find((project) => project.worktree === dir) ?? list[0]
+  })
   return (
     <aside
       class={`
@@ -78,6 +86,9 @@ export function HomeProjectsView(props: HomeProjectsViewProps) {
         props.onWheel(event)
       }}
     >
+      <Show when={focusedProject()}>
+        {(project) => <JxHomeProjCard project={project()} homedir={props.homedir} />}
+      </Show>
       <div class="flex h-7 min-w-0 shrink-0 items-center justify-between pl-1.5 pr-3">
         <div class="text-v2-text-text-muted [font-weight:530]">{props.language.t("home.projects")}</div>
         <Show
@@ -97,7 +108,7 @@ export function HomeProjectsView(props: HomeProjectsViewProps) {
           </TooltipV2>
         </Show>
       </div>
-      <ScrollView data-slot="home-projects-scroll" class="min-h-0 min-w-0 shrink">
+      <ScrollView data-slot="home-projects-scroll" class="jx-projects-aside-list">
         <Show
           when={props.servers().length > 1}
           fallback={
@@ -154,6 +165,27 @@ export function HomeProjectsView(props: HomeProjectsViewProps) {
   )
 }
 
+function JxHomeProjCard(props: { project: LocalProject; homedir: Accessor<string> }) {
+  const name = createMemo(() => displayName(props.project))
+  const path = createMemo(() => {
+    const home = props.homedir()
+    const worktree = props.project.worktree
+    if (home && (worktree === home || worktree.startsWith(`${home}/`))) return `~${worktree.slice(home.length)}`
+    return worktree
+  })
+  return (
+    <div class="jx-proj-card" data-component="home-proj-card">
+      <span class="jx-proj-avatar" aria-hidden="true">
+        <JiangxiaoIcon name="leaf" size={20} />
+      </span>
+      <span class="jx-proj-meta">
+        <span class="jx-proj-name">{name()}</span>
+        <span class="jx-proj-path" title={props.project.worktree}>{path()}</span>
+      </span>
+    </div>
+  )
+}
+
 export function HomeUtilityNav(props: {
   class?: string
   onOpenSettings: () => void
@@ -161,23 +193,15 @@ export function HomeUtilityNav(props: {
   language: ReturnType<typeof useLanguage>
 }) {
   return (
-    <div class={`${props.class ?? ""} min-w-0 flex-col gap-1 pr-3`}>
-      <HomeProjectNavButton
-        type="button"
-        class="text-v2-text-text-faint [&>[data-slot=icon-svg]]:text-v2-icon-icon-muted"
-        onClick={props.onOpenSettings}
-      >
+    <div class={`jx-utility-nav ${props.class ?? ""}`}>
+      <button type="button" class="jx-ghost-btn" onClick={props.onOpenSettings}>
         <IconV2 name="settings-gear" size="small" />
         <span class={HOME_PROJECT_NAV_LABEL}>{props.language.t("sidebar.settings")}</span>
-      </HomeProjectNavButton>
-      <HomeProjectNavButton
-        type="button"
-        class="text-v2-text-text-faint [&>[data-slot=icon-svg]]:text-v2-icon-icon-muted"
-        onClick={props.onOpenHelp}
-      >
+      </button>
+      <button type="button" class="jx-ghost-btn" onClick={props.onOpenHelp}>
         <IconV2 name="help" size="small" />
         <span class={HOME_PROJECT_NAV_LABEL}>{props.language.t("sidebar.help")}</span>
-      </HomeProjectNavButton>
+      </button>
     </div>
   )
 }
@@ -476,13 +500,11 @@ function HomeProjectRow(
       class="group/project relative flex h-7 min-w-0 items-center rounded-[6px]"
       classList={{ "z-10": sortable.isDragSource() }}
     >
-      <HomeProjectNavButton
+      <button
         type="button"
         data-component="home-project-row"
-        class="pr-16 disabled:opacity-60"
-        classList={{
-          "bg-v2-background-bg-layer-01 text-v2-text-text-base": sortable.isDragSource(),
-        }}
+        class="jx-proj-item"
+        classList={{ on: props.selected }}
         data-selected={props.selected ? "" : undefined}
         aria-current={props.selected ? "page" : undefined}
         disabled={serverUnreachable()}
@@ -514,9 +536,8 @@ function HomeProjectRow(
           pointerDownSelected = undefined
         }}
       >
-        <HomeProjectAvatar project={props.project} />
-        <span class={HOME_PROJECT_NAV_LABEL}>{displayName(props.project)}</span>
-      </HomeProjectNavButton>
+        <span class="jx-proj-item-label">{displayName(props.project)}</span>
+      </button>
       <div
         class={`
           hover-reveal absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-1

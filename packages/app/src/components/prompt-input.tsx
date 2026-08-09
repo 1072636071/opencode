@@ -28,6 +28,8 @@ import {
 import { useLayout } from "@/context/layout"
 import { useSDK } from "@/context/sdk"
 import { useSync } from "@/context/sync"
+import { useSettings } from "@/context/settings"
+import { filterHiddenCommands } from "./prompt-input/filter-hidden-commands"
 import { useComments } from "@/context/comments"
 import { Button } from "@opencode-ai/ui/button"
 import { DockShellForm, DockTray } from "@opencode-ai/ui/dock-surface"
@@ -128,6 +130,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   const comments = useComments()
   const dialog = useDialog()
   const command = useCommand()
+  const settings = useSettings()
   const permission = usePermission()
   const language = useLanguage()
   const platform = usePlatform()
@@ -288,6 +291,9 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     return text.trim().length === 0 && imageAttachments().length === 0 && commentCount() === 0
   })
   const stopping = createMemo(() => working() && blank())
+  const submitLabel = createMemo(() =>
+    stopping() ? language.t("prompt.action.stop") : language.t("prompt.action.send"),
+  )
   const tip = () => {
     if (stopping()) {
       return (
@@ -716,8 +722,19 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       // source: cmd.source,
     }))
 
-    return [...custom, ...builtin]
+    return filterHiddenCommands([...custom, ...builtin], settings.general.hiddenSkills())
   })
+
+  // 被隐藏名单过滤掉的技能命令数（仅统计当前命令列表中真实存在的名字，避免显示失效名单）。
+  const hiddenSkillCount = createMemo(
+    () => sync().data.command.filter((cmd) => settings.general.hiddenSkills().includes(cmd.name)).length,
+  )
+
+  const openHiddenSkillsSettings = () => {
+    void import("@/components/settings-v2").then((module) => {
+      void dialog.show(() => <module.DialogSettings />)
+    })
+  }
 
   const handleSlashSelect = (cmd: SlashCommand | undefined) => {
     if (!cmd) return
@@ -1461,7 +1478,9 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         commandKeybind={command.keybind}
         commandKeybindParts={command.keybindParts}
         newLayoutDesigns={false}
-        t={(key) => language.t(key as Parameters<typeof language.t>[0])}
+        t={(key, params) => language.t(key as Parameters<typeof language.t>[0], params)}
+        hiddenSkillCount={hiddenSkillCount()}
+        onOpenHiddenSkills={openHiddenSkillsSettings}
       />
       <DockShellForm
         data-dock-border-underlay="legacy"
@@ -1591,7 +1610,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                       icon={stopping() ? "stop" : store.mode === "shell" ? "arrow-undo-down" : "arrow-up"}
                       variant="primary"
                       class="size-8"
-                      aria-label={stopping() ? language.t("prompt.action.stop") : language.t("prompt.action.send")}
+                      aria-label={submitLabel()}
                     />
                   </Tooltip>
                 }
@@ -1603,13 +1622,13 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                     data-action="prompt-submit"
                     disabled={!working() && blank()}
                     tabIndex={store.mode === "normal" ? undefined : -1}
-                    aria-label={stopping() ? language.t("prompt.action.stop") : language.t("prompt.action.send")}
+                    aria-label={submitLabel()}
                     class="flex size-8 items-center justify-center"
                   >
                     <JiangxiaoIcon
                       name={stopping() ? "x" : store.mode === "shell" ? "enter" : "send"}
                       size={16}
-                      aria-label={stopping() ? language.t("prompt.action.stop") : language.t("prompt.action.send")}
+                      aria-label={submitLabel()}
                     />
                   </button>
                 </Tooltip>

@@ -91,6 +91,8 @@ export const dict = {
   "command.session.share.description": "Del denne session og kopier URL'en til udklipsholderen",
   "command.session.unshare": "Stop deling af session",
   "command.session.unshare.description": "Stop med at dele denne session",
+  "command.session.export": "Eksportér session",
+  "command.session.export.description": "Eksportér hele sessionstranskriptet som JSON",
 
   "palette.search.placeholder": "Søg i filer, kommandoer og sessioner",
   "palette.search.placeholder.home": "Søg i kommandoer og sessioner",
@@ -286,6 +288,7 @@ export const dict = {
   "prompt.slash.badge.custom": "brugerdefineret",
   "prompt.slash.badge.skill": "skill",
   "prompt.slash.badge.mcp": "mcp",
+  "prompt.slash.hiddenSkillsHint": "{{count}} færdighedskommandoer skjult",
   "prompt.context.active": "aktiv",
   "prompt.context.includeActiveFile": "Inkluder aktiv fil",
   "prompt.context.removeActiveFile": "Fjern aktiv fil fra kontekst",
@@ -457,6 +460,7 @@ export const dict = {
 
   "context.systemPrompt.title": "Systemprompt",
   "context.rawMessages.title": "Rå beskeder",
+  "context.export.session": "Eksportér session",
 
   "context.stats.session": "Session",
   "context.stats.messages": "Beskeder",
@@ -534,6 +538,11 @@ export const dict = {
   "toast.session.unshare.success.description": "Deling af session blev stoppet!",
   "toast.session.unshare.failed.title": "Kunne ikke stoppe deling af session",
   "toast.session.unshare.failed.description": "Der opstod en fejl under stop af sessionsdeling",
+
+  "toast.session.export.success.title": "Session eksporteret",
+  "toast.session.export.success.description": "Session gemt til {{filename}}",
+  "toast.session.export.failed.title": "Kunne ikke eksportere session",
+  "toast.session.export.failed.description": "Der opstod en fejl under eksport af sessionen",
 
   "toast.session.listFailed.title": "Kunne ikke indlæse sessioner for {{project}}",
 
@@ -635,6 +644,9 @@ export const dict = {
   "session.review.noChanges": "Ingen ændringer",
   "session.review.noUncommittedChanges": "Ingen ændringer uden commit endnu",
   "session.review.noBranchChanges": "Ingen grenændringer endnu",
+  "time.yesterday": "Igår",
+  "session.review.collapse": "Skjul",
+  "session.review.collapse.ariaLabel": "Skjul anmeldelsespanel",
   "session.files.selectToOpen": "Vælg en fil at åbne",
   "session.files.all": "Alle filer",
   "session.files.empty": "Ingen filer",
@@ -733,6 +745,7 @@ export const dict = {
   "common.moreOptions": "Flere muligheder",
   "common.learnMore": "Lær mere",
   "common.rename": "Omdøb",
+  "common.export": "Eksportér",
   "common.reset": "Nulstil",
   "common.archive": "Arkivér",
   "common.delete": "Slet",
@@ -810,6 +823,7 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Navigation nederst",
   "settings.general.row.mobileTitlebarBottom.description":
     "Placer titellinjen og sessionsfanerne nederst på skærmen på mobilenheder",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Vis agent",
   "settings.general.row.showCustomAgents.description":
     "Skift mellem agenter i promptfeltet. Når vælgeren er skjult, bruges Build-agenten som standard.",

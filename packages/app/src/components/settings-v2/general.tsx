@@ -1,4 +1,4 @@
-import { Component, Show, createMemo, createResource } from "solid-js"
+import { Component, For, Show, createMemo, createResource } from "solid-js"
 import { createMediaQuery } from "@solid-primitives/media"
 import { ButtonV2 } from "@opencode-ai/ui/v2/button-v2"
 import { SelectV2 } from "@opencode-ai/ui/v2/select-v2"
@@ -9,6 +9,8 @@ import { useLanguage } from "@/context/language"
 import { usePlatform } from "@/context/platform"
 import { useUpdaterAction } from "../updater-action"
 import { useSettings } from "@/context/settings"
+import { toggleHiddenSkill } from "@/context/settings"
+import { useSync } from "@/context/sync"
 import { ExternalLink } from "../external-link"
 import { SettingsListV2 } from "./parts/list"
 import { SettingsRowV2 } from "./parts/row"
@@ -278,6 +280,7 @@ export const SettingsGeneralV2: Component<{
   const platform = usePlatform()
   const dialog = useDialog()
   const settings = useSettings()
+  const sync = useSync()
   const mobile = createMediaQuery("(max-width: 767px)")
   const updater = useUpdaterAction()
   const permissionScope = createPermissionScopeController(() => props.sessionID)
@@ -438,6 +441,26 @@ export const SettingsGeneralV2: Component<{
             />
           </div>
         </SettingsRowV2>
+
+        <Show when={sync().data.command.length > 0}>
+          <div class="text-xs font-medium text-text-subtle pt-2">
+            {language.t("settings.general.row.skillCommands.title")}
+          </div>
+          <For each={sync().data.command}>
+            {(cmd) => (
+              <SettingsRowV2 title={cmd.name} description={cmd.description ?? ""}>
+                <div data-action={`settings-skill-visibility-${cmd.name}`}>
+                  <Switch
+                    checked={!settings.general.hiddenSkills().includes(cmd.name)}
+                    onChange={(checked) =>
+                      settings.general.setHiddenSkills(toggleHiddenSkill(settings.general.hiddenSkills(), cmd.name, checked))
+                    }
+                  />
+                </div>
+              </SettingsRowV2>
+            )}
+          </For>
+        </Show>
       </SettingsListV2>
     </div>
   )

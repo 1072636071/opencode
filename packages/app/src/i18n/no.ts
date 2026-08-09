@@ -190,6 +190,8 @@ export const dict = {
   "command.session.share.description": "Del denne sesjonen og kopier URL-en til utklippstavlen",
   "command.session.unshare": "Slutt å dele sesjon",
   "command.session.unshare.description": "Slutt å dele denne sesjonen",
+  "command.session.export": "Eksporter økt",
+  "command.session.export.description": "Eksporter hele økttranskriptet som JSON",
 
   "palette.search.placeholder": "Søk i filer, kommandoer og sesjoner",
   "palette.search.placeholder.home": "Søk i kommandoer og sesjoner",
@@ -379,6 +381,7 @@ export const dict = {
   "prompt.slash.badge.custom": "egendefinert",
   "prompt.slash.badge.skill": "ferdighet",
   "prompt.slash.badge.mcp": "mcp",
+  "prompt.slash.hiddenSkillsHint": "{{count}} ferdighetskommandoer skjult",
   "prompt.context.active": "aktiv",
   "prompt.context.includeActiveFile": "Inkluder aktiv fil",
   "prompt.context.removeActiveFile": "Fjern aktiv fil fra kontekst",
@@ -481,6 +484,7 @@ export const dict = {
 
   "context.systemPrompt.title": "Systemprompt",
   "context.rawMessages.title": "Rå meldinger",
+  "context.export.session": "Eksporter økt",
 
   "context.stats.session": "Sesjon",
   "context.stats.messages": "Meldinger",
@@ -558,6 +562,11 @@ export const dict = {
   "toast.session.unshare.success.description": "Sesjonen deles ikke lenger!",
   "toast.session.unshare.failed.title": "Kunne ikke stoppe deling av sesjon",
   "toast.session.unshare.failed.description": "Det oppstod en feil da delingen av sesjonen skulle stoppes",
+
+  "toast.session.export.success.title": "Økt eksportert",
+  "toast.session.export.success.description": "Økt lagret til {{filename}}",
+  "toast.session.export.failed.title": "Kunne ikke eksportere økten",
+  "toast.session.export.failed.description": "Det oppstod en feil under eksport av økten",
 
   "toast.session.listFailed.title": "Kunne ikke laste sesjoner for {{project}}",
 
@@ -721,6 +730,7 @@ export const dict = {
   "common.moreOptions": "Flere alternativer",
   "common.learnMore": "Lær mer",
   "common.rename": "Gi nytt navn",
+  "common.export": "Eksporter",
   "common.reset": "Tilbakestill",
   "common.archive": "Arkiver",
   "common.delete": "Slett",
@@ -1201,6 +1211,9 @@ export const dict = {
   "session.error.serverConnection": "Kan ikke koble til denne serveren",
   "session.review.noUncommittedChanges": "Ingen endringer som ikke er sjekket inn ennå",
   "session.review.noBranchChanges": "Ingen grenendringer ennå",
+  "time.yesterday": "Igår",
+  "session.review.collapse": "Skjul",
+  "session.review.collapse.ariaLabel": "Skjul gjennomgangspanel",
   "session.question.minimize": "Minimer spørsmål",
   "session.question.restore": "Gjenopprett spørsmål",
   "session.question.pending.one": "{{count}} ventende spørsmål",
@@ -1237,6 +1250,7 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Navigasjon nederst",
   "settings.general.row.mobileTitlebarBottom.description":
     "Plasser tittellinjen og sesjonsfanene nederst på mobilskjermen",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Vis agent",
   "settings.general.row.showCustomAgents.description":
     "Bytt mellom agenter i skrivefeltet. Når velgeren er skjult, brukes Build-agenten som standard.",

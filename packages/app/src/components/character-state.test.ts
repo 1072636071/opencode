@@ -356,4 +356,125 @@ describe("character-state reducer", () => {
     s = step(s, { type: "tick" }, 1000 + THINKING2_THRESHOLD_MS)
     expect(s.state).toBe("thinking2")
   })
+
+  // ---------- 工单 07：演示/调试 强制切态 + 回到自动（override 机制） ----------
+
+  test("force: pins any of the 10 states and freezes tick timing", () => {
+    const states = [
+      "idle", "thinking", "thinking2", "replying", "working", "error",
+      "welcome", "complete", "permission", "waiting",
+    ] as const
+    for (const target of states) {
+      let s = initialCharacterStatus(0)
+      s = step(s, { type: "force", state: target }, 1)
+      expect(s.state).toBe(target)
+      expect(s.override).toBe(target)
+      // 演示模式下 tick 不自动流转（complete/welcome 不延时切待机，thinking 不超时切 thinking2）
+      s = step(s, { type: "tick" }, 1 + Math.max(THINKING2_THRESHOLD_MS, COMPLETE_HOLD_MIN_MS, WELCOME_HOLD_MS))
+      expect(s.state).toBe(target)
+    }
+  })
+
+  test("force: remembers preOverride; auto restores it", () => {
+    let s = initialCharacterStatus(0)
+    s = step(s, { type: "prompt_admitted" }, 1) // thinking
+    s = step(s, { type: "force", state: "complete" }, 2)
+    expect(s.state).toBe("complete")
+    expect(s.preOverride).toBe("thinking")
+    s = step(s, { type: "auto" }, 3)
+    expect(s.state).toBe("thinking")
+    expect(s.override).toBeUndefined()
+    expect(s.preOverride).toBeUndefined()
+  })
+
+  test("force: switching pinned state keeps original preOverride", () => {
+    let s = initialCharacterStatus(0)
+    s = step(s, { type: "prompt_admitted" }, 1) // thinking
+    s = step(s, { type: "force", state: "error" }, 2) // preOverride=thinking
+    s = step(s, { type: "force", state: "welcome" }, 3) // 保持 preOverride=thinking
+    expect(s.state).toBe("welcome")
+    expect(s.preOverride).toBe("thinking")
+    s = step(s, { type: "auto" }, 4)
+    expect(s.state).toBe("thinking")
+  })
+
+  test("force: same pinned state is idempotent (no seq bump)", () => {
+    let s = initialCharacterStatus(0)
+    s = step(s, { type: "force", state: "error" }, 1)
+    const seq = s.seq
+    s = step(s, { type: "force", state: "error" }, 2)
+    expect(s.state).toBe("error")
+    expect(s.seq).toBe(seq)
+  })
+
+  test("auto: falls back to idle when no preOverride", () => {
+    let s = initialCharacterStatus(0)
+    s = step(s, { type: "force", state: "error" }, 1)
+    s = step(s, { type: "auto" }, 2)
+    expect(s.state).toBe("idle")
+    expect(s.override).toBeUndefined()
+  })
+
+  test("real business event clears override and is processed normally", () => {
+    // 演示 error 下 session_idle：override 清除（恢复事件驱动），error 优先级高不被 idle 抢占 → 仍 error
+    let s = initialCharacterStatus(0)
+    s = step(s, { type: "force", state: "error" }, 1)
+    s = step(s, { type: "session_idle" }, 2)
+    expect(s.override).toBeUndefined()
+    expect(s.state).toBe("error")
+    // 演示 working 下 session_error 抢占为 error
+    s = initialCharacterStatus(0)
+    s = step(s, { type: "force", state: "working" }, 1)
+    s = step(s, { type: "session_error" }, 2)
+    expect(s.override).toBeUndefined()
+    expect(s.state).toBe("error")
+    // 演示 idle 下 prompt_admitted → thinking（并重计时）
+    s = initialCharacterStatus(0)
+    s = step(s, { type: "force", state: "idle" }, 1)
+    s = step(s, { type: "prompt_admitted" }, 2)
+    expect(s.override).toBeUndefined()
+    expect(s.state).toBe("thinking")
+    expect(s.thinkingSince).toBe(2)
+    // 演示 thinking 下 text_delta → replying
+    s = initialCharacterStatus(0)
+    s = step(s, { type: "force", state: "thinking" }, 1)
+    s = step(s, { type: "text_delta" }, 2)
+    expect(s.override).toBeUndefined()
+    expect(s.state).toBe("replying")
+  })
+
+  test("auto with no active override is ignored", () => {
+    let s = initialCharacterStatus(0)
+    s = step(s, { type: "prompt_admitted" }, 1) // thinking
+    const next = step(s, { type: "auto" }, 2)
+    expect(next.state).toBe("thinking")
+    expect(next.override).toBeUndefined()
+  })
+
+  test("force clears stale timing fields but keeps preWorking", () => {
+    let s = initialCharacterStatus(0)
+    s = step(s, { type: "prompt_admitted" }, 1) // thinking, thinkingSince=1
+    s = step(s, { type: "tool_called" }, 2) // working, preWorking=thinking
+    expect(s.preWorking).toBe("thinking")
+    s = step(s, { type: "force", state: "complete" }, 3)
+    expect(s.thinkingSince).toBeUndefined()
+    expect(s.completeSince).toBeUndefined()
+    expect(s.preWorking).toBe("thinking") // 保留回退依据
+    // 真实事件 tool_finished 清除 override 恢复事件驱动；complete 下 exitWorking 无效果，仍 complete
+    s = step(s, { type: "tool_finished" }, 4)
+    expect(s.override).toBeUndefined()
+    expect(s.state).toBe("complete")
+  })
+
+  test("complete lifecycle in demo mode: force complete stays pinned, auto returns", () => {
+    let s = initialCharacterStatus(0)
+    s = step(s, { type: "force", state: "complete" }, 1)
+    // 演示下 complete 不延时切待机
+    s = step(s, { type: "tick" }, 1 + COMPLETE_HOLD_MIN_MS * 2)
+    expect(s.state).toBe("complete")
+    // auto 回到进入演示前的状态（idle）
+    s = step(s, { type: "auto" }, 2 + COMPLETE_HOLD_MIN_MS * 2)
+    expect(s.state).toBe("idle")
+    expect(s.completeSince).toBeUndefined()
+  })
 })

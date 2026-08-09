@@ -186,6 +186,8 @@ export const dict = {
   "command.session.share.description": "Partager cette session et copier l'URL dans le presse-papiers",
   "command.session.unshare": "Ne plus partager la session",
   "command.session.unshare.description": "Arrêter de partager cette session",
+  "command.session.export": "Exporter la session",
+  "command.session.export.description": "Exporter la transcription complète de la session en JSON",
   "palette.search.placeholder": "Rechercher des fichiers, des commandes et des sessions",
   "palette.search.placeholder.home": "Rechercher des commandes et des sessions",
   "palette.empty": "Aucun résultat trouvé",
@@ -372,6 +374,7 @@ export const dict = {
   "prompt.slash.badge.custom": "personnalisé",
   "prompt.slash.badge.skill": "compétence",
   "prompt.slash.badge.mcp": "mcp",
+  "prompt.slash.hiddenSkillsHint": "{{count}} commandes de compétence masquées",
   "prompt.context.active": "actif",
   "prompt.context.includeActiveFile": "Inclure le fichier actif",
   "prompt.context.removeActiveFile": "Retirer le fichier actif du contexte",
@@ -550,6 +553,7 @@ export const dict = {
   "context.breakdown.other": "Autre",
   "context.systemPrompt.title": "Invite système",
   "context.rawMessages.title": "Messages bruts",
+  "context.export.session": "Exporter la session",
   "context.stats.session": "Session",
   "context.stats.messages": "Messages",
   "context.stats.provider": "Fournisseur",
@@ -617,6 +621,11 @@ export const dict = {
   "toast.session.unshare.failed.title": "Échec de la désactivation du partage",
   "toast.session.unshare.failed.description":
     "Une erreur s'est produite lors de la désactivation du partage de la session",
+
+  "toast.session.export.success.title": "Session exportée",
+  "toast.session.export.success.description": "Session enregistrée dans {{filename}}",
+  "toast.session.export.failed.title": "Échec de l'exportation de la session",
+  "toast.session.export.failed.description": "Une erreur est survenue lors de l'exportation de la session",
   "toast.session.listFailed.title": "Échec du chargement des sessions pour {{project}}",
   "toast.update.title": "Mise à jour disponible",
   "toast.update.description":
@@ -709,6 +718,9 @@ export const dict = {
   "session.review.noChanges": "Aucune modification",
   "session.review.noUncommittedChanges": "Aucune modification non validée pour l'instant",
   "session.review.noBranchChanges": "Aucune modification de branche pour l'instant",
+  "time.yesterday": "Hier",
+  "session.review.collapse": "Replier",
+  "session.review.collapse.ariaLabel": "Replier le panneau de révision",
   "session.review.noVcs": "Aucun système de gestion de versions Git détecté ; modifications non affichées",
   "session.review.noSnapshot":
     "Le suivi des instantanés est désactivé dans la configuration, les modifications de session sont donc indisponibles",
@@ -799,6 +811,7 @@ export const dict = {
   "common.moreOptions": "Plus d'options",
   "common.learnMore": "En savoir plus",
   "common.rename": "Renommer",
+  "common.export": "Exporter",
   "common.reset": "Réinitialiser",
   "common.archive": "Archiver",
   "common.delete": "Supprimer",
@@ -877,6 +890,7 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Navigation en bas",
   "settings.general.row.mobileTitlebarBottom.description":
     "Placer la barre de titre et les onglets de session en bas de l'écran sur mobile",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Agents personnalisés",
   "settings.general.row.showCustomAgents.description": "Afficher le sélecteur d'agent dans la zone de saisie",
   "settings.general.row.reasoningSummaries.title": "Afficher les résumés de raisonnement",

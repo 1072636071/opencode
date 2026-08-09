@@ -192,6 +192,8 @@ export const dict = {
   "command.session.share.description": "Podijeli ovu sesiju i kopiraj URL u međuspremnik",
   "command.session.unshare": "Ukini dijeljenje sesije",
   "command.session.unshare.description": "Zaustavi dijeljenje ove sesije",
+  "command.session.export": "Izvezi sesiju",
+  "command.session.export.description": "Izvezi kompletan transkript sesije kao JSON",
 
   "palette.search.placeholder": "Pretraži datoteke, komande i sesije",
   "palette.search.placeholder.home": "Pretraži komande i sesije",
@@ -389,6 +391,7 @@ export const dict = {
   "prompt.slash.badge.custom": "prilagođeno",
   "prompt.slash.badge.skill": "skill",
   "prompt.slash.badge.mcp": "mcp",
+  "prompt.slash.hiddenSkillsHint": "Sakriveno {{count}} komandi veština",
   "prompt.context.active": "aktivno",
   "prompt.context.includeActiveFile": "Uključi aktivnu datoteku",
   "prompt.context.removeActiveFile": "Ukloni aktivnu datoteku iz konteksta",
@@ -576,6 +579,7 @@ export const dict = {
 
   "context.systemPrompt.title": "Sistemski prompt",
   "context.rawMessages.title": "Sirove poruke",
+  "context.export.session": "Izvezi sesiju",
 
   "context.stats.session": "Sesija",
   "context.stats.messages": "Poruke",
@@ -654,6 +658,11 @@ export const dict = {
   "toast.session.unshare.success.description": "Dijeljenje sesije je uspješno ukinuto!",
   "toast.session.unshare.failed.title": "Neuspjelo ukidanje dijeljenja",
   "toast.session.unshare.failed.description": "Došlo je do greške prilikom ukidanja dijeljenja",
+
+  "toast.session.export.success.title": "Sesija izvezena",
+  "toast.session.export.success.description": "Sesija sačuvana u {{filename}}",
+  "toast.session.export.failed.title": "Neuspješno izvođenje sesije",
+  "toast.session.export.failed.description": "Došlo je do greške prilikom izvoza sesije",
 
   "toast.session.listFailed.title": "Neuspjelo učitavanje sesija za {{project}}",
 
@@ -755,6 +764,9 @@ export const dict = {
   "session.review.noChanges": "Nema izmjena",
   "session.review.noUncommittedChanges": "Još nema promjena koje nisu commitovane",
   "session.review.noBranchChanges": "Još nema promjena na grani",
+  "time.yesterday": "Juče",
+  "session.review.collapse": "Skupi",
+  "session.review.collapse.ariaLabel": "Skupi panel za pregled",
 
   "session.files.selectToOpen": "Odaberi datoteku za otvaranje",
   "session.files.all": "Sve datoteke",
@@ -856,6 +868,7 @@ export const dict = {
   "common.moreOptions": "Više opcija",
   "common.learnMore": "Saznaj više",
   "common.rename": "Preimenuj",
+  "common.export": "Izvezi",
   "common.reset": "Vrati na početno stanje",
   "common.archive": "Arhiviraj",
   "common.delete": "Izbriši",
@@ -934,6 +947,7 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Donja navigacija",
   "settings.general.row.mobileTitlebarBottom.description":
     "Postavi naslovnu traku i kartice sesije na dno ekrana na mobilnim uređajima",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Prilagođeni agenti",
   "settings.general.row.showCustomAgents.description": "Prikaži izbor agenta u uređivaču poruke",
   "settings.general.row.reasoningSummaries.title": "Prikaži sažetke rasuđivanja",

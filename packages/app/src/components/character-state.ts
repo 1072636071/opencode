@@ -57,6 +57,11 @@ export type CharacterEvent =
   | { type: "permission_replied" }
   // 时间滴答：驱动 thinking2 超时切入、complete 延时切待机、welcome 播完切待机
   | { type: "tick" }
+  // 演示/调试（工单 07）：强制切态，覆盖事件驱动。override 生效期间 tick 时序冻结，
+  // 任意真实业务事件或 auto 事件清除 override 后恢复事件驱动。
+  | { type: "force"; state: CharacterState }
+  // 演示/调试（工单 07）：回到自动，清除 override 恢复事件驱动（回到进入演示前的状态，无则 idle）
+  | { type: "auto" }
 
 /** reducer 状态：当前状态 + 时序元数据。 */
 export type CharacterStatus = {
@@ -71,6 +76,10 @@ export type CharacterStatus = {
   preWorking?: CharacterState
   /** 进入 permission 前的状态，permission_replied 回退到此态。 */
   prePermission?: CharacterState
+  /** 演示/调试强制态（工单 07）：非 undefined 时角色被 force 钉在此态，tick 时序冻结。 */
+  override?: CharacterState
+  /** 进入演示模式前的状态，auto 恢复到此态（无则回 idle）。 */
+  preOverride?: CharacterState
   /** 已处理的事件序号（同级按到达序的依据）。 */
   seq: number
 }
@@ -111,7 +120,9 @@ export function reduceCharacter(state: CharacterStatus, event: CharacterEvent, n
 }
 
 // 时间驱动转换：thinking2 超时切入、complete 延时切待机、welcome 播完切待机。
+// 演示模式（override 生效）期间冻结时序，避免强制态被 tick 自动流转。
 function applyTick(state: CharacterStatus, now: number): CharacterStatus {
+  if (state.override !== undefined) return state
   if (state.state === "thinking" && state.thinkingSince !== undefined && now - state.thinkingSince >= THINKING2_THRESHOLD_MS) {
     return { ...state, state: "thinking2", seq: state.seq + 1 }
   }
@@ -126,6 +137,13 @@ function applyTick(state: CharacterStatus, now: number): CharacterStatus {
 
 // 业务事件处理。thinking2 下任何业务事件先切回 thinking（"事件到来立即切回"）。
 function applyEvent(state: CharacterStatus, event: CharacterEvent, now: number): CharacterStatus {
+  // 演示模式（override 生效）：force 切换演示态；auto 恢复；任意真实业务事件清除 override 后按事件驱动处理。
+  if (state.override !== undefined) {
+    if (event.type === "force") return applyForce(state, event.state)
+    if (event.type === "auto") return exitOverride(state, state.preOverride ?? "idle")
+    return applyEvent(exitOverride(state, state.state), event, now)
+  }
+
   const base: CharacterStatus = state.state === "thinking2" ? { ...state, state: "thinking" } : state
 
   switch (event.type) {
@@ -151,9 +169,36 @@ function applyEvent(state: CharacterStatus, event: CharacterEvent, now: number):
       return handleExecutionFinished(base, event, now)
     case "session_idle":
       return preempt(base, "idle", 3, new Set())
+    case "force":
+      // 非演示态下 force：进入演示模式，记录 preOverride 为当前态
+      return applyForce(base, event.state)
+    case "auto":
+      // 非演示态下 auto 无 override 可恢复，忽略
+      return state
     default:
       return state
   }
+}
+
+// 演示/调试：强制切态。首次进入记录 preOverride（进入演示前的状态），演示中换态保持原 preOverride。
+// 清除时序字段，避免强制态被遗留计时误流转；preWorking/prePermission 保留以便退出后正确回退。
+function applyForce(state: CharacterStatus, target: CharacterState): CharacterStatus {
+  if (state.state === target && state.override !== undefined) return state
+  return {
+    ...state,
+    state: target,
+    override: target,
+    preOverride: state.override === undefined ? state.state : state.preOverride,
+    thinkingSince: undefined,
+    completeSince: undefined,
+    welcomeSince: undefined,
+    seq: state.seq + 1,
+  }
+}
+
+// 演示/调试：退出演示模式，回落到 fallback 状态并清除 override/preOverride。
+function exitOverride(state: CharacterStatus, fallback: CharacterState): CharacterStatus {
+  return { ...state, state: fallback, override: undefined, preOverride: undefined, seq: state.seq + 1 }
 }
 
 // 抢占 + 流转判定：

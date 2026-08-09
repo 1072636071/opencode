@@ -192,6 +192,8 @@ export const dict = {
   "command.session.share.description": "Compartir esta sesión y copiar la URL al portapapeles",
   "command.session.unshare": "Dejar de compartir sesión",
   "command.session.unshare.description": "Dejar de compartir esta sesión",
+  "command.session.export": "Exportar sesión",
+  "command.session.export.description": "Exportar la transcripción completa de la sesión como JSON",
 
   "palette.search.placeholder": "Buscar archivos, comandos y sesiones",
   "palette.search.placeholder.home": "Buscar comandos y sesiones",
@@ -389,6 +391,7 @@ export const dict = {
   "prompt.slash.badge.custom": "personalizado",
   "prompt.slash.badge.skill": "skill",
   "prompt.slash.badge.mcp": "mcp",
+  "prompt.slash.hiddenSkillsHint": "{{count}} comandos de habilidad ocultos",
   "prompt.context.active": "activo",
   "prompt.context.includeActiveFile": "Incluir archivo activo",
   "prompt.context.removeActiveFile": "Eliminar archivo activo del contexto",
@@ -578,6 +581,7 @@ export const dict = {
 
   "context.systemPrompt.title": "Prompt del sistema",
   "context.rawMessages.title": "Mensajes en bruto",
+  "context.export.session": "Exportar sesión",
 
   "context.stats.session": "Sesión",
   "context.stats.messages": "Mensajes",
@@ -656,6 +660,11 @@ export const dict = {
   "toast.session.unshare.success.description": "La sesión dejó de compartirse correctamente.",
   "toast.session.unshare.failed.title": "Fallo al dejar de compartir sesión",
   "toast.session.unshare.failed.description": "Ocurrió un error al dejar de compartir la sesión",
+
+  "toast.session.export.success.title": "Sesión exportada",
+  "toast.session.export.success.description": "Sesión guardada en {{filename}}",
+  "toast.session.export.failed.title": "No se pudo exportar la sesión",
+  "toast.session.export.failed.description": "Ocurrió un error al exportar la sesión",
 
   "toast.session.listFailed.title": "Fallo al cargar sesiones para {{project}}",
 
@@ -758,6 +767,9 @@ export const dict = {
   "session.review.noChanges": "Sin cambios",
   "session.review.noUncommittedChanges": "Aún no hay cambios sin confirmar",
   "session.review.noBranchChanges": "Aún no hay cambios en la rama",
+  "time.yesterday": "Ayer",
+  "session.review.collapse": "Contraer",
+  "session.review.collapse.ariaLabel": "Contraer panel de revisión",
 
   "session.files.selectToOpen": "Selecciona un archivo para abrir",
   "session.files.all": "Todos los archivos",
@@ -861,6 +873,7 @@ export const dict = {
   "common.moreOptions": "Más opciones",
   "common.learnMore": "Más información",
   "common.rename": "Renombrar",
+  "common.export": "Exportar",
   "common.reset": "Restablecer",
   "common.archive": "Archivar",
   "common.delete": "Eliminar",
@@ -940,6 +953,7 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Navegación inferior",
   "settings.general.row.mobileTitlebarBottom.description":
     "Colocar la barra de título y las pestañas de sesión en la parte inferior de la pantalla en dispositivos móviles",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Mostrar agente",
   "settings.general.row.showCustomAgents.description":
     "Cambiar de agente en el editor. Si se oculta, se usa el agente Build de forma predeterminada.",

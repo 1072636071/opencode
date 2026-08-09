@@ -8,14 +8,22 @@ import { getCACertificates, setDefaultCACertificates } from "node:tls"
 import type { Event } from "electron"
 import { app } from "electron"
 
-// 必须在 app ready 之前（模块顶层同步执行）：
-// 无 GPU / 虚拟化环境下独立 GPU 进程反复初始化失败崩溃
-// （GPU process isn't usable. Goodbye.），改为进程内软件渲染，保证稳定启动。
+// 必须在 app ready 之前（模块顶层同步执行）。
+// 默认保留硬件加速；仅在已知崩溃环境（无 GPU / 虚拟化）按需降级：
+//   1. 环境变量 OPENCODE_SOFTWARE_RENDER=1
+//   2. 启动参数 --disable-gpu（Electron/Chromium 原生开关）
+// 否则独立 GPU 进程反复初始化失败崩溃（GPU process isn't usable. Goodbye.），
+// 降级为进程内软件渲染可保证稳定启动。
 // 注意：不能加 disable-software-rasterizer / disable-gpu-compositing，
 // 否则 renderer 无 GPU 且无法软件合成时会崩溃（ContextResult::kFatalFailure）。
-app.disableHardwareAcceleration()
-app.commandLine.appendSwitch("disable-gpu")
-app.commandLine.appendSwitch("in-process-gpu")
+if (
+  process.env.OPENCODE_SOFTWARE_RENDER === "1" ||
+  app.commandLine.hasSwitch("disable-gpu")
+) {
+  app.disableHardwareAcceleration()
+  app.commandLine.appendSwitch("disable-gpu")
+  app.commandLine.appendSwitch("in-process-gpu")
+}
 
 import { Deferred, Effect, Fiber } from "effect"
 import contextMenu from "electron-context-menu"
@@ -205,6 +213,8 @@ const main = Effect.gen(function* () {
   if (!app.isPackaged) app.commandLine.appendSwitch("remote-debugging-port", "9222")
 
   if (!app.requestSingleInstanceLock()) {
+    // 旧实例残留（持有锁/9222/5173）时新实例会在这里秒退，之前无任何日志，极难排查。
+    logger.warn("another instance holds the single-instance lock; exiting")
     app.quit()
     return
   }

@@ -192,6 +192,8 @@ export const dict = {
   "command.session.share.description": "Поділитися цією сесією та скопіювати URL у буфер обміну",
   "command.session.unshare": "Припинити поширення сесії",
   "command.session.unshare.description": "Припинити поширення цієї сесії",
+  "command.session.export": "Експортувати сеанс",
+  "command.session.export.description": "Експортувати повний транскрипт сеансу у форматі JSON",
 
   "palette.search.placeholder": "Пошук файлів, команд і сесій",
   "palette.search.placeholder.home": "Пошук команд і сесій",
@@ -390,6 +392,7 @@ export const dict = {
   "prompt.slash.badge.custom": "користувацький",
   "prompt.slash.badge.skill": "навичка",
   "prompt.slash.badge.mcp": "mcp",
+  "prompt.slash.hiddenSkillsHint": "Приховано {{count}} команд навичок",
   "prompt.context.active": "активний",
   "prompt.context.includeActiveFile": "Включити активний файл",
   "prompt.context.removeActiveFile": "Видалити активний файл з контексту",
@@ -589,6 +592,7 @@ export const dict = {
 
   "context.systemPrompt.title": "Системний запит",
   "context.rawMessages.title": "Необроблені повідомлення",
+  "context.export.session": "Експортувати сеанс",
 
   "context.stats.session": "Сесія",
   "context.stats.messages": "Повідомлення",
@@ -667,6 +671,11 @@ export const dict = {
   "toast.session.unshare.success.description": "Поширення сесії успішно припинено!",
   "toast.session.unshare.failed.title": "Не вдалося припинити поширення сесії",
   "toast.session.unshare.failed.description": "Під час припинення поширення сесії сталася помилка",
+
+  "toast.session.export.success.title": "Сеанс експортовано",
+  "toast.session.export.success.description": "Сеанс збережено у {{filename}}",
+  "toast.session.export.failed.title": "Не вдалося експортувати сеанс",
+  "toast.session.export.failed.description": "Під час експорту сеансу сталася помилка",
 
   "toast.session.listFailed.title": "Не вдалося завантажити сесії для {{project}}",
   "toast.project.reloadFailed.title": "Не вдалося перезавантажити {{project}}",
@@ -781,6 +790,9 @@ export const dict = {
   "session.review.noChanges": "Немає змін",
   "session.review.noUncommittedChanges": "Ще немає незафіксованих змін",
   "session.review.noBranchChanges": "Ще немає змін у гілці",
+  "time.yesterday": "Вчора",
+  "session.review.collapse": "Згорнути",
+  "session.review.collapse.ariaLabel": "Згорнути панель перевірки",
 
   "session.files.selectToOpen": "Виберіть файл для відкриття",
   "session.files.all": "Усі файли",
@@ -910,6 +922,7 @@ export const dict = {
   "common.moreOptions": "Більше параметрів",
   "common.learnMore": "Дізнатися більше",
   "common.rename": "Перейменувати",
+  "common.export": "Експорт",
   "common.reset": "Скинути",
   "common.archive": "Архівувати",
   "common.delete": "Видалити",
@@ -1042,6 +1055,7 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Нижня навігація",
   "settings.general.row.mobileTitlebarBottom.description":
     "Розмістити панель заголовка та вкладки сесії внизу екрана на мобільних пристроях",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Показувати агента",
   "settings.general.row.showCustomAgents.description":
     "Перемикатися між агентами в редакторі запиту. Якщо приховано, типовим є агент Build.",

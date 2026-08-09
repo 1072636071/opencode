@@ -190,6 +190,8 @@ export const dict = {
   "command.session.share.description": "แชร์เซสชันนี้และคัดลอก URL ไปยังคลิปบอร์ด",
   "command.session.unshare": "ยกเลิกการแชร์เซสชัน",
   "command.session.unshare.description": "หยุดการแชร์เซสชันนี้",
+  "command.session.export": "ส่งออกเซสชัน",
+  "command.session.export.description": "ส่งออกบันทึกเซสชันทั้งหมดเป็น JSON",
 
   "palette.search.placeholder": "ค้นหาไฟล์ คำสั่ง และเซสชัน",
   "palette.search.placeholder.home": "ค้นหาคำสั่งและเซสชัน",
@@ -386,6 +388,7 @@ export const dict = {
   "prompt.slash.badge.custom": "กำหนดเอง",
   "prompt.slash.badge.skill": "ทักษะ",
   "prompt.slash.badge.mcp": "MCP",
+  "prompt.slash.hiddenSkillsHint": "ซ่อนคำสั่งสกิล {{count}} รายการ",
   "prompt.context.active": "ใช้งานอยู่",
   "prompt.context.includeActiveFile": "รวมไฟล์ที่ใช้งานอยู่",
   "prompt.context.removeActiveFile": "เอาไฟล์ที่ใช้งานอยู่ออกจากบริบท",
@@ -571,6 +574,7 @@ export const dict = {
 
   "context.systemPrompt.title": "พรอมต์ระบบ",
   "context.rawMessages.title": "ข้อความดิบ",
+  "context.export.session": "ส่งออกเซสชัน",
 
   "context.stats.session": "เซสชัน",
   "context.stats.messages": "ข้อความ",
@@ -649,6 +653,11 @@ export const dict = {
   "toast.session.unshare.success.description": "ยกเลิกการแชร์เซสชันสำเร็จ!",
   "toast.session.unshare.failed.title": "ไม่สามารถยกเลิกการแชร์เซสชัน",
   "toast.session.unshare.failed.description": "เกิดข้อผิดพลาดระหว่างการยกเลิกการแชร์เซสชัน",
+
+  "toast.session.export.success.title": "ส่งออกเซสชันแล้ว",
+  "toast.session.export.success.description": "บันทึกเซสชันไปที่ {{filename}}",
+  "toast.session.export.failed.title": "ส่งออกเซสชันล้มเหลว",
+  "toast.session.export.failed.description": "เกิดข้อผิดพลาดขณะส่งออกเซสชัน",
 
   "toast.session.listFailed.title": "ไม่สามารถโหลดเซสชันสำหรับ {{project}}",
 
@@ -746,6 +755,9 @@ export const dict = {
   "session.review.noChanges": "ไม่มีการเปลี่ยนแปลง",
   "session.review.noUncommittedChanges": "ยังไม่มีการเปลี่ยนแปลงที่รอคอมมิต",
   "session.review.noBranchChanges": "ยังไม่มีการเปลี่ยนแปลงในสาขา",
+  "time.yesterday": "เมื่อวาน",
+  "session.review.collapse": "ย่อ",
+  "session.review.collapse.ariaLabel": "ย่อพานอลตรวจสอบ",
 
   "session.files.selectToOpen": "เลือกไฟล์เพื่อเปิด",
   "session.files.empty": "ไม่มีไฟล์",
@@ -843,6 +855,7 @@ export const dict = {
   "common.moreOptions": "ตัวเลือกเพิ่มเติม",
   "common.learnMore": "เรียนรู้เพิ่มเติม",
   "common.rename": "เปลี่ยนชื่อ",
+  "common.export": "ส่งออก",
   "common.reset": "รีเซ็ต",
   "common.archive": "จัดเก็บ",
   "common.delete": "ลบ",
@@ -920,6 +933,7 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "การนำทางด้านล่าง",
   "settings.general.row.mobileTitlebarBottom.description":
     "วางแถบชื่อเรื่องและแท็บเซสชันไว้ด้านล่างของหน้าจอบนอุปกรณ์เคลื่อนที่",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "แสดงเอเจนต์",
   "settings.general.row.showCustomAgents.description":
     "สลับระหว่างเอเจนต์ในช่องเขียนข้อความ เมื่อซ่อน ระบบจะใช้เอเจนต์ Build เป็นค่าเริ่มต้น",

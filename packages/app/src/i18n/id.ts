@@ -192,6 +192,8 @@ export const dict = {
   "command.session.share.description": "Bagikan sesi ini dan salin URL ke papan klip",
   "command.session.unshare": "Hentikan berbagi",
   "command.session.unshare.description": "Hentikan berbagi sesi ini",
+  "command.session.export": "Ekspor sesi",
+  "command.session.export.description": "Ekspor transkrip lengkap sesi sebagai JSON",
 
   "palette.search.placeholder": "Cari berkas, perintah, dan sesi",
   "palette.search.placeholder.home": "Cari perintah dan sesi",
@@ -389,6 +391,7 @@ export const dict = {
   "prompt.slash.badge.custom": "kustom",
   "prompt.slash.badge.skill": "keahlian",
   "prompt.slash.badge.mcp": "mcp",
+  "prompt.slash.hiddenSkillsHint": "{{count}} perintah skill disembunyikan",
   "prompt.context.active": "aktif",
   "prompt.context.includeActiveFile": "Sertakan berkas aktif",
   "prompt.context.removeActiveFile": "Hapus berkas aktif dari konteks",
@@ -586,6 +589,7 @@ export const dict = {
 
   "context.systemPrompt.title": "Prompt Sistem",
   "context.rawMessages.title": "Pesan mentah",
+  "context.export.session": "Ekspor sesi",
 
   "context.stats.session": "Sesi",
   "context.stats.messages": "Pesan",
@@ -663,6 +667,11 @@ export const dict = {
   "toast.session.unshare.success.description": "Berbagi sesi berhasil dihentikan!",
   "toast.session.unshare.failed.title": "Gagal menghentikan berbagi sesi",
   "toast.session.unshare.failed.description": "Terjadi kesalahan saat menghentikan berbagi sesi",
+
+  "toast.session.export.success.title": "Sesi diekspor",
+  "toast.session.export.success.description": "Sesi disimpan ke {{filename}}",
+  "toast.session.export.failed.title": "Gagal mengekspor sesi",
+  "toast.session.export.failed.description": "Terjadi kesalahan saat mengekspor sesi",
 
   "toast.session.listFailed.title": "Gagal memuat sesi untuk {{project}}",
   "toast.project.reloadFailed.title": "Gagal memuat ulang {{project}}",
@@ -777,6 +786,9 @@ export const dict = {
   "session.review.noChanges": "Tidak ada perubahan",
   "session.review.noUncommittedChanges": "Belum ada perubahan yang belum dikomit",
   "session.review.noBranchChanges": "Belum ada perubahan cabang",
+  "time.yesterday": "Kemarin",
+  "session.review.collapse": "Lipat",
+  "session.review.collapse.ariaLabel": "Lipat panel tinjauan",
 
   "session.files.selectToOpen": "Pilih berkas untuk dibuka",
   "session.files.all": "Semua berkas",
@@ -897,6 +909,7 @@ export const dict = {
   "common.moreOptions": "Opsi lainnya",
   "common.learnMore": "Pelajari lebih lanjut",
   "common.rename": "Ganti nama",
+  "common.export": "Ekspor",
   "common.reset": "Atur ulang",
   "common.archive": "Arsipkan",
   "common.delete": "Hapus",
@@ -1026,6 +1039,7 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Navigasi bawah",
   "settings.general.row.mobileTitlebarBottom.description":
     "Tempatkan bilah judul dan tab sesi di bagian bawah layar pada perangkat seluler",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Tampilkan agen",
   "settings.general.row.showCustomAgents.description":
     "Beralih antaragen di penyusun. Saat disembunyikan, Agen Build digunakan sebagai bawaan.",

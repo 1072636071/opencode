@@ -26,6 +26,8 @@ import { type ImageAttachmentPart, usePrompt } from "@/context/prompt"
 import { usePlatform } from "@/context/platform"
 import { useSDK } from "@/context/sdk"
 import { useSync } from "@/context/sync"
+import { useSettings } from "@/context/settings"
+import { filterHiddenCommands } from "./prompt-input/filter-hidden-commands"
 import { createSessionTabs } from "@/pages/session/helpers"
 import { showToast } from "@/utils/toast"
 import { PromptInputV2, type PromptInputV2Suggestion } from "@opencode-ai/session-ui/v2/prompt-input"
@@ -50,6 +52,25 @@ export function PromptInputV2Composer(props: PromptInputV2ComposerProps) {
   const dialog = useDialog()
   const command = useCommand()
   const language = useLanguage()
+  const sync = useSync()
+  const settings = useSettings()
+
+  // 被隐藏名单过滤掉的技能命令数（仅统计当前命令列表中真实存在的名字，避免显示失效名单）。
+  const hiddenSkillCount = createMemo(
+    () => sync().data.command.filter((cmd) => settings.general.hiddenSkills().includes(cmd.name)).length,
+  )
+
+  // 仅在 slash 命令弹窗（非 @ 上下文弹窗）时展示底部提示。
+  const slashPopoverVisible = () => {
+    const type = props.controller.state.popover.type
+    return type === "command-menu" || type === "command-inline"
+  }
+
+  const openHiddenSkillsSettings = () => {
+    void import("@/components/settings-v2").then((module) => {
+      void dialog.show(() => <module.DialogSettings />)
+    })
+  }
 
   return (
     <div class="flex flex-col gap-3">
@@ -75,6 +96,20 @@ export function PromptInputV2Composer(props: PromptInputV2ComposerProps) {
             }
           />
         }
+        suggestionsFooter={
+          hiddenSkillCount() > 0 && slashPopoverVisible() ? (
+            <button
+              type="button"
+              data-action="slash-open-hidden-skills"
+              onClick={openHiddenSkillsSettings}
+              class="w-full mt-1 px-2 py-1 text-left rounded-[4px] text-v2-text-text-muted hover:bg-v2-overlay-simple-overlay-hover"
+            >
+              <span class="text-[13px] leading-5">
+                {language.t("prompt.slash.hiddenSkillsHint", { count: hiddenSkillCount() })}
+              </span>
+            </button>
+          ) : undefined
+        }
       />
     </div>
   )
@@ -86,6 +121,7 @@ export function usePromptInputV2Controller(props: PromptInputV2ControllerProps):
   const files = useFile()
   const layout = useLayout()
   const comments = useComments()
+  const settings = useSettings()
   const dialog = useDialog()
   const command = useCommand()
   const permission = usePermission()
@@ -291,24 +327,29 @@ export function usePromptInputV2Controller(props: PromptInputV2ControllerProps):
       mention: { type: "file" as const, path, content: `@${path}`, start: 0, end: 0 },
     })),
   ])
-  const slashCommands = createMemo(() => [
-    ...sync().data.command.map((item) => ({
-      id: `custom.${item.name}`,
-      trigger: item.name,
-      title: item.name,
-      description: item.description,
-      type: "custom" as const,
-    })),
-    ...command.options
-      .filter((item) => !item.disabled && !item.id.startsWith("suggested.") && item.slash)
-      .map((item) => ({
-        id: item.id,
-        trigger: item.slash!,
-        title: item.title,
-        description: item.description,
-        type: "builtin" as const,
-      })),
-  ])
+  const slashCommands = createMemo(() =>
+    filterHiddenCommands(
+      [
+        ...sync().data.command.map((item) => ({
+          id: `custom.${item.name}`,
+          trigger: item.name,
+          title: item.name,
+          description: item.description,
+          type: "custom" as const,
+        })),
+        ...command.options
+          .filter((item) => !item.disabled && !item.id.startsWith("suggested.") && item.slash)
+          .map((item) => ({
+            id: item.id,
+            trigger: item.slash!,
+            title: item.title,
+            description: item.description,
+            type: "builtin" as const,
+          })),
+      ],
+      settings.general.hiddenSkills(),
+    ),
+  )
   const commands = createMemo<PromptInputV2Suggestion[]>(() =>
     slashCommands().map((item) => ({
       id: item.id,

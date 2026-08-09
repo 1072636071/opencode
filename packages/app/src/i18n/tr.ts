@@ -196,6 +196,8 @@ export const dict = {
   "command.session.share.description": "Bu oturumu paylaş ve URL'yi panoya kopyala",
   "command.session.unshare": "Paylaşımı kaldır",
   "command.session.unshare.description": "Bu oturumun paylaşımını durdur",
+  "command.session.export": "Oturumu dışa aktar",
+  "command.session.export.description": "Oturum dökümünün tamamını JSON olarak dışa aktar",
 
   "palette.search.placeholder": "Dosya, komut ve oturum ara",
   "palette.search.placeholder.home": "Komut ve oturum ara",
@@ -393,6 +395,7 @@ export const dict = {
   "prompt.slash.badge.custom": "özel",
   "prompt.slash.badge.skill": "beceri",
   "prompt.slash.badge.mcp": "mcp",
+  "prompt.slash.hiddenSkillsHint": "{{count}} beceri komutu gizlendi",
   "prompt.context.active": "etkin",
   "prompt.context.includeActiveFile": "Etkin dosyayı dahil et",
   "prompt.context.removeActiveFile": "Etkin dosyayı bağlamdan çıkar",
@@ -579,6 +582,7 @@ export const dict = {
 
   "context.systemPrompt.title": "Sistem İstemi",
   "context.rawMessages.title": "Ham mesajlar",
+  "context.export.session": "Oturumu dışa aktar",
 
   "context.stats.session": "Oturum",
   "context.stats.messages": "Mesajlar",
@@ -657,6 +661,11 @@ export const dict = {
   "toast.session.unshare.success.description": "Oturum paylaşımı başarıyla kaldırıldı!",
   "toast.session.unshare.failed.title": "Oturum paylaşımı kaldırılamadı",
   "toast.session.unshare.failed.description": "Oturum paylaşımı kaldırılırken bir hata oluştu",
+
+  "toast.session.export.success.title": "Oturum dışa aktarıldı",
+  "toast.session.export.success.description": "Oturum {{filename}} dosyasına kaydedildi",
+  "toast.session.export.failed.title": "Oturum dışa aktarılamadı",
+  "toast.session.export.failed.description": "Oturum dışa aktarılırken bir hata oluştu",
 
   "toast.session.listFailed.title": "{{project}} için oturumlar yüklenemedi",
 
@@ -759,6 +768,9 @@ export const dict = {
   "session.review.noChanges": "Değişiklik yok",
   "session.review.noUncommittedChanges": "Henüz işlenmemiş değişiklik yok",
   "session.review.noBranchChanges": "Henüz dal değişikliği yok",
+  "time.yesterday": "Dün",
+  "session.review.collapse": "Daralt",
+  "session.review.collapse.ariaLabel": "İnceleme panelini daralt",
 
   "session.files.selectToOpen": "Açmak için bir dosya seçin",
   "session.files.all": "Tüm dosyalar",
@@ -861,6 +873,7 @@ export const dict = {
   "common.moreOptions": "Daha fazla seçenek",
   "common.learnMore": "Daha fazla bilgi",
   "common.rename": "Yeniden adlandır",
+  "common.export": "Dışa aktar",
   "common.reset": "Sıfırla",
   "common.archive": "Arşivle",
   "common.delete": "Sil",
@@ -940,6 +953,7 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Alt gezinme",
   "settings.general.row.mobileTitlebarBottom.description":
     "Mobil cihazlarda başlık çubuğunu ve oturum sekmelerini ekranın altına yerleştir",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Ajanı göster",
   "settings.general.row.showCustomAgents.description":
     "Düzenleyicide ajanlar arasında geçiş yapın. Gizlendiğinde varsayılan olarak Build ajanı kullanılır.",

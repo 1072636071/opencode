@@ -44,6 +44,8 @@ export type PromptInputV2Props = {
   variantControlVisible?: boolean
   attachKeybind?: string[]
   attachShortcut?: string
+  /** 可选：slash/命令弹窗列表底部附加内容（例如「已隐藏 N 个技能命令」提示行）。仅在弹窗可见时渲染。 */
+  suggestionsFooter?: JSX.Element
 }
 
 export function PromptInputV2(props: PromptInputV2Props) {
@@ -105,6 +107,7 @@ export function PromptInputV2(props: PromptInputV2Props) {
           }
           onActiveChange={(item) => props.controller.dispatch({ type: "popover.active", id: item.id })}
           onSelect={(item) => props.controller.dispatch({ type: "popover.select", item })}
+          footer={props.suggestionsFooter}
         />
       </Show>
       <form
@@ -615,6 +618,7 @@ export function PromptInputV2Popover(props: {
   }
   onActiveChange: (item: PromptInputV2Suggestion) => void
   onSelect: (item: PromptInputV2Suggestion) => void
+  footer?: JSX.Element
 }) {
   return (
     <div
@@ -665,6 +669,7 @@ export function PromptInputV2Popover(props: {
           )}
         </For>
       </Show>
+      <Show when={props.footer}>{props.footer}</Show>
     </div>
   )
 }

@@ -191,6 +191,8 @@ export const dict = {
   "command.session.share.description": "Поделиться сессией и скопировать URL в буфер обмена",
   "command.session.unshare": "Отменить публикацию",
   "command.session.unshare.description": "Прекратить публикацию сессии",
+  "command.session.export": "Экспортировать сеанс",
+  "command.session.export.description": "Экспортировать полную стенограмму сеанса в формате JSON",
 
   "palette.search.placeholder": "Поиск файлов, команд и сессий",
   "palette.search.placeholder.home": "Поиск команд и сессий",
@@ -387,6 +389,7 @@ export const dict = {
   "prompt.slash.badge.custom": "своё",
   "prompt.slash.badge.skill": "навык",
   "prompt.slash.badge.mcp": "mcp",
+  "prompt.slash.hiddenSkillsHint": "Скрыто {{count}} команд навыков",
   "prompt.context.active": "активно",
   "prompt.context.includeActiveFile": "Включить активный файл",
   "prompt.context.removeActiveFile": "Удалить активный файл из контекста",
@@ -575,6 +578,7 @@ export const dict = {
 
   "context.systemPrompt.title": "Системный промпт",
   "context.rawMessages.title": "Исходные сообщения",
+  "context.export.session": "Экспортировать сеанс",
 
   "context.stats.session": "Сессия",
   "context.stats.messages": "Сообщения",
@@ -652,6 +656,11 @@ export const dict = {
   "toast.session.unshare.success.description": "Публикация успешно отменена!",
   "toast.session.unshare.failed.title": "Не удалось отменить публикацию",
   "toast.session.unshare.failed.description": "Произошла ошибка при отмене публикации",
+
+  "toast.session.export.success.title": "Сеанс экспортирован",
+  "toast.session.export.success.description": "Сеанс сохранён в {{filename}}",
+  "toast.session.export.failed.title": "Не удалось экспортировать сеанс",
+  "toast.session.export.failed.description": "Произошла ошибка при экспорте сеанса",
 
   "toast.session.listFailed.title": "Не удалось загрузить сессии для {{project}}",
 
@@ -754,6 +763,9 @@ export const dict = {
   "session.review.noChanges": "Нет изменений",
   "session.review.noUncommittedChanges": "Пока нет незафиксированных изменений",
   "session.review.noBranchChanges": "Пока нет изменений в ветке",
+  "time.yesterday": "Вчера",
+  "session.review.collapse": "Свернуть",
+  "session.review.collapse.ariaLabel": "Свернуть панель проверки",
   "session.files.selectToOpen": "Выберите файл, чтобы открыть",
   "session.files.all": "Все файлы",
   "session.files.empty": "Нет файлов",
@@ -858,6 +870,7 @@ export const dict = {
   "common.moreOptions": "Дополнительные опции",
   "common.learnMore": "Подробнее",
   "common.rename": "Переименовать",
+  "common.export": "Экспорт",
   "common.reset": "Сбросить",
   "common.archive": "Архивировать",
   "common.delete": "Удалить",
@@ -937,6 +950,7 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Нижняя навигация",
   "settings.general.row.mobileTitlebarBottom.description":
     "На мобильных устройствах размещать строку заголовка и вкладки сессии внизу экрана",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Выбор агента",
   "settings.general.row.showCustomAgents.description":
     "Показывать переключатель агентов в редакторе запросов. Если он скрыт, по умолчанию используется агент Build.",

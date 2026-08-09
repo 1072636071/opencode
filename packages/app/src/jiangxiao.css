@@ -4,24 +4,61 @@
 
 /* ---------- 色值变量表（ADR-006 决策 1，深底烫金统一新表） ----------
    作用域限定 html[data-theme="jiangxiao"]，不影响其他主题。
+   本表两段：
+   ① 规范 token 块（DESIGN.md §10 附录）——唯一落地形式，一律引用规范名；
+   ② 装饰 SVG 变量（值取 docs/image/产出/jiangxiao-ui-preview.html :root 内联）。
    后续工单（02-07）一律通过 var() 引用本表，不再硬编码色值。
    注：inline SVG data URI 内的颜色无法引用 var()，使用新表字面量保持一致。 */
 html[data-theme="jiangxiao"] {
-  --jx-bg-deep: #0a0a0a;        /* 最深底色，宣纸/黑檀木质感 */
-  --jx-bg-deep-2: #121212;      /* 稍浅深底变体，容器底色 */
-  --jx-gold-bright: #F6D365;    /* 亮金，高光/UI 强调文字 */
-  --jx-gold-dim: #B8860B;       /* 暗金，普通 UI 文本/边框/装饰 */
-  --jx-gold-dim-2: #996515;     /* 暗金提亮变体，正文对比度不足时备用 */
-  --jx-ivory: #f2ead8;          /* 米白，助手消息正文（黑漆卷轴刻字感） */
-  --jx-border: #3d3218;         /* 棕金边框/装饰 */
-  --jx-purple: #9d8ec7;         /* 浅紫点缀，呼应角色和服小饰品 */
-  --jx-gold-gradient: linear-gradient(135deg, #F6D365 0%, #FDA085 50%, #B8860B 100%);
+  /* === ① DESIGN.md §10 规范 token 块 === */
+  /* Ink 墨阶 */
+  --jx-ink-950:#0b090d; --jx-ink-900:#121016; --jx-ink-800:#1a1620; --jx-ink-700:#2d242f; --jx-ink-600:#3d343c;
+  /* Gold 金族 */
+  --jx-gold-bright:#F6D365; --jx-gold:#d6b34a; --jx-gold-deep:#B8860B; --jx-gold-dim:#996515; --jx-ginkgo:#dfb793;
+  --jx-gold-foil:linear-gradient(135deg,#F6D365 0%,#FDA085 50%,#B8860B 100%);
+  /* Seal 印章族（朱红印章按钮） */
+  --jx-seal:#c7493a; --jx-seal-deep:#a8382b; --jx-seal-bright:#d85444; --jx-seal-ink:#fff8ef;
+  /* Atmosphere 氛围族（仅渐变/特效/插画层） */
+  --jx-mist:#b5a8b2; --jx-mountain:#827686; --jx-water:#767687; --jx-cloud:#e7d3d2; --jx-moon:#ecd8d8; --jx-hair:#d1beca; --jx-wisteria:#997694;
+  /* Text / Semantic */
+  --jx-cream:#f2ead8; --jx-cream-dim:#a99c8a; --jx-ink-on-light:#2a2420; --jx-cinnabar:#C3272B;
+  /* 深底高亮提亮变体（ADR-004：深底容器上 file/agent 高亮须提亮） */
+  --jx-hl-file:#7fd8e8; --jx-hl-agent:#e5c07b;
+  --jx-success:#86b08a; --jx-warn:#d9a05b; --jx-error:#d06552;
+  --jx-border-deco:#3d3218; --jx-selection:rgba(184,134,11,.3);
+  --jx-scroll-track:#2a2210; --jx-scroll-thumb:#B8860B;
+  /* Typography */
+  --jx-font-display:'Ma Shan Zheng','Kaiti SC','STKaiti','KaiTi',serif;
+  --jx-font-ui:'Noto Serif SC','Songti SC','SimSun',serif;
+  --jx-font-code:ui-monospace,'JetBrains Mono','Cascadia Code',Consolas,monospace;
+  --jx-fs-display:clamp(44px,4.5vw,64px); --jx-fs-h1:32px; --jx-fs-h2:24px; --jx-fs-h3:18px;
+  --jx-fs-body:14px; --jx-fs-small:12px; --jx-fs-caption:11px;
+  --jx-lh-body:1.8; --jx-ls-caps:.18em;
+  /* Spacing（4px 基准）/ Radius */
+  --jx-space-1:4px; --jx-space-2:8px; --jx-space-3:12px; --jx-space-4:16px; --jx-space-6:24px; --jx-space-8:32px; --jx-space-12:48px;
+  --jx-radius-sm:4px; --jx-radius-md:6px; --jx-radius-lg:8px; --jx-radius-xl:12px; --jx-radius-seal:50%;
+  /* Depth */
+  --jx-shadow-1:0 2px 8px rgba(5,3,8,.5); --jx-shadow-2:0 8px 24px rgba(5,3,8,.55);
+  --jx-gold-rim:0 0 0 1px #3d3218,0 0 14px rgba(246,211,101,.12);
+  --jx-moon-glow:0 0 40px rgba(236,216,216,.25);
+  /* Z 层级 */
+  --jx-z-fx:1; --jx-z-content:10; --jx-z-character:40; --jx-z-demo:43; --jx-z-bubble:45; --jx-z-titlebar:50; --jx-z-toast:80; --jx-z-dialog:100; --jx-z-splash:200;
+  /* Motion */
+  --jx-dur-fast:.15s; --jx-dur:.35s; --jx-breathe:6s; --jx-ease:ease;
+  /* Icons（唐风线描 sprite） */
+  --jx-icon-stroke:1.8; --jx-icon-s:13px; --jx-icon-m:16px; --jx-icon-l:20px;
+
+  /* === ② 装饰 SVG（preview.html :root 内联值，data URI 内为单引号/外层双引号） === */
+  --jx-cloud-line:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='8' viewBox='0 0 56 8'%3E%3Cpath d='M0 6 Q7 0 14 6 T28 6 T42 6 T56 6' fill='none' stroke='%23996515' stroke-opacity='.55' stroke-width='1.2'/%3E%3C/svg%3E");
+  --jx-leaf-gold:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 96 L50 62 C22 60 8 36 13 12 C30 28 42 33 50 35 C58 33 70 28 87 12 C92 36 78 60 50 62 Z' fill='%23dfb793'/%3E%3C/svg%3E");
+  --jx-leaf-white:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 96 L50 62 C22 60 8 36 13 12 C30 28 42 33 50 35 C58 33 70 28 87 12 C92 36 78 60 50 62 Z' fill='%23e7d3d2'/%3E%3C/svg%3E");
+  --jx-rosette:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cg fill='none' stroke='%23B8860B' stroke-opacity='.05'%3E%3Ccircle cx='70' cy='70' r='10'/%3E%3Cpath d='M70 34 C78 50 78 58 70 60 C62 58 62 50 70 34 Z M70 106 C78 90 78 82 70 80 C62 82 62 90 70 106 Z M34 70 C50 62 58 62 60 70 C58 78 50 78 34 70 Z M106 70 C90 62 82 62 80 70 C82 78 90 78 106 70 Z'/%3E%3Ccircle cx='70' cy='70' r='26'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 /* ---------- 全局背景：深色底 + 云纹水印 ---------- */
 html[data-theme="jiangxiao"] body,
 html[data-theme="jiangxiao"] #root {
-  background-color: var(--jx-bg-deep);
+  background-color: var(--jx-ink-950);
 }
 
 /* 云纹/宝相花水印（静态纹理），通过 data-oc-deco 开关控制 */
@@ -33,11 +70,11 @@ html[data-theme="jiangxiao"][data-oc-deco="static"] #root::before {
   pointer-events: none;
   opacity: 0.05;
   background-image:
-    radial-gradient(circle at 20% 10%, var(--jx-gold-dim) 1px, transparent 1px),
-    radial-gradient(circle at 80% 90%, var(--jx-gold-dim) 1px, transparent 1px),
-    radial-gradient(circle at 60% 30%, var(--jx-gold-dim) 1px, transparent 1px),
-    radial-gradient(circle at 30% 70%, var(--jx-gold-dim) 1px, transparent 1px),
-    radial-gradient(circle at 90% 50%, var(--jx-gold-dim) 1px, transparent 1px);
+    radial-gradient(circle at 20% 10%, var(--jx-gold-deep) 1px, transparent 1px),
+    radial-gradient(circle at 80% 90%, var(--jx-gold-deep) 1px, transparent 1px),
+    radial-gradient(circle at 60% 30%, var(--jx-gold-deep) 1px, transparent 1px),
+    radial-gradient(circle at 30% 70%, var(--jx-gold-deep) 1px, transparent 1px),
+    radial-gradient(circle at 90% 50%, var(--jx-gold-deep) 1px, transparent 1px);
   background-size:
     480px 480px,
     360px 360px,
@@ -53,7 +90,7 @@ html[data-theme="jiangxiao"][data-oc-deco="dynamic"] #root::before {
   inset: -40px 0 0 0;
   z-index: 0;
   pointer-events: none;
-  background-image: radial-gradient(circle at 50% 0, var(--jx-gold-dim) 2px, transparent 2.5px);
+  background-image: radial-gradient(circle at 50% 0, var(--jx-gold-deep) 2px, transparent 2.5px);
   background-size: 60px 90px;
   background-repeat: repeat;
   animation: jiangxiao-gold-fall 24s linear infinite;
@@ -73,15 +110,15 @@ html[data-theme="jiangxiao"][data-oc-deco="dynamic"] #root::before {
 /* 确保应用内容位于装饰层之上 */
 html[data-theme="jiangxiao"][data-oc-deco] #root > * {
   position: relative;
-  z-index: 1;
+  z-index: var(--jx-z-fx);
 }
 
 /* ---------- 顶部栏：深色底 + 金色标题 + 云纹 ---------- */
 html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] {
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='48' viewBox='0 0 180 48'%3E%3Cpath d='M20 24c6-10 18-12 26-6 6 4 14 4 20-2 4-4 10-6 16-4' fill='none' stroke='%23B8860B' stroke-opacity='0.16' stroke-width='1'/%3E%3Cpath d='M10 38c8-8 20-8 30-4 6 2 14 1 20-4 6-5 14-6 22-3' fill='none' stroke='%23B8860B' stroke-opacity='0.10' stroke-width='1'/%3E%3Ccircle cx='150' cy='12' r='2' fill='%23B8860B' fill-opacity='0.14'/%3E%3Ccircle cx='70' cy='14' r='1.4' fill='%23B8860B' fill-opacity='0.12'/%3E%3C/svg%3E"),
-    linear-gradient(to bottom, var(--jx-bg-deep-2), var(--jx-bg-deep));
-  border-bottom: 1px solid color-mix(in srgb, var(--jx-gold-dim) 22%, transparent);
+    linear-gradient(to bottom, var(--jx-ink-900), var(--jx-ink-950));
+  border-bottom: 1px solid color-mix(in srgb, var(--jx-gold-deep) 22%, transparent);
 }
 
 html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="tab-title"],
@@ -104,7 +141,7 @@ html[data-theme="jiangxiao"] [data-slot="titlebar-v2"]::after {
   transform: translateY(-50%);
   width: 3px;
   height: 60%;
-  background: linear-gradient(to bottom, transparent, var(--jx-gold-dim), transparent);
+  background: linear-gradient(to bottom, transparent, var(--jx-gold-deep), transparent);
   border-radius: 2px;
   pointer-events: none;
 }
@@ -114,8 +151,8 @@ html[data-theme="jiangxiao"] [data-slot="titlebar-v2"]::after {
    在 light color-scheme 下会深字配深底，须逐一配套浅色 */
 html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="tab-link"],
 html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-titlebar-tab-link] {
-  color: var(--jx-ivory);
-  -webkit-text-fill-color: var(--jx-ivory);
+  color: var(--jx-cream);
+  -webkit-text-fill-color: var(--jx-cream);
 }
 
 html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-tab-item"][data-active="true"] [data-slot="tab-link"],
@@ -127,8 +164,8 @@ html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-tab-
 /* 顶栏内 ghost-muted 按钮（Home/NewTab/Update 等）：图标和文字浅色 */
 html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"],
 html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"] [data-slot="icon-svg"] {
-  color: var(--jx-ivory);
-  -webkit-text-fill-color: var(--jx-ivory);
+  color: var(--jx-cream);
+  -webkit-text-fill-color: var(--jx-cream);
 }
 
 html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"]:hover,
@@ -146,37 +183,37 @@ html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] .text-v2-text-text-accent
 
 /* 顶栏 tabs fade 遮罩：用深底色渐变（原 var(--v2-background-bg-deep) 在 light 下是浅色） */
 html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-tabs-fade-left"] {
-  background-image: linear-gradient(to right, var(--jx-bg-deep), transparent);
+  background-image: linear-gradient(to right, var(--jx-ink-950), transparent);
 }
 
 html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-tabs-fade-right"] {
-  background-image: linear-gradient(to left, var(--jx-bg-deep), transparent);
+  background-image: linear-gradient(to left, var(--jx-ink-950), transparent);
 }
 
 /* ---------- 新建会话页：深底 + 金纹 + 浅紫点缀（工单 03） ---------- */
 html[data-theme="jiangxiao"] [data-component="session-new-design"] {
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='48' viewBox='0 0 180 48'%3E%3Cpath d='M20 24c6-10 18-12 26-6 6 4 14 4 20-2 4-4 10-6 16-4' fill='none' stroke='%23B8860B' stroke-opacity='0.10' stroke-width='1'/%3E%3Cpath d='M10 38c8-8 20-8 30-4 6 2 14 1 20-4 6-5 14-6 22-3' fill='none' stroke='%23B8860B' stroke-opacity='0.07' stroke-width='1'/%3E%3Ccircle cx='150' cy='12' r='2' fill='%23B8860B' fill-opacity='0.10'/%3E%3Ccircle cx='70' cy='14' r='1.4' fill='%23B8860B' fill-opacity='0.08'/%3E%3C/svg%3E"),
-    var(--jx-bg-deep);
-  border: 1px solid color-mix(in srgb, var(--jx-purple) 30%, transparent);
+    var(--jx-ink-950);
+  border: 1px solid color-mix(in srgb, var(--jx-wisteria) 30%, transparent);
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--jx-gold-dim) 12%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--jx-purple) 15%, transparent);
+    inset 0 0 0 1px color-mix(in srgb, var(--jx-gold-deep) 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--jx-wisteria) 15%, transparent);
 }
 
 /* 新建会话页内所有文字：深底浅字（覆盖 light 下深色 text token） */
 html[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-text-text-faint,
 html[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-text-text-base,
 html[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-text-text-muted {
-  color: var(--jx-ivory);
-  -webkit-text-fill-color: var(--jx-ivory);
+  color: var(--jx-cream);
+  -webkit-text-fill-color: var(--jx-cream);
 }
 
 /* 新建会话页内图标：烫金 */
 html[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-icon-icon-muted,
 html[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-icon-icon-base {
-  color: var(--jx-gold-dim);
-  -webkit-text-fill-color: var(--jx-gold-dim);
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
 }
 
 /* 项目下拉框 trigger 文字烫金（data-action="prompt-project" 精确匹配） */
@@ -187,8 +224,8 @@ html[data-theme="jiangxiao"] [data-action="prompt-project"] {
 
 html[data-theme="jiangxiao"] [data-action="prompt-project"] .text-v2-icon-icon-muted,
 html[data-theme="jiangxiao"] [data-action="prompt-project"] .text-v2-icon-icon-base {
-  color: var(--jx-gold-dim);
-  -webkit-text-fill-color: var(--jx-gold-dim);
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
 }
 
 /* 本地/分支 trigger 显式烫金（工单 03 补齐，ADR-006 决策 1）
@@ -202,8 +239,8 @@ html[data-theme="jiangxiao"] [data-slot="prompt-workspace-trigger"] [data-compon
 
 html[data-theme="jiangxiao"] [data-slot="prompt-workspace-trigger"] svg,
 html[data-theme="jiangxiao"] [data-slot="prompt-workspace-trigger"] [data-slot="icon-svg"] {
-  color: var(--jx-gold-dim);
-  -webkit-text-fill-color: var(--jx-gold-dim);
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
 }
 
 html[data-theme="jiangxiao"] [data-slot="prompt-git-status"],
@@ -214,8 +251,8 @@ html[data-theme="jiangxiao"] [data-slot="prompt-git-status"] [data-component="ic
 
 html[data-theme="jiangxiao"] [data-slot="prompt-git-status"] svg,
 html[data-theme="jiangxiao"] [data-slot="prompt-git-status"] [data-slot="icon-svg"] {
-  color: var(--jx-gold-dim);
-  -webkit-text-fill-color: var(--jx-gold-dim);
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
 }
 
 
@@ -229,40 +266,40 @@ html[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-back
 html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] {
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--jx-border) 94%, var(--jx-gold-dim) 6%),
-    #201a0f
+    color-mix(in srgb, var(--jx-border-deco) 94%, var(--jx-gold-deep) 6%),
+    var(--jx-ink-800)
   ) !important;
-  border: 1px solid color-mix(in srgb, var(--jx-gold-dim) 32%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--jx-gold-deep) 32%, transparent) !important;
   box-shadow:
-    inset 0 0 24px color-mix(in srgb, var(--jx-gold-dim) 9%, transparent),
-    0 4px 24px color-mix(in srgb, #000000 32%, transparent);
+    inset 0 0 24px color-mix(in srgb, var(--jx-gold-deep) 9%, transparent),
+    0 4px 24px color-mix(in srgb, var(--jx-ink-950) 32%, transparent);
 }
 
 html[data-theme="jiangxiao"] [data-component="prompt-input-v2"]:focus-within {
-  border-color: color-mix(in srgb, var(--jx-gold-dim) 62%, transparent) !important;
+  border-color: color-mix(in srgb, var(--jx-gold-deep) 62%, transparent) !important;
   box-shadow:
-    inset 0 0 24px color-mix(in srgb, var(--jx-gold-dim) 13%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--jx-gold-dim) 36%, transparent),
-    0 4px 24px color-mix(in srgb, #000000 32%, transparent);
+    inset 0 0 24px color-mix(in srgb, var(--jx-gold-deep) 13%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--jx-gold-deep) 36%, transparent),
+    0 4px 24px color-mix(in srgb, var(--jx-ink-950) 32%, transparent);
 }
 
 /* 发送按钮：朱红印章风格圆钮 */
 html[data-theme="jiangxiao"] [data-action="prompt-submit"] {
   border-radius: 9999px !important;
   background-image: none !important;
-  background-color: #c7493a !important;
-  border: 1px solid #a8382b !important;
+  background-color: var(--jx-seal) !important;
+  border: 1px solid var(--jx-seal-deep) !important;
   box-shadow:
-    0 2px 6px color-mix(in srgb, #c7493a 40%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #ffffff 22%, transparent) !important;
-  color: #fff8ef !important;
+    0 2px 6px color-mix(in srgb, var(--jx-seal) 40%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--jx-seal-ink) 22%, transparent) !important;
+  color: var(--jx-seal-ink) !important;
   transition:
-    background-color 0.15s ease,
+    background-color var(--jx-dur-fast) ease,
     transform 0.1s ease;
 }
 
 html[data-theme="jiangxiao"] [data-action="prompt-submit"]:hover:not(:disabled) {
-  background-color: #d85444 !important;
+  background-color: var(--jx-seal-bright) !important;
   transform: translateY(-1px);
 }
 
@@ -272,7 +309,7 @@ html[data-theme="jiangxiao"] [data-action="prompt-submit"]:active:not(:disabled)
 
 /* 发送按钮图标微调（印章感） */
 html[data-theme="jiangxiao"] [data-action="prompt-submit"] svg {
-  color: #fff8ef !important;
+  color: var(--jx-seal-ink) !important;
 }
 
 /* 输入框文字：烫金效果 */
@@ -288,8 +325,8 @@ html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-component=
 html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [contenteditable="true"]::before,
 html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] textarea::placeholder,
 html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] ::placeholder {
-  color: color-mix(in srgb, var(--jx-gold-dim) 55%, #6b5b2e) !important;
-  -webkit-text-fill-color: color-mix(in srgb, var(--jx-gold-dim) 55%, #6b5b2e);
+  color: color-mix(in srgb, var(--jx-gold-deep) 55%, var(--jx-gold-dim)) !important;
+  -webkit-text-fill-color: color-mix(in srgb, var(--jx-gold-deep) 55%, var(--jx-gold-dim));
 }
 
 /* 输入框内 mention 高亮：保持可读的暖金 */
@@ -302,32 +339,32 @@ html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-mention="r
 
 /* 输入框底部 agent / model / variant 选择按钮（ghost-muted）：提亮 */
 html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-component="button-v2"][data-variant="ghost-muted"] {
-  color: color-mix(in srgb, var(--jx-gold-dim) 75%, var(--jx-gold-bright) 25%);
+  color: color-mix(in srgb, var(--jx-gold-deep) 75%, var(--jx-gold-bright) 25%);
 }
 
 html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-component="button-v2"][data-variant="ghost-muted"] [data-slot="icon-svg"] {
-  color: color-mix(in srgb, var(--jx-gold-dim) 75%, var(--jx-gold-bright) 25%);
+  color: color-mix(in srgb, var(--jx-gold-deep) 75%, var(--jx-gold-bright) 25%);
 }
 
 /* ---------- 自定义滚动条：金边细条 ---------- */
 html[data-theme="jiangxiao"] *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: var(--jx-space-2);
+  height: var(--jx-space-2);
 }
 
 html[data-theme="jiangxiao"] *::-webkit-scrollbar-track {
-  background: #2a2210;
+  background: var(--jx-scroll-track);
 }
 
 html[data-theme="jiangxiao"] *::-webkit-scrollbar-thumb {
-  background: var(--jx-gold-dim);
-  border-radius: 8px;
+  background: var(--jx-gold-deep);
+  border-radius: var(--jx-radius-lg);
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 html[data-theme="jiangxiao"] *::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--jx-gold-bright) 50%, var(--jx-gold-dim));
+  background: color-mix(in srgb, var(--jx-gold-bright) 50%, var(--jx-gold-deep));
   border: 2px solid transparent;
   background-clip: padding-box;
 }
@@ -338,21 +375,21 @@ html[data-theme="jiangxiao"] *::-webkit-scrollbar-thumb:hover {
 html[data-theme="jiangxiao"] [data-component="text-part"] {
   background: linear-gradient(
     to right,
-    color-mix(in srgb, var(--jx-bg-deep-2) 92%, var(--jx-gold-dim) 8%),
-    var(--jx-bg-deep) 60%
+    color-mix(in srgb, var(--jx-ink-900) 92%, var(--jx-gold-deep) 8%),
+    var(--jx-ink-950) 60%
   );
-  border-inline-start: 1px solid color-mix(in srgb, var(--jx-gold-dim) 45%, transparent);
+  border-inline-start: 1px solid color-mix(in srgb, var(--jx-gold-deep) 45%, transparent);
   border-start-start-radius: 2px;
   border-end-start-radius: 2px;
   /* 深底必配浅字（ADR-004/006）：米白字，light/dark 一致 */
-  color: var(--jx-ivory);
-  -webkit-text-fill-color: var(--jx-ivory);
+  color: var(--jx-cream);
+  -webkit-text-fill-color: var(--jx-cream);
 }
 
 /* 助手消息内 markdown 正文文字米白 */
 html[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] {
-  color: var(--jx-ivory);
-  -webkit-text-fill-color: var(--jx-ivory);
+  color: var(--jx-cream);
+  -webkit-text-fill-color: var(--jx-cream);
 }
 
 /* 助手消息内 markdown 标题/加粗：亮金强调 */
@@ -371,34 +408,34 @@ html[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markd
 /* 助手消息内列表 marker、blockquote：暗金/米白 */
 html[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] li::marker,
 html[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] blockquote {
-  color: var(--jx-gold-dim);
-  -webkit-text-fill-color: var(--jx-gold-dim);
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
 }
 
 /* 助手消息内行内 code：深底暗金 */
 html[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] :not(pre) > code {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
-  background: color-mix(in srgb, var(--jx-gold-dim) 12%, transparent);
+  background: color-mix(in srgb, var(--jx-gold-deep) 12%, transparent);
 }
 
 /* 助手消息 meta 文字（text-text-weak）：米白 */
 html[data-theme="jiangxiao"] [data-component="text-part"] .text-text-weak,
 html[data-theme="jiangxiao"] [data-component="text-part"] [data-slot="text-part-meta"] {
-  color: var(--jx-ivory);
-  -webkit-text-fill-color: var(--jx-ivory);
+  color: var(--jx-cream);
+  -webkit-text-fill-color: var(--jx-cream);
 }
 
 html[data-theme="jiangxiao"] [data-component="user-message"] [data-slot="user-message-text"] {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, #2a241a 92%, var(--jx-gold-dim) 8%),
-    color-mix(in srgb, #1c1710 95%, var(--jx-gold-dim) 5%)
+    color-mix(in srgb, var(--jx-ink-on-light) 92%, var(--jx-gold-deep) 8%),
+    color-mix(in srgb, var(--jx-ink-800) 95%, var(--jx-gold-deep) 5%)
   );
-  border: 1px solid color-mix(in srgb, var(--jx-gold-dim) 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--jx-gold-deep) 42%, transparent);
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--jx-gold-dim) 12%, transparent),
-    0 2px 8px color-mix(in srgb, #000000 30%, transparent);
+    inset 0 0 0 1px color-mix(in srgb, var(--jx-gold-deep) 12%, transparent),
+    0 2px 8px color-mix(in srgb, var(--jx-ink-950) 30%, transparent);
   /* 深底必配浅字（ADR-004）：气泡背景被写死为深色，文字必须配套烫金，
      否则 light 模式下文字 token 为深色系，出现黑字黑底 */
   color: var(--jx-gold-bright);
@@ -408,22 +445,22 @@ html[data-theme="jiangxiao"] [data-component="user-message"] [data-slot="user-me
 
 /* 气泡内 file/agent 高亮：light 变体下 syntax 色偏暗，深底上须提亮（ADR-004） */
 html[data-theme="jiangxiao"] [data-component="user-message"] [data-slot="user-message-text"] [data-highlight="file"] {
-  color: #7fd8e8;
-  -webkit-text-fill-color: #7fd8e8;
+  color: var(--jx-hl-file);
+  -webkit-text-fill-color: var(--jx-hl-file);
 }
 
 html[data-theme="jiangxiao"] [data-component="user-message"] [data-slot="user-message-text"] [data-highlight="agent"] {
-  color: #e5c07b;
-  -webkit-text-fill-color: #e5c07b;
+  color: var(--jx-hl-agent);
+  -webkit-text-fill-color: var(--jx-hl-agent);
 }
 
 /* ---------- 代码块容器唐风化（工单 05，ADR-006 决策 4） ----------
    只改代码块容器边框/背景为唐风深底+金色描边。
    语法高亮配色（.shiki code span token 颜色）完全不动，保持原版专业配色。 */
 html[data-theme="jiangxiao"] [data-component="markdown"] .shiki {
-  background: var(--jx-bg-deep) !important;
-  border: 1px solid color-mix(in srgb, var(--jx-gold-dim) 35%, transparent) !important;
-  border-radius: 6px;
+  background: var(--jx-ink-950) !important;
+  border: 1px solid color-mix(in srgb, var(--jx-gold-deep) 35%, transparent) !important;
+  border-radius: var(--jx-radius-md);
 }
 
 /* 代码块容器外层（markdown-code）：金色描边装饰 */
@@ -438,7 +475,7 @@ html[data-theme="jiangxiao"] [data-component="markdown-code"]::before {
   inset-block-start: 0;
   width: 2px;
   height: 100%;
-  background: linear-gradient(to bottom, transparent, var(--jx-gold-dim), transparent);
+  background: linear-gradient(to bottom, transparent, var(--jx-gold-deep), transparent);
   border-radius: 1px;
   pointer-events: none;
   opacity: 0.5;
@@ -446,19 +483,19 @@ html[data-theme="jiangxiao"] [data-component="markdown-code"]::before {
 
 /* 代码块复制按钮：深底浅字 */
 html[data-theme="jiangxiao"] [data-component="markdown"] [data-slot="markdown-copy-button"] {
-  color: var(--jx-ivory);
-  -webkit-text-fill-color: var(--jx-ivory);
+  color: var(--jx-cream);
+  -webkit-text-fill-color: var(--jx-cream);
 }
 
 /* 代码块 shell 变体：深底 */
 html[data-theme="jiangxiao"] [data-component="markdown"] [data-component="markdown-code"][data-code-kind="shell"] .shiki {
-  background: var(--jx-bg-deep-2) !important;
-  border-color: color-mix(in srgb, var(--jx-gold-dim) 25%, transparent) !important;
+  background: var(--jx-ink-900) !important;
+  border-color: color-mix(in srgb, var(--jx-gold-deep) 25%, transparent) !important;
 }
 
 /* ---------- 选择高亮：暗金半透明（ADR-006 决策 1） ---------- */
 html[data-theme="jiangxiao"] ::selection {
-  background: rgba(184, 134, 11, 0.3);
+  background: var(--jx-selection);
 }
 
 /* ---------- 角色透明悬浮窗（ADR-007 定稿：fixed 左下、透明无底、不占布局、全页面常驻） ---------- */
@@ -466,11 +503,11 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] {
   position: fixed;
   left: 10px;
   bottom: 10px;
-  z-index: 40;
+  z-index: var(--jx-z-character);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: var(--jx-space-1);
   pointer-events: none;
   background: transparent;
   border: none;
@@ -506,9 +543,9 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
 
 /* 角色状态文字（悬浮小字，无描边） */
 html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-status"] {
-  padding: 2px 8px;
-  color: var(--jx-gold-dim);
-  font-size: 11px;
+  padding: 2px var(--jx-space-2);
+  color: var(--jx-gold-deep);
+  font-size: var(--jx-fs-caption);
   letter-spacing: 0.06em;
   pointer-events: none;
   text-align: center;
@@ -518,25 +555,63 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
 /* 折叠钮（chevron 图标，无单字中文） */
 html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-toggle"] {
   position: absolute;
-  top: 4px;
+  top: var(--jx-space-1);
   right: -28px;
-  width: 24px;
-  height: 24px;
+  width: var(--jx-space-6);
+  height: var(--jx-space-6);
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
-  color: var(--jx-gold-dim);
+  color: var(--jx-gold-deep);
   cursor: pointer;
   pointer-events: auto;
   opacity: 0.6;
-  transition: opacity 0.15s ease, color 0.15s ease;
+  transition: opacity var(--jx-dur-fast) ease, color var(--jx-dur-fast) ease;
 }
 
 html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-toggle"]:hover {
   opacity: 1;
   color: var(--jx-gold-bright);
+}
+
+/* 拖拽手柄（ADR-010）：角色头顶上方，线描四向移动图标，默认半透 hover 变亮 */
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-drag-handle"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--jx-space-6);
+  height: var(--jx-space-6);
+  color: var(--jx-gold-deep);
+  cursor: grab;
+  pointer-events: auto;
+  opacity: 0.35;
+  transition: opacity var(--jx-dur-fast) ease, color var(--jx-dur-fast) ease;
+  align-self: center;
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-drag-handle"]:hover {
+  opacity: 1;
+  color: var(--jx-gold-bright);
+}
+
+/* 拖动中视觉反馈（ADR-010）：缩放 0.95 + 透明度略降 + 金边发光 */
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-dragging="true"] [data-slot="character-drag-handle"] {
+  cursor: grabbing;
+  opacity: 1;
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-dragging="true"] [data-slot="character-video"] {
+  transform: scale(0.95);
+  opacity: 0.85;
+  filter: drop-shadow(0 0 6px var(--jx-gold-bright));
+  transition: transform var(--jx-dur-fast) ease, opacity var(--jx-dur-fast) ease, filter var(--jx-dur-fast) ease;
+}
+
+/* 折叠时角色整体隐藏，手柄无拖动对象，一并隐藏 */
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-collapsed="true"] [data-slot="character-drag-handle"] {
+  display: none;
 }
 
 html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-collapsed="true"] [data-slot="character-video"],
@@ -545,8 +620,10 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-collaps
 }
 
 html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-collapsed="true"] [data-slot="character-toggle"] {
-  right: 0;
-  top: 0;
+  top: auto;
+  right: auto;
+  left: 0;
+  bottom: 0;
 }
 
 /* 窄屏按比例缩小，不隐藏（ADR-007 §响应式） */
@@ -562,28 +639,28 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-collaps
   }
 }
 
-/* ---------- 工单 05：角色透明度右键菜单（唐风暗金主题，z-index 高于角色层 30） ---------- */
+/* ---------- 工单 05：角色透明度右键菜单（唐风暗金主题；Portal 到 body 后与角色同处根上下文，z 用 --jx-z-demo 保证盖在角色之上） ---------- */
 html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] {
   position: fixed;
-  z-index: 31;
+  z-index: var(--jx-z-demo);
   display: flex;
   flex-direction: column;
   min-width: 96px;
-  padding: 4px;
-  background: var(--jx-bg-deep-2);
-  border: 1px solid var(--jx-gold-dim);
-  border-radius: 6px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  padding: var(--jx-space-1);
+  background: var(--jx-ink-900);
+  border: 1px solid var(--jx-gold-deep);
+  border-radius: var(--jx-radius-md);
+  box-shadow: var(--jx-shadow-2);
   font-family: "TangKai", "Inter", sans-serif;
 }
 
 html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] button {
-  padding: 6px 12px;
+  padding: 6px var(--jx-space-3);
   background: transparent;
   border: none;
-  border-radius: 4px;
-  color: var(--jx-gold-dim);
-  font-size: 13px;
+  border-radius: var(--jx-radius-sm);
+  color: var(--jx-gold-deep);
+  font-size: var(--jx-fs-small);
   text-align: start;
   cursor: pointer;
   transition: background 0.12s ease, color 0.12s ease;
@@ -591,9 +668,80 @@ html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] button {
 
 html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] button:hover,
 html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] button:focus-visible {
-  background: color-mix(in srgb, var(--jx-gold-dim) 18%, transparent);
+  background: color-mix(in srgb, var(--jx-gold-deep) 18%, transparent);
   color: var(--jx-gold-bright);
   outline: none;
+}
+
+/* 右键菜单：状态演示入口（分隔线 + on 态） */
+html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] [data-slot="opacity-menu-sep"] {
+  height: 1px;
+  background: var(--jx-border-deco);
+  margin: 3px var(--jx-space-1);
+}
+
+html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] button.on {
+  background: var(--jx-selection);
+  color: var(--jx-gold-bright);
+}
+
+/* ---------- 工单 07：角色状态演示面板（默认收起，右键菜单「状态演示」唤起；视觉复用 preview #char-tools） ---------- */
+/* 竖排小圆角按钮列：透明深底、hover 金底、on 亮金。absolute 挂于角色右侧（preview 同款左右并排布局） */
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] {
+  position: absolute;
+  left: calc(100% + 8px);
+  bottom: 0;
+  z-index: var(--jx-z-demo);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--jx-space-1);
+  background: color-mix(in srgb, var(--jx-ink-900) 72%, transparent);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  pointer-events: auto;
+  backdrop-filter: blur(3px);
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] button {
+  min-width: 32px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: var(--jx-cream-dim);
+  cursor: pointer;
+  transition: color var(--jx-dur-fast) ease, background var(--jx-dur-fast) ease;
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] button:hover {
+  color: var(--jx-cream);
+  background: color-mix(in srgb, var(--jx-gold-deep) 12%, transparent);
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] button.on {
+  color: var(--jx-gold-bright);
+  background: var(--jx-selection);
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] [data-slot="char-demo-sep"] {
+  height: 1px;
+  background: var(--jx-border-deco);
+  margin: 2px 3px;
+}
+
+/* 「回到自动」文字钮：加宽、暗金小字 + 火花图标 */
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] button.char-demo-auto {
+  width: auto;
+  padding: 3px 6px;
+  gap: var(--jx-space-1);
+  font-family: "TangKai", "Inter", sans-serif;
+  font-size: var(--jx-fs-caption);
+  letter-spacing: 0.08em;
+  color: var(--jx-gold-deep);
 }
 
 /* ---------- 唐风楷体字体 ---------- */
@@ -630,41 +778,41 @@ html[data-theme="jiangxiao"] h3 {
    亦不受影响。 */
 html[data-theme="jiangxiao"] {
   /* —— 背景变量：所有页面容器自动深底（首页/layout-new/设置模态/侧边栏等）—— */
-  --v2-background-bg-deep: var(--jx-bg-deep);
-  --v2-background-bg-base: var(--jx-bg-deep-2);
-  --v2-background-bg-layer-01: var(--jx-bg-deep-2);
-  --v2-background-bg-layer-02: var(--jx-bg-deep-2);
-  --v2-background-bg-layer-03: var(--jx-bg-deep);
-  --background-base: var(--jx-bg-deep);
-  --background-surface-base: var(--jx-bg-deep-2);
-  --surface-base: var(--jx-bg-deep-2);
-  --surface-raised-base: var(--jx-bg-deep-2);
-  --surface-raised-base-hover: color-mix(in srgb, var(--jx-bg-deep-2) 85%, var(--jx-gold-dim) 15%);
+  --v2-background-bg-deep: var(--jx-ink-950);
+  --v2-background-bg-base: var(--jx-ink-900);
+  --v2-background-bg-layer-01: var(--jx-ink-900);
+  --v2-background-bg-layer-02: var(--jx-ink-900);
+  --v2-background-bg-layer-03: var(--jx-ink-950);
+  --background-base: var(--jx-ink-950);
+  --background-surface-base: var(--jx-ink-900);
+  --surface-base: var(--jx-ink-900);
+  --surface-raised-base: var(--jx-ink-900);
+  --surface-raised-base-hover: color-mix(in srgb, var(--jx-ink-900) 85%, var(--jx-gold-deep) 15%);
 
   /* —— 文字变量：普通正文暗金（#B8860B vs #0a0a0a 对比度 6.1:1，达 WCAG AA，
          柔和不刺眼，符合唐风暗金调性）；强调/标题亮金（#F6D365，13.6:1，AAA）。
          覆盖 light 下深色 text token（#161616/#808080）避免黑字黑底 —— */
-  --v2-text-text-base: var(--jx-gold-dim);
-  --v2-text-text-faint: var(--jx-gold-dim);
-  --v2-text-text-muted: var(--jx-gold-dim);
+  --v2-text-text-base: var(--jx-gold-deep);
+  --v2-text-text-faint: var(--jx-gold-deep);
+  --v2-text-text-muted: var(--jx-gold-deep);
   --v2-text-text-strong: var(--jx-gold-bright);
   --v2-text-text-accent: var(--jx-gold-bright);
   --v2-text-text-accent-hover: var(--jx-gold-bright);
-  --text-base: var(--jx-gold-dim);
+  --text-base: var(--jx-gold-deep);
   --text-strong: var(--jx-gold-bright);
-  --text-weak: var(--jx-gold-dim);
+  --text-weak: var(--jx-gold-deep);
 
   /* —— 边框变量：棕金描边，融入唐风深底 —— */
-  --v2-border-border-base: color-mix(in srgb, var(--jx-gold-dim) 30%, transparent);
-  --v2-border-border-muted: color-mix(in srgb, var(--jx-gold-dim) 20%, transparent);
-  --v2-border-border-strong: color-mix(in srgb, var(--jx-gold-dim) 45%, transparent);
+  --v2-border-border-base: color-mix(in srgb, var(--jx-gold-deep) 30%, transparent);
+  --v2-border-border-muted: color-mix(in srgb, var(--jx-gold-deep) 20%, transparent);
+  --v2-border-border-strong: color-mix(in srgb, var(--jx-gold-deep) 45%, transparent);
   --v2-border-border-focus: var(--jx-gold-bright);
-  --border-weak-base: color-mix(in srgb, var(--jx-gold-dim) 30%, transparent);
-  --border-weaker-base: color-mix(in srgb, var(--jx-gold-dim) 20%, transparent);
+  --border-weak-base: color-mix(in srgb, var(--jx-gold-deep) 30%, transparent);
+  --border-weaker-base: color-mix(in srgb, var(--jx-gold-deep) 20%, transparent);
 
   /* —— 图标变量：暗金，呼应烫金文字 —— */
-  --v2-icon-icon-base: var(--jx-gold-dim);
-  --v2-icon-icon-muted: var(--jx-gold-dim);
+  --v2-icon-icon-base: var(--jx-gold-deep);
+  --v2-icon-icon-muted: var(--jx-gold-deep);
   --v2-icon-icon-accent: var(--jx-gold-bright);
 }
 
@@ -680,7 +828,7 @@ html[data-theme="jiangxiao"] :is(h1, h2, h3, h4) {
 
 @supports (background-clip: text) or (-webkit-background-clip: text) {
   html[data-theme="jiangxiao"] :is(h1, h2, h3, h4) {
-    background: var(--jx-gold-gradient);
+    background: var(--jx-gold-foil);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -692,4 +840,689 @@ html[data-theme="jiangxiao"] :is(h1, h2, h3, h4) {
 html[data-theme="jiangxiao"] :is(strong, b) {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
+}
+
+/* ============================================================
+   工单 08：首页双列高保真布局（组件级复刻，方案 B）
+   参考 docs/image/产出/jiangxiao-ui-home.html 的 DOM 结构：
+   .home-grid(280px + minmax(0,720px)) / .proj-card / .proj-item /
+   .utility-nav / .home-sessions-head(.search-wrap + .gold-btn) /
+   .sess-row(.busy-dots / .sess-avatar / .sess-title / .sess-snip / .sess-time)
+   严格用 --jx-* 规范名；不影响其他主题（作用域限定 jiangxiao）。
+   ============================================================ */
+
+/* --- 首页双列容器 --- */
+html[data-theme="jiangxiao"] .jx-home-grid {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 720px);
+  grid-template-rows: minmax(0, 1fr); /* ADR-011: 高度链——外层行撑满，aside 高度才有效 */
+  min-height: 100%; /* ADR-011: 对齐上游 min-h-full，防止高度链断裂 */
+  gap: 40px;
+  justify-content: center;
+  padding: 64px var(--jx-space-6) 90px;
+  position: relative;
+  z-index: 2;
+  font-family: var(--jx-font-ui);
+}
+@media (max-width: 1280px) {
+  html[data-theme="jiangxiao"] .jx-home-grid {
+    grid-template-columns: 220px minmax(0, 720px);
+    gap: var(--jx-space-6);
+    padding: var(--jx-space-12) var(--jx-space-4) 72px;
+  }
+}
+@media (max-width: 1024px) {
+  html[data-theme="jiangxiao"] .jx-home-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto; /* ADR-011: 单列时恢复自然排布，子项（项目/会话/工具导航）依次堆叠 */
+    gap: var(--jx-space-6);
+    padding: var(--jx-space-8) var(--jx-space-4) 56px;
+  }
+}
+
+/* --- 项目栏容器 --- */
+html[data-theme="jiangxiao"] .jx-projects-aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jx-space-1);
+  min-height: 0;
+  min-width: 0;
+}
+html[data-theme="jiangxiao"] .jx-projects-aside-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jx-space-1);
+  margin-top: var(--jx-space-2);
+  flex: 1; /* ADR-011: 撑满 aside 剩余高度，列表区才能滚动而非塌缩成一行 */
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* --- 项目卡片（avatar + name + path）--- */
+html[data-theme="jiangxiao"] .jx-proj-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px var(--jx-space-3);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  background: var(--jx-ink-900);
+}
+html[data-theme="jiangxiao"] .jx-proj-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--jx-radius-md);
+  background: linear-gradient(135deg, var(--jx-ink-700), var(--jx-ink-900));
+  border: 1px solid var(--jx-border-deco);
+  color: var(--jx-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  font-family: inherit;
+}
+html[data-theme="jiangxiao"] .jx-proj-avatar svg {
+  width: var(--jx-icon-l);
+  height: var(--jx-icon-l);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: var(--jx-icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+html[data-theme="jiangxiao"] .jx-proj-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.4;
+}
+html[data-theme="jiangxiao"] .jx-proj-name {
+  color: var(--jx-cream);
+  font-weight: 600;
+  font-size: var(--jx-fs-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html[data-theme="jiangxiao"] .jx-proj-path {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-cream-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- 项目列表项 --- */
+html[data-theme="jiangxiao"] .jx-proj-item {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-2);
+  width: 100%;
+  text-align: left;
+  padding: 7px var(--jx-space-3);
+  border-radius: var(--jx-radius-md);
+  color: color-mix(in srgb, var(--jx-cream) 70%, transparent);
+  font-size: var(--jx-fs-body);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background-color var(--jx-dur-fast) var(--jx-ease),
+    color var(--jx-dur-fast) var(--jx-ease);
+  min-width: 0;
+}
+html[data-theme="jiangxiao"] .jx-proj-item:hover {
+  background: color-mix(in srgb, var(--jx-gold-deep) 12%, transparent);
+  color: var(--jx-cream);
+}
+html[data-theme="jiangxiao"] .jx-proj-item.on {
+  background: var(--jx-selection);
+  color: var(--jx-gold-bright);
+}
+html[data-theme="jiangxiao"] .jx-proj-item:focus-visible {
+  outline: none;
+  background: color-mix(in srgb, var(--jx-gold-deep) 18%, transparent);
+}
+html[data-theme="jiangxiao"] .jx-proj-item-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- 工具导航（设置 / 帮助）--- */
+html[data-theme="jiangxiao"] .jx-utility-nav {
+  margin-top: 28px;
+  display: flex;
+  gap: var(--jx-space-2);
+  flex-wrap: wrap;
+}
+html[data-theme="jiangxiao"] .jx-ghost-btn {
+  color: var(--jx-gold-dim);
+  font-size: var(--jx-fs-small);
+  letter-spacing: 0.1em;
+  padding: 3px var(--jx-space-2);
+  border-bottom: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    color var(--jx-dur-fast) var(--jx-ease),
+    border-bottom-color var(--jx-dur-fast) var(--jx-ease);
+}
+html[data-theme="jiangxiao"] .jx-ghost-btn:hover {
+  color: var(--jx-gold-bright);
+  border-bottom-color: var(--jx-gold-dim);
+}
+html[data-theme="jiangxiao"] .jx-ghost-btn:focus-visible {
+  outline: none;
+  color: var(--jx-gold-bright);
+  border-bottom-color: var(--jx-gold);
+}
+html[data-theme="jiangxiao"] .jx-ghost-btn svg {
+  width: var(--jx-icon-s);
+  height: var(--jx-icon-s);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: var(--jx-icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+
+/* --- 会话列头部：搜索 + 新会话金钮 --- */
+html[data-theme="jiangxiao"] .jx-home-sessions-head {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  margin-bottom: 14px;
+}
+html[data-theme="jiangxiao"] .jx-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+html[data-theme="jiangxiao"] .jx-search-wrap .jx-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--jx-cream-dim);
+  pointer-events: none;
+}
+html[data-theme="jiangxiao"] .jx-search-wrap .jx-search-icon svg {
+  width: var(--jx-icon-s);
+  height: var(--jx-icon-s);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: var(--jx-icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+html[data-theme="jiangxiao"] .jx-search-input {
+  width: 100%;
+  background: var(--jx-ink-900);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-md);
+  color: var(--jx-cream);
+  font-size: var(--jx-fs-body);
+  padding: var(--jx-space-2) var(--jx-space-3) var(--jx-space-2) var(--jx-space-8);
+  outline: none;
+  font-family: inherit;
+  -webkit-text-fill-color: var(--jx-cream);
+}
+html[data-theme="jiangxiao"] .jx-search-input::placeholder {
+  color: var(--jx-cream-dim);
+  -webkit-text-fill-color: var(--jx-cream-dim);
+}
+html[data-theme="jiangxiao"] .jx-search-input:focus {
+  border-color: var(--jx-gold-deep);
+  box-shadow: var(--jx-gold-rim);
+}
+
+/* --- 新会话金钮（gold-btn）--- */
+html[data-theme="jiangxiao"] .jx-gold-btn {
+  background: var(--jx-ink-700);
+  border: 1px solid var(--jx-border-deco);
+  color: var(--jx-gold-bright);
+  font-size: var(--jx-fs-small);
+  letter-spacing: 0.06em;
+  padding: 7px 14px;
+  border-radius: var(--jx-radius-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  -webkit-text-fill-color: var(--jx-gold-bright);
+  transition:
+    border-color var(--jx-dur-fast) var(--jx-ease),
+    box-shadow var(--jx-dur-fast) var(--jx-ease);
+}
+html[data-theme="jiangxiao"] .jx-gold-btn:hover:not(:disabled) {
+  border-color: var(--jx-gold-deep);
+  box-shadow: var(--jx-gold-rim);
+}
+html[data-theme="jiangxiao"] .jx-gold-btn:focus-visible {
+  outline: none;
+  border-color: var(--jx-gold-deep);
+  box-shadow: var(--jx-gold-rim);
+}
+html[data-theme="jiangxiao"] .jx-gold-btn:active:not(:disabled) {
+  transform: translateY(0.5px);
+}
+html[data-theme="jiangxiao"] .jx-gold-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+html[data-theme="jiangxiao"] .jx-gold-btn svg {
+  width: var(--jx-icon-s);
+  height: var(--jx-icon-s);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: var(--jx-icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+
+/* --- 会话行（sess-row）--- */
+html[data-theme="jiangxiao"] .jx-sess-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--jx-space-3);
+  align-items: center;
+  padding: 10px var(--jx-space-3);
+  border-radius: var(--jx-radius-lg);
+  border-left: 2px solid transparent;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background-color var(--jx-dur-fast) var(--jx-ease),
+    border-left-color var(--jx-dur-fast) var(--jx-ease);
+  margin-bottom: var(--jx-space-1);
+}
+html[data-theme="jiangxiao"] .jx-sess-row:hover {
+  background: color-mix(in srgb, var(--jx-gold-deep) 8%, transparent);
+}
+html[data-theme="jiangxiao"] .jx-sess-row.on {
+  background: var(--jx-selection);
+  border-left-color: var(--jx-gold);
+}
+html[data-theme="jiangxiao"] .jx-sess-row:focus-visible {
+  outline: none;
+  border-left-color: var(--jx-gold);
+}
+
+html[data-theme="jiangxiao"] .jx-sess-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--jx-radius-md);
+  background: var(--jx-ink-800);
+  border: 1px solid var(--jx-border-deco);
+  color: var(--jx-gold-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+html[data-theme="jiangxiao"] .jx-sess-avatar svg {
+  width: var(--jx-icon-s);
+  height: var(--jx-icon-s);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: var(--jx-icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+
+/* --- busy-dots 三点动画（当前会话指示）--- */
+html[data-theme="jiangxiao"] .jx-busy-dots {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--jx-radius-md);
+  background: var(--jx-ink-800);
+  border: 1px solid var(--jx-border-deco);
+  flex: 0 0 auto;
+}
+html[data-theme="jiangxiao"] .jx-busy-dots i {
+  width: var(--jx-space-1);
+  height: var(--jx-space-1);
+  border-radius: var(--jx-radius-seal);
+  background: var(--jx-gold-bright);
+  animation: jx-bpulse 1.2s ease-in-out infinite;
+  display: block;
+}
+html[data-theme="jiangxiao"] .jx-busy-dots i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+html[data-theme="jiangxiao"] .jx-busy-dots i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes jx-bpulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="jiangxiao"] .jx-busy-dots i {
+    animation: none;
+  }
+}
+
+/* --- 会话文本（title + snippet）--- */
+html[data-theme="jiangxiao"] .jx-sess-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.4;
+}
+html[data-theme="jiangxiao"] .jx-sess-title {
+  font-size: var(--jx-fs-body);
+  color: var(--jx-cream);
+  -webkit-text-fill-color: var(--jx-cream);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html[data-theme="jiangxiao"] .jx-sess-snip {
+  font-size: var(--jx-fs-small);
+  color: var(--jx-cream-dim);
+  -webkit-text-fill-color: var(--jx-cream-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html[data-theme="jiangxiao"] .jx-sess-time {
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-cream-dim);
+  -webkit-text-fill-color: var(--jx-cream-dim);
+  flex: 0 0 auto;
+}
+
+/* --- 会话列滚动容器 --- */
+html[data-theme="jiangxiao"] .jx-sessions-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+/* --- 搜索下拉面板（在 jx-search-wrap 内绝对定位，保持现有功能 + 深底样式）--- */
+html[data-theme="jiangxiao"] .jx-search-dropdown {
+  background: var(--jx-ink-900) !important;
+  border: 1px solid var(--jx-border-deco) !important;
+  box-shadow:
+    var(--jx-shadow-2),
+    var(--jx-gold-rim) !important;
+  color: var(--jx-cream);
+}
+html[data-theme="jiangxiao"] .jx-search-dropdown [data-component="home-session-search-row"] {
+  color: var(--jx-cream);
+}
+html[data-theme="jiangxiao"] .jx-search-dropdown [data-component="home-session-search-row"]:hover,
+html[data-theme="jiangxiao"] .jx-search-dropdown [data-component="home-session-search-row"][aria-selected="true"] {
+  background: var(--jx-selection) !important;
+  color: var(--jx-gold-bright) !important;
+}
+
+/* ============================================================
+   工单 09：session Review 面板组件级复刻 + 收起态（ADR-008）
+   ============================================================
+   基准：docs/image/产出/jiangxiao-ui-session.html
+   结构：`[data-component="review-panel"]` = .rv-head（标题 + 收起钮 i-x）
+   + `[data-component="file-tree-v2"]`（.ft-row 文件行，.on 高亮）
+   + .rv-diff（.dl.add/.dl.del/.dl.ctx 行块，行号+符号+代码三列）。
+   配色用 --jx-* 规范 token；代码行文字色用上游 --syntax-* 专业配色
+   （dark 值作用域内重写，保证 light 系统偏好下深底仍用暗色系）。 */
+html[data-theme="jiangxiao"] [data-component="review-panel"] {
+
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--jx-ink-900) 72%, transparent);
+  border-left: 1px solid var(--jx-border-deco);
+}
+
+/* —— 面板头：标题 + 收起按钮（i-x 线描图标）—— */
+html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head {
+  padding: var(--jx-space-3) 14px var(--jx-space-2);
+  font-family: var(--jx-font-display);
+  color: var(--jx-gold);
+  letter-spacing: 0.08em;
+  font-size: var(--jx-fs-h3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--jx-space-2);
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head .rv-t {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-2);
+  min-width: 0;
+  overflow: hidden;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head .rv-t > svg {
+  color: var(--jx-gold-deep);
+  flex: 0 0 auto;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head .rv-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 标题内的模式下拉（SelectV2 inline）：融入头文字 */
+html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head [data-component="select-v2"],
+html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head [data-component="select-v2"] [data-slot="select-v2-trigger"] {
+  color: var(--jx-gold);
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head button {
+  color: var(--jx-cream-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--jx-radius-sm);
+  flex: 0 0 auto;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head button:hover {
+  color: var(--jx-gold-bright);
+  background: var(--jx-selection);
+}
+
+/* —— 文件树：.ft-row 文件行（file 图标 + 文件名 + 增删统计）—— */
+html[data-theme="jiangxiao"] [data-component="review-panel"] [data-component="file-tree-v2"] {
+  overflow-y: auto;
+  padding: var(--jx-space-1) 0 10px;
+  border-top: 1px solid var(--jx-border-deco);
+  flex: 0 1 auto;
+  max-height: 46%;
+  gap: 0;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row {
+  display: flex;
+  gap: var(--jx-space-2);
+  align-items: center;
+  padding: 5px 14px;
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-cream-dim);
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  min-width: 0;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row:hover {
+  background: color-mix(in srgb, var(--jx-gold-deep) 8%, transparent);
+  color: var(--jx-cream);
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row.on {
+  background: var(--jx-selection);
+  color: var(--jx-gold-bright);
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row > svg {
+  color: var(--jx-gold-dim);
+  flex: 0 0 auto;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row .nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row .dc-add {
+  color: var(--jx-success);
+  flex: 0 0 auto;
+  font-size: var(--jx-fs-caption);
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row .dc-del {
+  color: var(--jx-error);
+  flex: 0 0 auto;
+  font-size: var(--jx-fs-caption);
+}
+
+/* —— diff 区：.dl 行块（add 绿底浅绿字 / del 红底浅红字 / ctx 灰，行号+符号+代码）—— */
+html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-diff {
+  border-top: 1px solid var(--jx-border-deco);
+  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--jx-space-2) 0;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .dl {
+  display: grid;
+  grid-template-columns: 36px 36px var(--jx-space-4) minmax(0, 1fr);
+  padding: 0 var(--jx-space-2);
+  min-width: 0;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .dl > span {
+  padding: 0 var(--jx-space-1);
+  white-space: pre;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .dl .no {
+  color: var(--jx-cream-dim);
+  opacity: 0.55;
+  text-align: right;
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  user-select: none;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .dl .sg {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .dl .code {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  line-height: 1.7;
+  color: var(--syntax-comment);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.add {
+  background: color-mix(in srgb, var(--jx-success) 10%, transparent);
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.add .code {
+  color: var(--syntax-diff-add);
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.add .sg {
+  color: var(--jx-success);
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.del {
+  background: color-mix(in srgb, var(--jx-error) 10%, transparent);
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.del .code {
+  color: var(--syntax-diff-delete);
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.del .sg {
+  color: var(--jx-error);
+}
+
+html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.ctx .sg {
+  color: var(--jx-cream-dim);
+}
+
+/* 空 / 加载占位 */
+html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-placeholder {
+  padding: var(--jx-space-3) var(--jx-space-4);
+  color: var(--jx-cream-dim);
+  font-size: var(--jx-fs-small);
+  font-family: var(--jx-font-ui);
+  letter-spacing: 0.06em;
+}
+
+/* —— 收起态：session-body.no-review（网格变单列、面板隐藏）——
+   收起钮点击后由 ReviewPanelV2 切换 view().reviewPanel，本规则与布局行
+   的 .no-review 类配套，供视觉比对断言（面板本身按打开状态卸载）。 */
+html[data-theme="jiangxiao"] .session-body.no-review [data-component="review-panel"] {
+  display: none;
 }
