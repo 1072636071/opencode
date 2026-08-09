@@ -104,9 +104,17 @@ export function JiangxiaoSplash() {
         id="jiangxiao-splash"
         class="jiangxiao-splash-root"
         classList={{ "jiangxiao-splash-hidden": state.hidden }}
+        onDragOver={(event) => {
+          event.preventDefault()
+          event.stopPropagation()
+        }}
+        onDrop={(event) => {
+          event.preventDefault()
+          event.stopPropagation()
+        }}
       >
         {/* 欢迎图主视觉（派生压缩资产，原图 docs/image/欢迎16-9.png 只读） */}
-        <img class="jiangxiao-splash-bg" src="/splash-welcome.jpg" alt="" aria-hidden="true" />
+        <img class="jiangxiao-splash-bg" src="/splash-welcome.jpg" alt="" aria-hidden="true" draggable={false} />
 
         {/* 底部墨晕渐晕，保证标题列可读 */}
         <div class="jiangxiao-splash-vignette" />
