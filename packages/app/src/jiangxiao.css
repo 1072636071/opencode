@@ -752,6 +752,108 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   color: var(--jx-gold-deep);
 }
 
+/* ---------- 调试叠加层（工单 02/03，memorial 001）：调试牌子 + 播放日志窗 ---------- */
+/* 调试牌子：演示面板右侧两行小字，等宽字体、深底浅字、pointer-events 穿透，随 demoOpen 显隐。
+   absolute 相对面板（character-demo-tools 自身即 absolute containing block）右侧定位。 */
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-debug-badge"] {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  z-index: var(--jx-z-demo);
+  display: flex;
+  flex-direction: column;
+  max-width: 220px;
+  padding: var(--jx-space-1) var(--jx-space-2);
+  background: color-mix(in srgb, var(--jx-ink-950) 85%, transparent);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-md);
+  pointer-events: none;
+  user-select: none;
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-debug-badge"] [data-slot="debug-badge-line"] {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-caption);
+  line-height: var(--jx-lh-body);
+  color: var(--jx-cream);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-debug-badge"] [data-slot="debug-badge-line"]:first-child {
+  color: var(--jx-gold-bright);
+}
+
+/* 播放日志窗：浮动小窗，渲染在角色 aside 内随拖动移动；约 280×200，深底浅字，等宽小字。
+   absolute 相对面板（character-demo-tools 自身即 absolute containing block）右侧定位。 */
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  z-index: var(--jx-z-demo);
+  width: 280px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  background: var(--jx-ink-950);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  box-shadow: var(--jx-shadow-2);
+  overflow: hidden;
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-head"] {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-1);
+  padding: var(--jx-space-1) var(--jx-space-2);
+  border-bottom: 1px solid var(--jx-border-deco);
+  color: var(--jx-gold-bright);
+  font-family: "TangKai", "Inter", sans-serif;
+  font-size: var(--jx-fs-caption);
+  letter-spacing: 0.08em;
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-head"] span {
+  flex: 1;
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-head"] button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--jx-space-6);
+  height: var(--jx-space-6);
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--jx-radius-sm);
+  color: var(--jx-cream-dim);
+  cursor: pointer;
+  transition: color var(--jx-dur-fast) ease, background var(--jx-dur-fast) ease;
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-head"] button:hover {
+  color: var(--jx-cream);
+  background: color-mix(in srgb, var(--jx-gold-deep) 12%, transparent);
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-body"] {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--jx-space-1) var(--jx-space-2);
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-caption);
+  line-height: var(--jx-lh-body);
+  color: var(--jx-cream);
+}
+
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-body"] [data-slot="playback-log-line"] {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ---------- 唐风楷体字体 ---------- */
 @font-face {
   font-family: "TangKai";

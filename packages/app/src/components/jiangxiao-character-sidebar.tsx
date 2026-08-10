@@ -11,6 +11,14 @@ import {
   type CharacterStatus,
 } from "@/components/character-state"
 import { getTransitionPath, type TransitionSegment } from "@/components/character-transition"
+import {
+  deriveBadgeLines,
+  clearLog as debugClearLog,
+  pushLog,
+  webpBasename,
+  type LogSource,
+  type PlaybackLogEntry,
+} from "@/components/character-debug"
 import { JiangxiaoIcon, type JiangxiaoIconName } from "@/components/jiangxiao-icons"
 import {
   clampPosition,
@@ -65,6 +73,17 @@ const IDLE_LINES = ["大人，有何吩咐？", "姜晓在此候命。", "需要
 const TICK_INTERVAL_MS = 500
 // crossfade 时长（工单 03：300ms → 0.1s）
 const CROSSFADE_MS = 100
+// 气泡显示时长（自动 + 点击一致，D9）
+const BUBBLE_DURATION_MS = 3500
+
+// ---------- 播放日志（工单 03 / memorial 001 D13） ----------
+// 日志缓冲为模块级 signal：跨组件重挂载不清、刷新页面清（纯内存，不写 localStorage）。
+const [logBuffer, setLogBuffer] = createSignal<string[]>([])
+
+/** 记录一条播放日志到环形缓冲（格式与容量在 character-debug 纯模块）。 */
+function logPlayback(entry: PlaybackLogEntry) {
+  setLogBuffer((buf) => pushLog(buf, entry))
+}
 
 // ---------- 工单 05：角色透明度调节（20%~100%，localStorage 持久化） ----------
 // localStorage 简模式工具函数（try/catch + fallback，SSR/隐私模式下静默降级）
@@ -153,6 +172,9 @@ export function JiangxiaoCharacterSidebar() {
     menu: undefined as { x: number; y: number } | undefined,
     collapsed: readLS(LS_COLLAPSED, false),
     demoOpen: false,
+    // 调试叠加层（memorial 001）：当前素材加载失败的文件名（basename），牌子第二行显示 404；日志窗开合。
+    failedFile: undefined as string | undefined,
+    logOpen: false,
   })
 
   let fadeTimer: ReturnType<typeof setTimeout> | undefined
@@ -178,27 +200,50 @@ export function JiangxiaoCharacterSidebar() {
   }
 
   // 触发 crossfade 兜底（无过渡素材 / 素材加载失败 / tick 循环→循环直切）。
-  function runCrossfade() {
+  // from/to/source 供日志记录「crossfade兜底 from→to · 触发源」。
+  function runCrossfade(from?: CharacterState, to?: CharacterState, source?: LogSource) {
     setState("transitioning", true)
     if (fadeTimer) clearTimeout(fadeTimer)
     fadeTimer = setTimeout(() => setState("transitioning", false), CROSSFADE_MS)
+    if (from !== undefined && to !== undefined && source !== undefined) {
+      logPlayback({ kind: "crossfade", from, to, source, at: Date.now() })
+    }
   }
 
   // 按段序列顺序播放过渡：定时器主切态（durationMs），多段（经枢纽 2 段）顺序衔接，播完切目标循环。
-  function playTransitionSegs(segs: TransitionSegment[]) {
+  // from/to/source 供日志记录每段开始（过渡段开始播放 + 触发源区分）。
+  function playTransitionSegs(segs: TransitionSegment[], from: CharacterState, to: CharacterState, source: LogSource) {
     setState("transitionSegs", segs)
     setState("transitionIdx", 0)
-    scheduleTransitionSeg(segs, 0)
+    scheduleTransitionSeg(segs, 0, from, to, source)
   }
 
-  function scheduleTransitionSeg(segs: TransitionSegment[], idx: number) {
+  function scheduleTransitionSeg(
+    segs: TransitionSegment[],
+    idx: number,
+    from: CharacterState,
+    to: CharacterState,
+    source: LogSource,
+  ) {
     if (transitionTimer) clearTimeout(transitionTimer)
     const seg = segs[idx]
+    // 过渡段开始播放：记日志（含段序、时长与触发源）
+    logPlayback({
+      kind: "transition",
+      from,
+      to,
+      file: webpBasename(seg.webp),
+      segIndex: idx,
+      total: segs.length,
+      durMs: seg.durationMs,
+      source,
+      at: Date.now(),
+    })
     transitionTimer = setTimeout(() => {
       const nextIdx = idx + 1
       if (nextIdx < segs.length) {
         setState("transitionIdx", nextIdx)
-        scheduleTransitionSeg(segs, nextIdx)
+        scheduleTransitionSeg(segs, nextIdx, from, to, source)
       } else {
         // 播完：切目标循环（reducer 已置为 next 态，循环 img data-active 已切换），清除过渡。
         cancelTransition()
@@ -217,16 +262,27 @@ export function JiangxiaoCharacterSidebar() {
         if (prev === undefined || next === prev) return
         cancelTransition()
         setState("prevDisplay", prev)
+        // 自动气泡（工单 01 / D7/D8/D10）：状态切换自动弹 STATUS_TEXT，后发覆盖旧气泡并重置
+        // 3.5s 倒计时，不出声；角色折叠时不弹。触发点唯一在此 effect，force 切态也走此通路。
+        if (!state.collapsed) {
+          setState("bubble", STATUS_TEXT[next])
+          if (autoBubbleTimer) clearTimeout(autoBubbleTimer)
+          autoBubbleTimer = setTimeout(() => setState("bubble", undefined), BUBBLE_DURATION_MS)
+        }
+        // 新一轮播放开始：清除上一态的素材失败标记（新素材若再失败由 img onError 重新标记）
+        setState("failedFile", undefined)
+        // 触发源区分（PRD「状态切换（含触发源区分）」）：tick 驱动（reading 超时/done-welcome→idle）vs 业务事件驱动
+        const source: LogSource = tickDrivenRef ? "tick" : "event"
         const tickLoopBack = tickDrivenRef && next === "idle"
         if (tickLoopBack) {
-          runCrossfade()
+          runCrossfade(prev, next, source)
           return
         }
         const segs = getTransitionPath(prev, next)
         if (segs.length > 0) {
-          playTransitionSegs(segs)
+          playTransitionSegs(segs, prev, next, source)
         } else {
-          runCrossfade()
+          runCrossfade(prev, next, source)
         }
       },
       { defer: true },
@@ -327,13 +383,13 @@ export function JiangxiaoCharacterSidebar() {
     })
   })
 
-  // 点击角色：弹气泡 + 提示音
+  // 点击角色：弹气泡 + 提示音（随机台词 + chime，行为不变；与自动气泡共用同一气泡容器）
   function handleClick() {
     const line = IDLE_LINES[Math.floor(Math.random() * IDLE_LINES.length)]
     setState("bubble", line)
     playChime()
     if (autoBubbleTimer) clearTimeout(autoBubbleTimer)
-    autoBubbleTimer = setTimeout(() => setState("bubble", undefined), 3500)
+    autoBubbleTimer = setTimeout(() => setState("bubble", undefined), BUBBLE_DURATION_MS)
   }
 
   function playChime() {
@@ -363,6 +419,28 @@ export function JiangxiaoCharacterSidebar() {
 
   const currentState = () => state.status.state
 
+  // 调试牌子两行文案（工单 02）：由 character-debug 纯函数推导当前播放场景。
+  // crossfading = transitioning 且无过渡段（runCrossfade 仅无段时置 transitioning）。
+  const badgeLines = () =>
+    deriveBadgeLines({
+      state: currentState(),
+      segs: state.transitionSegs,
+      segIdx: state.transitionIdx,
+      crossfading: state.transitioning && state.transitionSegs.length === 0,
+      failedFile: state.failedFile,
+    })
+
+  // 日志窗新条目自动跟随到底部（工单 03）：buffer 变化且日志窗渲染时滚动到底
+  createEffect(() => {
+    const entries = logBuffer()
+    if (!state.logOpen) return
+    if (logBodyEl) {
+      // 滚动区跟随底部：条目过多时最新的在底部，向上滚出较早的
+      logBodyEl.scrollTop = logBodyEl.scrollHeight
+    }
+    void entries
+  })
+
   // 折叠/展开切换（持久化到 localStorage）
   function toggleCollapsed() {
     const next = !state.collapsed
@@ -371,18 +449,31 @@ export function JiangxiaoCharacterSidebar() {
   }
 
   // ---------- 工单 07：状态演示 ----------
-  // 强制切态：dispatch force 覆盖事件驱动，台词气泡按态弹出 + 提示音（样式语义同 preview setCharState(s.id)）
+  // 强制切态：dispatch force 覆盖事件驱动。气泡一律走 state-change effect 的自动气泡通路（D10），
+  // 此处不再手动弹窗（force 到相同状态时 reducer 不变 → effect 不触发 → 不弹气泡），提示音保留。
   function forceState(s: CharacterState) {
     dispatch({ type: "force", state: s })
-    setState("bubble", STATUS_TEXT[s])
     playChime()
-    if (autoBubbleTimer) clearTimeout(autoBubbleTimer)
-    autoBubbleTimer = setTimeout(() => setState("bubble", undefined), 3500)
+    logPlayback({ kind: "force", state: s, at: Date.now() })
   }
 
   // 回到自动：清除 override 恢复事件驱动
   function returnToAuto() {
     dispatch({ type: "auto" })
+    logPlayback({ kind: "auto", at: Date.now() })
+  }
+
+  // 日志窗开合：打开/关闭切换（日志窗打开本身记为一条日志，D13）
+  function toggleLog() {
+    const next = !state.logOpen
+    setState("logOpen", next)
+    if (next) logPlayback({ kind: "log-open", at: Date.now() })
+  }
+
+  // 清空日志缓冲：先清空，再记「日志清空」一条（D13 记录点），使清空后从一条干净状态开始观察
+  function handleClearLog() {
+    setLogBuffer(debugClearLog())
+    logPlayback({ kind: "log-clear", at: Date.now() })
   }
 
   // 右键菜单「状态演示」入口：toggle 演示面板开合
@@ -397,6 +488,7 @@ export function JiangxiaoCharacterSidebar() {
   const [dragOffset, setDragOffset] = createSignal<Position>({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = createSignal(false)
   let asideEl: HTMLElement | undefined
+  let logBodyEl: HTMLDivElement | undefined
   let dragStart:
     | { px: number; py: number; originLeft: number; originTop: number; w: number; h: number }
     | undefined
@@ -509,8 +601,12 @@ export function JiangxiaoCharacterSidebar() {
               data-active={currentState() === v ? true : undefined}
               data-prev={state.prevDisplay === v && state.transitioning ? true : undefined}
               onError={(e) => {
-                // 素材缺失时静默隐藏，不报错
+                // 素材缺失时静默隐藏，不报错；仅当前显示态（data-active）标记 404（打破静默隐藏黑箱），
+                // 非活动态懒加载的缺失素材不污染牌子，但仍记日志便于排查
                 ;(e.currentTarget as HTMLImageElement).style.display = "none"
+                const file = `${v}.webp`
+                if (v === currentState()) setState("failedFile", file)
+                logPlayback({ kind: "missing", file, at: Date.now() })
               }}
             />
           )}
@@ -524,10 +620,16 @@ export function JiangxiaoCharacterSidebar() {
             data-transition-active
             data-transition-key={state.transitionSegs[state.transitionIdx].key}
             onError={(e) => {
-              // 过渡素材缺失/未就绪：直接淡化到目标循环（crossfade 兜底，ADR-013 §9）
+              // 过渡素材缺失/未就绪：直接淡化到目标循环（crossfade 兜底，ADR-013 §9）。
+              // 必须先取失败文件名（cancelTransition 会清空段序列），再触发兜底与日志。
               ;(e.currentTarget as HTMLImageElement).style.display = "none"
+              const file = webpBasename(state.transitionSegs[state.transitionIdx].webp)
+              setState("failedFile", file)
+              const from = state.prevDisplay
+              const to = currentState()
               cancelTransition()
-              runCrossfade()
+              runCrossfade(from, to, tickDrivenRef ? "tick" : "event")
+              logPlayback({ kind: "missing", file, at: Date.now() })
             }}
           />
         </Show>
@@ -629,9 +731,22 @@ export function JiangxiaoCharacterSidebar() {
       </Show>
 
       {/* 工单 07：状态演示面板（默认收起；竖排 10 态按钮 + 分隔线 + 「回到自动」+ 折叠钮，样式同 preview #char-tools）。
-          角色折叠（collapsed）时隐藏——演示态看不到动画无意义，展开角色后可从右键菜单重新唤起。 */}
+          角色折叠（collapsed）时隐藏——演示态看不到动画无意义，展开角色后可从右键菜单重新唤起。
+          调试叠加层（工单 02/03）：面板内渲染调试牌子 + 日志按钮。 */}
       <Show when={state.demoOpen && !state.collapsed}>
         <div data-slot="character-demo-tools" role="group" aria-label="角色状态演示">
+          {/* 日志按钮（工单 03）：线描图标 + aria-label，不用单字中文 */}
+          <button
+            type="button"
+            class={state.logOpen ? "on" : undefined}
+            onClick={toggleLog}
+            title="播放日志"
+            aria-label="播放日志"
+            aria-pressed={state.logOpen}
+          >
+            <JiangxiaoIcon name="msg" size={13} />
+          </button>
+          <span data-slot="char-demo-sep" aria-hidden="true" />
           <For each={DEMO_STATES}>
             {(d) => (
               <button
@@ -666,6 +781,32 @@ export function JiangxiaoCharacterSidebar() {
           >
             <JiangxiaoIcon name="chev-u" size={13} />
           </button>
+          {/* 调试牌子（工单 02 / D3/D4/D12）：两行显示当前播放信息，pointer-events 穿透。
+              作为面板子元素、absolute 相对面板右侧定位，随 demoOpen 显隐 */}
+          <div data-slot="character-debug-badge" aria-hidden="true">
+            <div data-slot="debug-badge-line">{badgeLines().line1}</div>
+            <div data-slot="debug-badge-line">{badgeLines().line2}</div>
+          </div>
+          {/* 播放日志窗（工单 03 / D5/D6/D13）：浮动小窗，渲染在角色 aside 内随拖动移动，
+              演示面板关闭或折叠时随面板一并隐藏 */}
+          <Show when={state.logOpen}>
+            <div data-slot="character-playback-log" role="dialog" aria-label="播放日志">
+              <div data-slot="playback-log-head">
+                <span>播放日志</span>
+                <button type="button" onClick={handleClearLog} title="清空" aria-label="清空日志">
+                  <JiangxiaoIcon name="brush" size={13} />
+                </button>
+                <button type="button" onClick={toggleLog} title="关闭" aria-label="关闭播放日志">
+                  <JiangxiaoIcon name="x" size={13} />
+                </button>
+              </div>
+              <div data-slot="playback-log-body" ref={logBodyEl}>
+                <For each={logBuffer()}>
+                  {(line) => <div data-slot="playback-log-line">{line}</div>}
+                </For>
+              </div>
+            </div>
+          </Show>
         </div>
       </Show>
     </aside>
