@@ -78,6 +78,7 @@ const api: ElectronAPI = {
   draftDelete: (key) => ipcRenderer.invoke("draft-delete", key),
   draftBlobPut: (data) => ipcRenderer.invoke("draft-blob-put", data),
   draftBlobGet: (id) => ipcRenderer.invoke("draft-blob-get", id),
+  omoConfigWrite: (name, model) => ipcRenderer.invoke("omo-config-write", name, model),
 
   getWindowID: () => ipcRenderer.invoke("get-window-id"),
   onMenuCommand: (cb) => {

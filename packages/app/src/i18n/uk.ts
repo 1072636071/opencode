@@ -1191,6 +1191,8 @@ export const dict = {
   "settings.models.description": "Налаштування моделей будуть доступні тут.",
   "settings.agents.title": "Агенти",
   "settings.agents.description": "Налаштування агентів будуть доступні тут.",
+  "settings.agents.model.placeholder": "Авто",
+  "settings.agents.toast.saved.title": "Прив'язку моделі збережено для {name}",
   "settings.commands.title": "Команди",
   "settings.commands.description": "Налаштування команд будуть доступні тут.",
   "settings.mcp.title": "MCP",

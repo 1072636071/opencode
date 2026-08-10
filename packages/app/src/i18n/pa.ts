@@ -1090,6 +1090,8 @@ export const dict = {
   "settings.models.description": "ماڈل دی ترتیبات ایتھے ترتیب دے قابل ہون گیاں۔",
   "settings.agents.title": "ایجنٹاں",
   "settings.agents.description": "Agent ترتیبات ایتھے ترتیب دے قابل ہون گیاں۔",
+  "settings.agents.model.placeholder": "خودکار",
+  "settings.agents.toast.saved.title": "{name} لئی ماڈل بائنڈنگ محفوظ ہو گئی",
   "settings.commands.title": "کمانڈز",
   "settings.commands.description": "کمانڈ دی ترتیبات ایتھے ترتیب دے قابل ہون گیاں۔",
   "settings.mcp.title": "MCP",

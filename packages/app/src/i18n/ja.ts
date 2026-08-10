@@ -993,6 +993,8 @@ export const dict = {
   "settings.models.description": "モデル設定は今後ここで構成できるようになります。",
   "settings.agents.title": "エージェント",
   "settings.agents.description": "エージェント設定は今後ここで構成できるようになります。",
+  "settings.agents.model.placeholder": "自動",
+  "settings.agents.toast.saved.title": "{name} のモデルバインディングを保存しました",
   "settings.commands.title": "コマンド",
   "settings.commands.description": "コマンド設定は今後ここで構成できるようになります。",
   "settings.mcp.title": "MCP",

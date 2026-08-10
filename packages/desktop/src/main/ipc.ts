@@ -11,6 +11,7 @@ import { runDesktopMenuAction } from "./desktop-menu-actions"
 import { setForceFocus } from "./debug"
 import { assertAttachmentBudget, createPickedFileAuthorizations } from "./attachment-picker"
 import { getStore, removeStoreFileIfEmpty } from "./store"
+import { writeOmoAgentModel } from "./omo-config"
 import {
   getPinchZoomEnabled,
   getWindowID,
@@ -140,6 +141,9 @@ export function registerIpcHandlers(deps: Deps) {
     const store = getStore(name)
     return Object.keys(store.store).length
   })
+  ipcMain.handle("omo-config-write", (_event: IpcMainInvokeEvent, name: string, model: string | undefined) =>
+    writeOmoAgentModel(name, model),
+  )
   ipcMain.handle("draft-get", (_event, key: string) => drafts.get(key))
   ipcMain.handle("draft-set", (_event, key: string, value: string) => drafts.set(key, value))
   ipcMain.handle("draft-delete", (_event, key: string) => drafts.set(key, null))

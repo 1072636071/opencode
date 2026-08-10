@@ -1098,6 +1098,8 @@ export const dict = {
   "settings.models.description": "Model tənzimləmələri burada konfiqurasiya edilə biləcək.",
   "settings.agents.title": "Agentlər",
   "settings.agents.description": "Agent tənzimləmələri burada konfiqurasiya edilə biləcək.",
+  "settings.agents.model.placeholder": "Avtomatik",
+  "settings.agents.toast.saved.title": "{name} üçün model bağlaması yadda saxlanıldı",
   "settings.commands.title": "Əmrlər",
   "settings.commands.description": "Əmr tənzimləmələri burada konfiqurasiya edilə biləcək.",
   "settings.mcp.title": "MCP",

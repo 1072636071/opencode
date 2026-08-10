@@ -1093,6 +1093,8 @@ export const dict = {
   "settings.models.description": "मॉडल सेटिंग्स यहां कॉन्फ़िगर करने योग्य होंगी।",
   "settings.agents.title": "एजेंट",
   "settings.agents.description": "एजेंट सेटिंग्स यहां कॉन्फ़िगर करने योग्य होंगी।",
+  "settings.agents.model.placeholder": "स्वचालित",
+  "settings.agents.toast.saved.title": "{name} के लिए मॉडल बाइंडिंग सहेजी गई",
   "settings.commands.title": "कमांड",
   "settings.commands.description": "कमांड सेटिंग्स यहां कॉन्फ़िगर करने योग्य होंगी।",
   "settings.mcp.title": "MCP",

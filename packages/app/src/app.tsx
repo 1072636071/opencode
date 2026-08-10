@@ -276,6 +276,7 @@ declare global {
     api?: {
       setTitlebar?: (theme: { mode: "light" | "dark"; scheme?: "system" | "light" | "dark" }) => Promise<void>
       exportDebugLogs?: () => Promise<string>
+      omoConfigWrite?: (name: string, model?: string) => Promise<{ ok: boolean; error?: string }>
     }
   }
 }

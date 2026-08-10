@@ -1094,6 +1094,8 @@ export const dict = {
   "settings.models.description": "ماڈل کی ترتیبات یہاں قابل ترتیب ہوں گی۔",
   "settings.agents.title": "ایجنٹس",
   "settings.agents.description": "ایجنٹ کی ترتیبات یہاں قابل ترتیب ہوں گی۔",
+  "settings.agents.model.placeholder": "خودکار",
+  "settings.agents.toast.saved.title": "{name} کے لیے ماڈل بائنڈنگ محفوظ ہو گئی",
   "settings.commands.title": "کمانڈز",
   "settings.commands.description": "کمانڈ کی ترتیبات یہاں قابل ترتیب ہوں گی۔",
   "settings.mcp.title": "MCP",

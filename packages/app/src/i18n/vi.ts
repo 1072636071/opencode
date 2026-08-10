@@ -1098,6 +1098,8 @@ export const dict = {
   "settings.models.description": "Cài đặt mô hình sẽ được cấu hình ở đây.",
   "settings.agents.title": "Tác nhân",
   "settings.agents.description": "Cài đặt tác nhân sẽ được cấu hình ở đây.",
+  "settings.agents.model.placeholder": "Tự động",
+  "settings.agents.toast.saved.title": "Đã lưu liên kết mô hình cho {name}",
   "settings.commands.title": "Lệnh",
   "settings.commands.description": "Cài đặt lệnh sẽ được cấu hình ở đây.",
   "settings.mcp.title": "MCP",

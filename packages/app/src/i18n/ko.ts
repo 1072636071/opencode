@@ -714,6 +714,8 @@ export const dict = {
   "settings.models.description": "모델 설정은 여기서 구성할 수 있습니다.",
   "settings.agents.title": "에이전트",
   "settings.agents.description": "에이전트 설정은 여기서 구성할 수 있습니다.",
+  "settings.agents.model.placeholder": "자동",
+  "settings.agents.toast.saved.title": "{name}에 대한 모델 바인딩을 저장했습니다",
   "settings.commands.title": "명령어",
   "settings.commands.description": "명령어 설정은 여기서 구성할 수 있습니다.",
   "settings.mcp.title": "MCP",

@@ -1063,6 +1063,8 @@ export const dict = {
   "settings.models.description": "การตั้งค่าโมเดลจะสามารถกำหนดค่าได้ที่นี่",
   "settings.agents.title": "เอเจนต์",
   "settings.agents.description": "การตั้งค่าเอเจนต์จะสามารถกำหนดค่าได้ที่นี่",
+  "settings.agents.model.placeholder": "อัตโนมัติ",
+  "settings.agents.toast.saved.title": "บันทึกการผูกโมเดลสำหรับ {name} แล้ว",
   "settings.commands.title": "คำสั่ง",
   "settings.commands.description": "การตั้งค่าคำสั่งจะสามารถกำหนดค่าได้ที่นี่",
   "settings.mcp.title": "MCP",

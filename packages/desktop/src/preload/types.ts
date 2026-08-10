@@ -69,6 +69,7 @@ export type ElectronAPI = {
   draftDelete: (key: string) => Promise<void>
   draftBlobPut: (data: ArrayBuffer) => Promise<string>
   draftBlobGet: (id: string) => Promise<ArrayBuffer | null>
+  omoConfigWrite: (name: string, model?: string) => Promise<{ ok: boolean; error?: string }>
 
   getWindowID: () => Promise<string>
   onMenuCommand: (cb: (id: string) => void) => () => void

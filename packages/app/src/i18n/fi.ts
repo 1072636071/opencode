@@ -988,6 +988,8 @@ export const dict = {
   "settings.models.description": "Mallin asetukset voidaan määrittää täällä.",
   "settings.agents.title": "Agentit",
   "settings.agents.description": "Agentin asetukset voidaan määrittää täällä.",
+  "settings.agents.model.placeholder": "Automaattinen",
+  "settings.agents.toast.saved.title": "Mallin sidonta tallennettu kohteelle {name}",
   "settings.commands.title": "Komennot",
   "settings.commands.description": "Komentoasetukset voidaan määrittää täällä.",
   "settings.mcp.title": "MCP",

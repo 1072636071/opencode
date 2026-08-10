@@ -1054,6 +1054,8 @@ export const dict = {
 
   "settings.agents.title": "智能体",
   "settings.agents.description": "可在此处配置智能体设置。",
+  "settings.agents.model.placeholder": "自动",
+  "settings.agents.toast.saved.title": "已保存 {name} 的模型绑定",
 
   "settings.commands.title": "命令",
   "settings.commands.description": "可在此处配置命令设置。",

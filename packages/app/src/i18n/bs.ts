@@ -1081,6 +1081,8 @@ export const dict = {
   "settings.models.description": "Postavke modela će se ovdje moći podešavati.",
   "settings.agents.title": "Agenti",
   "settings.agents.description": "Postavke agenata će se ovdje moći podešavati.",
+  "settings.agents.model.placeholder": "Automatski",
+  "settings.agents.toast.saved.title": "Povezivanje modela sačuvano za {name}",
   "settings.commands.title": "Komande",
   "settings.commands.description": "Postavke komandi će se ovdje moći podešavati.",
   "settings.mcp.title": "MCP",

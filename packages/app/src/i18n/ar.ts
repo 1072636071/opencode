@@ -1003,6 +1003,8 @@ export const dict = {
   "settings.models.description": "ستكون إعدادات النموذج قابلة للتكوين هنا.",
   "settings.agents.title": "الوكلاء",
   "settings.agents.description": "ستكون إعدادات الوكيل قابلة للتكوين هنا.",
+  "settings.agents.model.placeholder": "تلقائي",
+  "settings.agents.toast.saved.title": "تم حفظ ربط النموذج لـ {name}",
   "settings.commands.title": "الأوامر",
   "settings.commands.description": "ستكون إعدادات الأمر قابلة للتكوين هنا.",
   "settings.mcp.title": "MCP",

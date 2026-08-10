@@ -1175,6 +1175,8 @@ export const dict = {
   "settings.models.description": "Pengaturan model akan dapat dikonfigurasi di sini.",
   "settings.agents.title": "Agen",
   "settings.agents.description": "Pengaturan agen akan dapat dikonfigurasi di sini.",
+  "settings.agents.model.placeholder": "Otomatis",
+  "settings.agents.toast.saved.title": "Ikatan model disimpan untuk {name}",
   "settings.commands.title": "Perintah",
   "settings.commands.description": "Pengaturan perintah akan dapat dikonfigurasi di sini.",
   "settings.mcp.title": "MCP",

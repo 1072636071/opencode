@@ -903,6 +903,8 @@ export const dict = {
   "settings.models.description": "Modelleinstellungen können hier konfiguriert werden.",
   "settings.agents.title": "Agenten",
   "settings.agents.description": "Agenteneinstellungen können hier konfiguriert werden.",
+  "settings.agents.model.placeholder": "Automatisch",
+  "settings.agents.toast.saved.title": "Modellbindung für {name} gespeichert",
   "settings.commands.title": "Befehle",
   "settings.commands.description": "Befehlseinstellungen können hier konfiguriert werden.",
   "settings.mcp.title": "MCP",
