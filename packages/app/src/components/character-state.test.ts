@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test"
 import {
-  COMPLETE_HOLD_MIN_MS,
+  DONE_HOLD_MIN_MS,
   initialCharacterStatus,
   reduceCharacter,
-  THINKING2_THRESHOLD_MS,
+  READING_THRESHOLD_MS,
   WELCOME_HOLD_MS,
   type CharacterEvent,
   type CharacterStatus,
@@ -44,21 +44,21 @@ describe("character-state reducer", () => {
     expect(run([{ type: "session_error" }]).state).toBe("error")
     // welcome：server_connected
     expect(run([{ type: "server_connected" }]).state).toBe("welcome")
-    // complete：replying → execution_finished(pendingTools=false)
+    // done：replying → execution_finished(pendingTools=false)
     expect(run([
       { type: "prompt_admitted" },
       { type: "text_delta" },
       { type: "execution_finished", pendingTools: false },
-    ]).state).toBe("complete")
+    ]).state).toBe("done")
     // permission：permission_asked
     expect(run([{ type: "permission_asked" }]).state).toBe("permission")
-    // waiting：replying → text_ended
-    expect(run([{ type: "prompt_admitted" }, { type: "text_delta" }, { type: "text_ended" }]).state).toBe("waiting")
-    // thinking2：thinking 持续超 8s 后 tick
+    // listening：replying → text_ended
+    expect(run([{ type: "prompt_admitted" }, { type: "text_delta" }, { type: "text_ended" }]).state).toBe("listening")
+    // reading：thinking 持续超 8s 后 tick
     let s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1) // thinking at 1
-    s = step(s, { type: "tick" }, 1 + THINKING2_THRESHOLD_MS) // 超时
-    expect(s.state).toBe("thinking2")
+    s = step(s, { type: "tick" }, 1 + READING_THRESHOLD_MS) // 超时
+    expect(s.state).toBe("reading")
   })
 
   test("error preempts everything", () => {
@@ -105,97 +105,97 @@ describe("character-state reducer", () => {
     expect(run([{ type: "tool_called" }, { type: "session_idle" }]).state).toBe("working")
   })
 
-  test("complete: execution_finished without pending tools plays then returns to idle", () => {
+  test("done: execution_finished without pending tools plays then returns to idle", () => {
     let s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1)
     s = step(s, { type: "text_delta" }, 2)
     s = step(s, { type: "execution_finished", pendingTools: false }, 3)
-    expect(s.state).toBe("complete")
-    expect(s.completeSince).toBe(3)
+    expect(s.state).toBe("done")
+    expect(s.doneSince).toBe(3)
     // 未满 3s 不切待机
-    s = step(s, { type: "tick" }, 3 + COMPLETE_HOLD_MIN_MS - 1)
-    expect(s.state).toBe("complete")
+    s = step(s, { type: "tick" }, 3 + DONE_HOLD_MIN_MS - 1)
+    expect(s.state).toBe("done")
     // 满 3s 切待机
-    s = step(s, { type: "tick" }, 3 + COMPLETE_HOLD_MIN_MS)
+    s = step(s, { type: "tick" }, 3 + DONE_HOLD_MIN_MS)
     expect(s.state).toBe("idle")
-    expect(s.completeSince).toBeUndefined()
+    expect(s.doneSince).toBeUndefined()
   })
 
-  test("complete: pending tools suppresses complete", () => {
+  test("done: pending tools suppresses done", () => {
     let s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1)
     s = step(s, { type: "text_delta" }, 2)
     s = step(s, { type: "execution_finished", pendingTools: true }, 3)
-    // 有 pending 工具时不触发 complete，保持 replying
+    // 有 pending 工具时不触发 done，保持 replying
     expect(s.state).toBe("replying")
   })
 
-  test("complete: does not trigger from idle/welcome/waiting", () => {
-    // idle 下 execution_finished 不切 complete
+  test("done: does not trigger from idle/welcome/listening", () => {
+    // idle 下 execution_finished 不切 done
     expect(step(initialCharacterStatus(0), { type: "execution_finished", pendingTools: false }, 1).state).toBe("idle")
-    // waiting 下不切 complete
+    // listening 下不切 done
     let s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1)
     s = step(s, { type: "text_delta" }, 2)
     s = step(s, { type: "text_ended" }, 3)
     s = step(s, { type: "execution_finished", pendingTools: false }, 4)
-    expect(s.state).toBe("waiting")
+    expect(s.state).toBe("listening")
   })
 
-  test("thinking2: auto-engages after ~8s of thinking", () => {
+  test("reading: auto-engages after ~8s of thinking", () => {
     let s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 100) // thinking at 100
     expect(s.thinkingSince).toBe(100)
     // 未满 8s 不切
-    s = step(s, { type: "tick" }, 100 + THINKING2_THRESHOLD_MS - 1)
+    s = step(s, { type: "tick" }, 100 + READING_THRESHOLD_MS - 1)
     expect(s.state).toBe("thinking")
-    // 满 8s 切 thinking2
-    s = step(s, { type: "tick" }, 100 + THINKING2_THRESHOLD_MS)
-    expect(s.state).toBe("thinking2")
+    // 满 8s 切 reading
+    s = step(s, { type: "tick" }, 100 + READING_THRESHOLD_MS)
+    expect(s.state).toBe("reading")
   })
 
-  test("thinking2: any business event switches back immediately", () => {
+  test("reading: any business event switches back immediately", () => {
     // text_delta → replying（切回）
     let s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1)
-    s = step(s, { type: "tick" }, 1 + THINKING2_THRESHOLD_MS)
-    expect(s.state).toBe("thinking2")
-    s = step(s, { type: "text_delta" }, 1 + THINKING2_THRESHOLD_MS + 1)
+    s = step(s, { type: "tick" }, 1 + READING_THRESHOLD_MS)
+    expect(s.state).toBe("reading")
+    s = step(s, { type: "text_delta" }, 1 + READING_THRESHOLD_MS + 1)
     expect(s.state).toBe("replying")
 
     // tool_called → working（切回）
     s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1)
-    s = step(s, { type: "tick" }, 1 + THINKING2_THRESHOLD_MS)
-    expect(s.state).toBe("thinking2")
-    s = step(s, { type: "tool_called" }, 1 + THINKING2_THRESHOLD_MS + 1)
+    s = step(s, { type: "tick" }, 1 + READING_THRESHOLD_MS)
+    expect(s.state).toBe("reading")
+    s = step(s, { type: "tool_called" }, 1 + READING_THRESHOLD_MS + 1)
     expect(s.state).toBe("working")
 
     // session_idle → idle（切回）
     s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1)
-    s = step(s, { type: "tick" }, 1 + THINKING2_THRESHOLD_MS)
-    expect(s.state).toBe("thinking2")
-    s = step(s, { type: "session_idle" }, 1 + THINKING2_THRESHOLD_MS + 1)
+    s = step(s, { type: "tick" }, 1 + READING_THRESHOLD_MS)
+    expect(s.state).toBe("reading")
+    s = step(s, { type: "session_idle" }, 1 + READING_THRESHOLD_MS + 1)
     expect(s.state).toBe("idle")
 
     // prompt_admitted → thinking（切回并重置计时）
     s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1)
-    s = step(s, { type: "tick" }, 1 + THINKING2_THRESHOLD_MS)
-    expect(s.state).toBe("thinking2")
+    s = step(s, { type: "tick" }, 1 + READING_THRESHOLD_MS)
+    expect(s.state).toBe("reading")
     s = step(s, { type: "prompt_admitted" }, 100)
     expect(s.state).toBe("thinking")
     expect(s.thinkingSince).toBe(100)
   })
 
-  test("thinking2: tick keeps thinking2 (no switch back on tick)", () => {
+  test("reading: tick keeps reading (no switch back on tick)", () => {
     let s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1)
-    s = step(s, { type: "tick" }, 1 + THINKING2_THRESHOLD_MS)
-    expect(s.state).toBe("thinking2")
-    s = step(s, { type: "tick" }, 1 + THINKING2_THRESHOLD_MS + 100)
-    expect(s.state).toBe("thinking2")
+    s = step(s, { type: "tick" }, 1 + READING_THRESHOLD_MS)
+    expect(s.state).toBe("reading")
+    s = step(s, { type: "tick" }, 1 + READING_THRESHOLD_MS + 100)
+    expect(s.state).toBe("reading")
   })
 
   test("welcome: plays once then returns to idle", () => {
@@ -236,10 +236,10 @@ describe("character-state reducer", () => {
     s = step(s, { type: "text_delta" }, 1) // replying
     s = step(s, { type: "prompt_admitted" }, 2) // 同级 thinking，不抢占
     expect(s.state).toBe("replying")
-    // thinking(2) 下 text_ended(→waiting,2) 同级不抢占，保持 thinking
+    // reading 下 text_ended(→listening,2) 同级不抢占，保持 thinking
     s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1) // thinking
-    s = step(s, { type: "text_ended" }, 2) // 同级 waiting，不抢占
+    s = step(s, { type: "text_ended" }, 2) // 同级 listening，不抢占
     expect(s.state).toBe("thinking")
   })
 
@@ -315,7 +315,7 @@ describe("character-state reducer", () => {
     expect(s.seq).toBe(2)
   })
 
-  test("full session lifecycle: prompt → thinking → replying → working → replying → complete → idle", () => {
+  test("full session lifecycle: prompt → thinking → replying → working → replying → done → idle", () => {
     let s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1)
     expect(s.state).toBe("thinking")
@@ -326,8 +326,8 @@ describe("character-state reducer", () => {
     s = step(s, { type: "tool_finished" }, 4)
     expect(s.state).toBe("replying")
     s = step(s, { type: "execution_finished", pendingTools: false }, 5)
-    expect(s.state).toBe("complete")
-    s = step(s, { type: "tick" }, 5 + COMPLETE_HOLD_MIN_MS)
+    expect(s.state).toBe("done")
+    s = step(s, { type: "tick" }, 5 + DONE_HOLD_MIN_MS)
     expect(s.state).toBe("idle")
   })
 
@@ -341,36 +341,36 @@ describe("character-state reducer", () => {
     expect(s.state).toBe("thinking")
   })
 
-  test("thinking2 resets thinking timer on new prompt", () => {
+  test("reading resets thinking timer on new prompt", () => {
     let s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1) // thinking at 1
-    s = step(s, { type: "tick" }, 1 + THINKING2_THRESHOLD_MS) // thinking2
-    expect(s.state).toBe("thinking2")
+    s = step(s, { type: "tick" }, 1 + READING_THRESHOLD_MS) // reading
+    expect(s.state).toBe("reading")
     // 新 prompt 切回 thinking 并重置 thinkingSince
     s = step(s, { type: "prompt_admitted" }, 1000)
     expect(s.state).toBe("thinking")
     expect(s.thinkingSince).toBe(1000)
-    // 重新计时 8s 才切 thinking2
-    s = step(s, { type: "tick" }, 1000 + THINKING2_THRESHOLD_MS - 1)
+    // 重新计时 8s 才切 reading
+    s = step(s, { type: "tick" }, 1000 + READING_THRESHOLD_MS - 1)
     expect(s.state).toBe("thinking")
-    s = step(s, { type: "tick" }, 1000 + THINKING2_THRESHOLD_MS)
-    expect(s.state).toBe("thinking2")
+    s = step(s, { type: "tick" }, 1000 + READING_THRESHOLD_MS)
+    expect(s.state).toBe("reading")
   })
 
   // ---------- 工单 07：演示/调试 强制切态 + 回到自动（override 机制） ----------
 
   test("force: pins any of the 10 states and freezes tick timing", () => {
     const states = [
-      "idle", "thinking", "thinking2", "replying", "working", "error",
-      "welcome", "complete", "permission", "waiting",
+      "idle", "thinking", "reading", "replying", "working", "error",
+      "welcome", "done", "permission", "listening",
     ] as const
     for (const target of states) {
       let s = initialCharacterStatus(0)
       s = step(s, { type: "force", state: target }, 1)
       expect(s.state).toBe(target)
       expect(s.override).toBe(target)
-      // 演示模式下 tick 不自动流转（complete/welcome 不延时切待机，thinking 不超时切 thinking2）
-      s = step(s, { type: "tick" }, 1 + Math.max(THINKING2_THRESHOLD_MS, COMPLETE_HOLD_MIN_MS, WELCOME_HOLD_MS))
+      // 演示模式下 tick 不自动流转（done/welcome 不延时切待机，thinking 不超时切 reading）
+      s = step(s, { type: "tick" }, 1 + Math.max(READING_THRESHOLD_MS, DONE_HOLD_MIN_MS, WELCOME_HOLD_MS))
       expect(s.state).toBe(target)
     }
   })
@@ -378,8 +378,8 @@ describe("character-state reducer", () => {
   test("force: remembers preOverride; auto restores it", () => {
     let s = initialCharacterStatus(0)
     s = step(s, { type: "prompt_admitted" }, 1) // thinking
-    s = step(s, { type: "force", state: "complete" }, 2)
-    expect(s.state).toBe("complete")
+    s = step(s, { type: "force", state: "done" }, 2)
+    expect(s.state).toBe("done")
     expect(s.preOverride).toBe("thinking")
     s = step(s, { type: "auto" }, 3)
     expect(s.state).toBe("thinking")
@@ -456,25 +456,25 @@ describe("character-state reducer", () => {
     s = step(s, { type: "prompt_admitted" }, 1) // thinking, thinkingSince=1
     s = step(s, { type: "tool_called" }, 2) // working, preWorking=thinking
     expect(s.preWorking).toBe("thinking")
-    s = step(s, { type: "force", state: "complete" }, 3)
+    s = step(s, { type: "force", state: "done" }, 3)
     expect(s.thinkingSince).toBeUndefined()
-    expect(s.completeSince).toBeUndefined()
+    expect(s.doneSince).toBeUndefined()
     expect(s.preWorking).toBe("thinking") // 保留回退依据
-    // 真实事件 tool_finished 清除 override 恢复事件驱动；complete 下 exitWorking 无效果，仍 complete
+    // 真实事件 tool_finished 清除 override 恢复事件驱动；done 下 exitWorking 无效果，仍 done
     s = step(s, { type: "tool_finished" }, 4)
     expect(s.override).toBeUndefined()
-    expect(s.state).toBe("complete")
+    expect(s.state).toBe("done")
   })
 
-  test("complete lifecycle in demo mode: force complete stays pinned, auto returns", () => {
+  test("done lifecycle in demo mode: force done stays pinned, auto returns", () => {
     let s = initialCharacterStatus(0)
-    s = step(s, { type: "force", state: "complete" }, 1)
-    // 演示下 complete 不延时切待机
-    s = step(s, { type: "tick" }, 1 + COMPLETE_HOLD_MIN_MS * 2)
-    expect(s.state).toBe("complete")
+    s = step(s, { type: "force", state: "done" }, 1)
+    // 演示下 done 不延时切待机
+    s = step(s, { type: "tick" }, 1 + DONE_HOLD_MIN_MS * 2)
+    expect(s.state).toBe("done")
     // auto 回到进入演示前的状态（idle）
-    s = step(s, { type: "auto" }, 2 + COMPLETE_HOLD_MIN_MS * 2)
+    s = step(s, { type: "auto" }, 2 + DONE_HOLD_MIN_MS * 2)
     expect(s.state).toBe("idle")
-    expect(s.completeSince).toBeUndefined()
+    expect(s.doneSince).toBeUndefined()
   })
 })

@@ -19,14 +19,14 @@
 export type CharacterState =
   | "idle"
   | "thinking"
-  | "thinking2"
+  | "reading"
   | "replying"
   | "working"
   | "error"
   | "welcome"
-  | "complete"
+  | "done"
   | "permission"
-  | "waiting"
+  | "listening"
 
 /**
  * 归一化后的角色事件。调用方把 V1/V2 SDK 原始事件映射为此联合类型后喂给 reducer。
@@ -49,13 +49,13 @@ export type CharacterEvent =
   | { type: "session_error" }
   // 欢迎：V1 server.connected（启动画面关闭后播一轮 → 待机）
   | { type: "server_connected" }
-  // 完成：V2 session.execution.succeeded/failed/interrupted。pendingTools=true 时不触发 complete。
+  // 完成：V2 session.execution.succeeded/failed/interrupted。pendingTools=true 时不触发 done。
   | { type: "execution_finished"; pendingTools: boolean }
   // 权限：V1 permission.asked
   | { type: "permission_asked" }
   // 权限回复：V1 permission.replied——退出 permission 回到先前态
   | { type: "permission_replied" }
-  // 时间滴答：驱动 thinking2 超时切入、complete 延时切待机、welcome 播完切待机
+  // 时间滴答：驱动 reading 超时切入、done 延时切待机、welcome 播完切待机
   | { type: "tick" }
   // 演示/调试（工单 07）：强制切态，覆盖事件驱动。override 生效期间 tick 时序冻结，
   // 任意真实业务事件或 auto 事件清除 override 后恢复事件驱动。
@@ -66,10 +66,10 @@ export type CharacterEvent =
 /** reducer 状态：当前状态 + 时序元数据。 */
 export type CharacterStatus = {
   state: CharacterState
-  /** thinking 进入时间戳（ms），用于 thinking2 超时判定。 */
+  /** thinking 进入时间戳（ms），用于 reading 超时判定。 */
   thinkingSince?: number
-  /** complete 进入时间戳（ms），用于 3~5s 后切待机判定。 */
-  completeSince?: number
+  /** done 进入时间戳（ms），用于 3~5s 后切待机判定。 */
+  doneSince?: number
   /** welcome 进入时间戳（ms），用于播一轮后切待机判定。 */
   welcomeSince?: number
   /** 进入 working 前的状态，tool_finished 回退到此态。 */
@@ -84,13 +84,13 @@ export type CharacterStatus = {
   seq: number
 }
 
-// 时序常量（ms）。PRD：thinking2 ~8s；complete 播 3~5s；welcome 播一轮。
-export const THINKING2_THRESHOLD_MS = 8000
-export const COMPLETE_HOLD_MIN_MS = 3000
-export const COMPLETE_HOLD_MAX_MS = 5000
+// 时序常量（ms）。PRD：reading ~8s；done 播 3~5s；welcome 播一轮。
+export const READING_THRESHOLD_MS = 8000
+export const DONE_HOLD_MIN_MS = 3000
+export const DONE_HOLD_MAX_MS = 5000
 export const WELCOME_HOLD_MS = 3000
 
-// 状态优先级（高 → 低）：报错 > 工作 > 权限 > 思考/回复/完成/思考2 > 等待输入/欢迎/待机。
+// 状态优先级（高 → 低）：报错 > 工作 > 权限 > 思考/回复/完成/阅读 > 倾听/欢迎/待机。
 // 高优先级状态显示时，低优先级事件不能打断。
 const PRIORITY: Record<CharacterState, number> = {
   error: 5,
@@ -98,9 +98,9 @@ const PRIORITY: Record<CharacterState, number> = {
   permission: 3,
   thinking: 2,
   replying: 2,
-  complete: 2,
-  thinking2: 2,
-  waiting: 1,
+  done: 2,
+  reading: 2,
+  listening: 1,
   welcome: 1,
   idle: 1,
 }
@@ -119,15 +119,15 @@ export function reduceCharacter(state: CharacterStatus, event: CharacterEvent, n
   return applyEvent(state, event, now)
 }
 
-// 时间驱动转换：thinking2 超时切入、complete 延时切待机、welcome 播完切待机。
+// 时间驱动转换：reading 超时切入、done 延时切待机、welcome 播完切待机。
 // 演示模式（override 生效）期间冻结时序，避免强制态被 tick 自动流转。
 function applyTick(state: CharacterStatus, now: number): CharacterStatus {
   if (state.override !== undefined) return state
-  if (state.state === "thinking" && state.thinkingSince !== undefined && now - state.thinkingSince >= THINKING2_THRESHOLD_MS) {
-    return { ...state, state: "thinking2", seq: state.seq + 1 }
+  if (state.state === "thinking" && state.thinkingSince !== undefined && now - state.thinkingSince >= READING_THRESHOLD_MS) {
+    return { ...state, state: "reading", seq: state.seq + 1 }
   }
-  if (state.state === "complete" && state.completeSince !== undefined && now - state.completeSince >= COMPLETE_HOLD_MIN_MS) {
-    return { ...state, state: "idle", completeSince: undefined, seq: state.seq + 1 }
+  if (state.state === "done" && state.doneSince !== undefined && now - state.doneSince >= DONE_HOLD_MIN_MS) {
+    return { ...state, state: "idle", doneSince: undefined, seq: state.seq + 1 }
   }
   if (state.state === "welcome" && state.welcomeSince !== undefined && now - state.welcomeSince >= WELCOME_HOLD_MS) {
     return { ...state, state: "idle", welcomeSince: undefined, seq: state.seq + 1 }
@@ -135,7 +135,7 @@ function applyTick(state: CharacterStatus, now: number): CharacterStatus {
   return state
 }
 
-// 业务事件处理。thinking2 下任何业务事件先切回 thinking（"事件到来立即切回"）。
+// 业务事件处理。reading 下任何业务事件先切回 thinking（"事件到来立即切回"）。
 function applyEvent(state: CharacterStatus, event: CharacterEvent, now: number): CharacterStatus {
   // 演示模式（override 生效）：force 切换演示态；auto 恢复；任意真实业务事件清除 override 后按事件驱动处理。
   if (state.override !== undefined) {
@@ -144,7 +144,7 @@ function applyEvent(state: CharacterStatus, event: CharacterEvent, now: number):
     return applyEvent(exitOverride(state, state.state), event, now)
   }
 
-  const base: CharacterStatus = state.state === "thinking2" ? { ...state, state: "thinking" } : state
+  const base: CharacterStatus = state.state === "reading" ? { ...state, state: "thinking" } : state
 
   switch (event.type) {
     case "session_error":
@@ -162,7 +162,7 @@ function applyEvent(state: CharacterStatus, event: CharacterEvent, now: number):
     case "text_delta":
       return preempt(base, "replying", 2, new Set(["thinking", "replying"]))
     case "text_ended":
-      return preempt(base, "waiting", 2, new Set(["replying"]))
+      return preempt(base, "listening", 2, new Set(["replying"]))
     case "server_connected":
       return { ...base, state: "welcome", welcomeSince: now, seq: base.seq + 1 }
     case "execution_finished":
@@ -190,7 +190,7 @@ function applyForce(state: CharacterStatus, target: CharacterState): CharacterSt
     override: target,
     preOverride: state.override === undefined ? state.state : state.preOverride,
     thinkingSince: undefined,
-    completeSince: undefined,
+    doneSince: undefined,
     welcomeSince: undefined,
     seq: state.seq + 1,
   }
@@ -212,7 +212,7 @@ function preempt(state: CharacterStatus, target: CharacterState, gate: number, f
 }
 
 // prompt_admitted：新轮次。从 error 恢复、thinking 重置计时；抢占低优先级；
-// 不打断 working/permission（进行中）；不打断同级 replying/complete（按到达序）。
+// 不打断 working/permission（进行中）；不打断同级 replying/done（按到达序）。
 function enterThinking(state: CharacterStatus, now: number): CharacterStatus {
   if (state.state === "thinking" || state.state === "error")
     return { ...state, state: "thinking", thinkingSince: now, seq: state.seq + 1 }
@@ -245,8 +245,8 @@ function exitPermission(state: CharacterStatus): CharacterStatus {
   return { ...state, state: state.prePermission ?? "idle", prePermission: undefined, seq: state.seq + 1 }
 }
 
-// complete 组合判定：execution_finished 且无 pending 工具 → complete（播 3~5s 后切待机）。
-// pendingTools=true 时不触发 complete（保持当前）。不抢占 error/working/permission。
+// done 组合判定：execution_finished 且无 pending 工具 → done（播 3~5s 后切待机）。
+// pendingTools=true 时不触发 done（保持当前）。不抢占 error/working/permission。
 function handleExecutionFinished(
   state: CharacterStatus,
   event: { pendingTools: boolean },
@@ -254,7 +254,7 @@ function handleExecutionFinished(
 ): CharacterStatus {
   if (event.pendingTools) return state
   if (PRIORITY[state.state] >= 3) return state
-  // 已经是 idle/welcome/waiting 时不需要再播 complete 动画。
-  if (state.state === "idle" || state.state === "welcome" || state.state === "waiting") return state
-  return { ...state, state: "complete", completeSince: now, seq: state.seq + 1 }
+  // 已经是 idle/welcome/listening 时不需要再播 done 动画。
+  if (state.state === "idle" || state.state === "welcome" || state.state === "listening") return state
+  return { ...state, state: "done", doneSince: now, seq: state.seq + 1 }
 }

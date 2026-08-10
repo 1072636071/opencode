@@ -534,11 +534,19 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
 }
 
 html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-video"] img[data-active] {
-  opacity: 1;
+  opacity: var(--jx-opacity-on);
 }
 
 html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-video"] img[data-prev] {
-  opacity: 0;
+  opacity: var(--jx-opacity-off);
+}
+
+/* 过渡 img（ADR-013 §4）：播放时叠加于循环 img 之上，loop=1 播一遍，定时器主切态后移除。
+   基础 img 规则 opacity:0，此处用 data-transition-active 显式显示并置于顶层。 */
+html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-video"] img[data-transition-active] {
+  opacity: var(--jx-opacity-on);
+  z-index: var(--jx-z-fx);
+  transition: var(--jx-transition-none);
 }
 
 /* 角色状态文字（悬浮小字，无描边） */

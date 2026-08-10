@@ -10,6 +10,7 @@ import {
   type CharacterState,
   type CharacterStatus,
 } from "@/components/character-state"
+import { getTransitionPath, type TransitionSegment } from "@/components/character-transition"
 import { JiangxiaoIcon, type JiangxiaoIconName } from "@/components/jiangxiao-icons"
 import {
   clampPosition,
@@ -34,33 +35,33 @@ import {
 const VIDEO_STATES: CharacterState[] = [
   "idle",
   "thinking",
-  "thinking2",
+  "reading",
   "replying",
   "working",
   "error",
   "welcome",
-  "complete",
+  "done",
   "permission",
-  "waiting",
+  "listening",
 ]
 
 // 状态对应的角色台词（CONTEXT.md 词汇表定稿表，ADR-007）
 const STATUS_TEXT: Record<CharacterState, string> = {
   idle: "大人，有何吩咐？",
   thinking: "容姜晓思量片刻……",
-  thinking2: "正在阅卷，稍候。",
+  reading: "正在阅卷，稍候。",
   replying: "为大人细细道来。",
   working: "遵命，这就去办。",
   error: "此事有蹊跷，容我再查。",
   welcome: "大人来了，姜晓候久。",
-  complete: "此事已毕，大人过目。",
+  done: "此事已毕，大人过目。",
   permission: "此事需大人首肯。",
-  waiting: "姜晓静候大人示下。",
+  listening: "姜晓静候大人示下。",
 }
 
 const IDLE_LINES = ["大人，有何吩咐？", "姜晓在此候命。", "需要我做些什么？", "静候您的指令。"]
 
-// tick 间隔：驱动 reducer 的 thinking2 超时、complete/welcome 延时切待机
+// tick 间隔：驱动 reducer 的 reading 超时、done/welcome 延时切待机
 const TICK_INTERVAL_MS = 500
 // crossfade 时长（工单 03：300ms → 0.1s）
 const CROSSFADE_MS = 100
@@ -120,19 +121,19 @@ const OPACITY_PRESETS = [
 
 // ---------- 工单 07：状态演示面板（char-tools 落地） ----------
 // 状态 → 图标映射参照 preview jiangxiao-ui-preview.html 的 STATES 表（idle→leaf、thinking→spark、
-// thinking2→read、replying→msg、working→term、error→alert、welcome→enter、complete→check、
-// permission→shield、waiting→clock），用到新图标 msg/alert/check/clock。
+// reading→read、replying→msg、working→term、error→alert、welcome→enter、done→check、
+// permission→shield、listening→clock），用到新图标 msg/alert/check/clock。
 const DEMO_STATES: { id: CharacterState; label: string; icon: JiangxiaoIconName }[] = [
   { id: "idle", label: "待机", icon: "leaf" },
   { id: "thinking", label: "思考", icon: "spark" },
-  { id: "thinking2", label: "思考·看书", icon: "read" },
+  { id: "reading", label: "思考·看书", icon: "read" },
   { id: "replying", label: "回复", icon: "msg" },
   { id: "working", label: "工作", icon: "term" },
   { id: "error", label: "报错", icon: "alert" },
   { id: "welcome", label: "欢迎", icon: "enter" },
-  { id: "complete", label: "完成", icon: "check" },
+  { id: "done", label: "完成", icon: "check" },
   { id: "permission", label: "权限", icon: "shield" },
-  { id: "waiting", label: "等待输入", icon: "clock" },
+  { id: "listening", label: "等待输入", icon: "clock" },
 ]
 
 export function JiangxiaoCharacterSidebar() {
@@ -144,6 +145,10 @@ export function JiangxiaoCharacterSidebar() {
     status: initialCharacterStatus(Date.now()) as CharacterStatus,
     prevDisplay: "idle" as CharacterState,
     transitioning: false,
+    // 过渡视频播放（ADR-013 §10）：transitionSegs 为当前播放段序列，transitionIdx 为当前段索引。
+    // 空序列 / idx<0 表示无过渡播放（走 crossfade 兜底）。
+    transitionSegs: [] as TransitionSegment[],
+    transitionIdx: -1,
     bubble: undefined as string | undefined,
     menu: undefined as { x: number; y: number } | undefined,
     collapsed: readLS(LS_COLLAPSED, false),
@@ -151,23 +156,78 @@ export function JiangxiaoCharacterSidebar() {
   })
 
   let fadeTimer: ReturnType<typeof setTimeout> | undefined
+  let transitionTimer: ReturnType<typeof setTimeout> | undefined
   let autoBubbleTimer: ReturnType<typeof setTimeout> | undefined
+  // 最近一次 dispatch 是否 tick 驱动：用于 tick 触发的循环→循环（done/welcome→idle）走 crossfade 直切。
+  let tickDrivenRef = false
 
   // 归一化事件 → reducer → 新状态。reducer 是纯函数，所有时序由 Date.now() 驱动。
   function dispatch(event: CharacterEvent) {
+    tickDrivenRef = event.type === "tick"
     setState("status", reduceCharacter(state.status, event, Date.now()))
   }
 
-  // 状态变化触发 crossfade：记录前一状态并标记 transitioning，CROSSFADE_MS 后清除。
+  // 作废当前过渡播放：清定时器、隐过渡 img（打断策略 ADR-013 §5）。
+  function cancelTransition() {
+    if (transitionTimer) {
+      clearTimeout(transitionTimer)
+      transitionTimer = undefined
+    }
+    setState("transitionSegs", [])
+    setState("transitionIdx", -1)
+  }
+
+  // 触发 crossfade 兜底（无过渡素材 / 素材加载失败 / tick 循环→循环直切）。
+  function runCrossfade() {
+    setState("transitioning", true)
+    if (fadeTimer) clearTimeout(fadeTimer)
+    fadeTimer = setTimeout(() => setState("transitioning", false), CROSSFADE_MS)
+  }
+
+  // 按段序列顺序播放过渡：定时器主切态（durationMs），多段（经枢纽 2 段）顺序衔接，播完切目标循环。
+  function playTransitionSegs(segs: TransitionSegment[]) {
+    setState("transitionSegs", segs)
+    setState("transitionIdx", 0)
+    scheduleTransitionSeg(segs, 0)
+  }
+
+  function scheduleTransitionSeg(segs: TransitionSegment[], idx: number) {
+    if (transitionTimer) clearTimeout(transitionTimer)
+    const seg = segs[idx]
+    transitionTimer = setTimeout(() => {
+      const nextIdx = idx + 1
+      if (nextIdx < segs.length) {
+        setState("transitionIdx", nextIdx)
+        scheduleTransitionSeg(segs, nextIdx)
+      } else {
+        // 播完：切目标循环（reducer 已置为 next 态，循环 img data-active 已切换），清除过渡。
+        cancelTransition()
+      }
+    }, seg.durationMs)
+  }
+
+  // 状态变化 → 播放过渡或 crossfade：先作废当前过渡，再按 (prev→next) 查过渡路径。
+  // tick 驱动的 done/welcome→idle 维持 crossfade 直切（ADR-013 §10）；thinking→reading 虽也
+  // 由 tick 驱动但走过渡。applyTick 的 tick 转移仅 done/welcome→idle 与 thinking→reading 两类，
+  // 故 tickDrivenRef && next==="idle" 精确匹配「done/welcome→idle」直切场景（thinking→reading 不满足）。
   createEffect(
     on(
       () => state.status.state,
       (next, prev) => {
         if (prev === undefined || next === prev) return
+        cancelTransition()
         setState("prevDisplay", prev)
-        setState("transitioning", true)
-        if (fadeTimer) clearTimeout(fadeTimer)
-        fadeTimer = setTimeout(() => setState("transitioning", false), CROSSFADE_MS)
+        const tickLoopBack = tickDrivenRef && next === "idle"
+        if (tickLoopBack) {
+          runCrossfade()
+          return
+        }
+        const segs = getTransitionPath(prev, next)
+        if (segs.length > 0) {
+          playTransitionSegs(segs)
+        } else {
+          runCrossfade()
+        }
       },
       { defer: true },
     ),
@@ -236,7 +296,7 @@ export function JiangxiaoCharacterSidebar() {
     onCleanup(unsub)
   })
 
-  // tick：定期驱动 reducer 的时序转换（thinking2 超时切入、complete/welcome 延时切待机）。
+  // tick：定期驱动 reducer 的时序转换（reading 超时切入、done/welcome 延时切待机）。
   const tickInterval = setInterval(() => dispatch({ type: "tick" }), TICK_INTERVAL_MS)
   onCleanup(() => clearInterval(tickInterval))
 
@@ -297,6 +357,7 @@ export function JiangxiaoCharacterSidebar() {
 
   onCleanup(() => {
     if (fadeTimer) clearTimeout(fadeTimer)
+    if (transitionTimer) clearTimeout(transitionTimer)
     if (autoBubbleTimer) clearTimeout(autoBubbleTimer)
   })
 
@@ -454,6 +515,22 @@ export function JiangxiaoCharacterSidebar() {
             />
           )}
         </For>
+        {/* 过渡 img（ADR-013 §4）：播放时叠加于循环 img 之上；loop=1 播一遍，定时器主切态后移除 */}
+        <Show when={state.transitionIdx >= 0 && state.transitionSegs.length > 0}>
+          <img
+            draggable={false}
+            src={state.transitionSegs[state.transitionIdx].webp}
+            loading="eager"
+            data-transition-active
+            data-transition-key={state.transitionSegs[state.transitionIdx].key}
+            onError={(e) => {
+              // 过渡素材缺失/未就绪：直接淡化到目标循环（crossfade 兜底，ADR-013 §9）
+              ;(e.currentTarget as HTMLImageElement).style.display = "none"
+              cancelTransition()
+              runCrossfade()
+            }}
+          />
+        </Show>
       </div>
 
       {/* 点击气泡：漫画对白气泡，浮于角色头部上方，带小箭头指向角色，纯装饰穿透 */}
