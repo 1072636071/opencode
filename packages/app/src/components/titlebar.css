@@ -75,3 +75,38 @@
     animation-range: calc(100% - 1.1px) calc(100% - 1px);
   }
 }
+
+/* 自绘窗口控制按钮基础布局（ADR-016）。
+   颜色由主题 CSS 按 html[data-theme] 作用域控制，此处只定几何与交互。 */
+[data-slot="window-controls"] {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  app-region: no-drag;
+  -webkit-app-region: no-drag;
+}
+
+[data-slot="window-control-button"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: default;
+  outline: none;
+  -webkit-app-region: no-drag;
+}
+
+[data-slot="window-control-button"] svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+[data-slot="window-control-button"]:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--v2-focus-focus-ring);
+}

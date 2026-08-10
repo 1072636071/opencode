@@ -174,6 +174,27 @@ html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-component="icon-but
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
 
+/* 自绘窗口控制按钮（ADR-016）：红金配色。默认朱红图标，hover 亮金；
+   关闭按钮 hover 朱红底 + 亮金图标（呼应 Windows 关闭高亮惯例，用品牌朱红）。 */
+html[data-theme="jiangxiao"] [data-slot="window-control-button"] {
+  color: var(--jx-cinnabar);
+  -webkit-text-fill-color: var(--jx-cinnabar);
+}
+
+html[data-theme="jiangxiao"] [data-slot="window-control-button"]:hover,
+html[data-theme="jiangxiao"] [data-slot="window-control-button"]:focus-visible {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+  background-color: color-mix(in srgb, var(--jx-cinnabar) 16%, transparent);
+}
+
+html[data-theme="jiangxiao"] [data-slot="window-control-button"]:last-child:hover,
+html[data-theme="jiangxiao"] [data-slot="window-control-button"]:last-child:focus-visible {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+  background-color: var(--jx-cinnabar);
+}
+
 /* 顶栏 Update 按钮文字（text-v2-text-text-accent）浅色 */
 html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-update-loader"],
 html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] .text-v2-text-text-accent {
@@ -1635,4 +1656,143 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-placeholder {
    的 .no-review 类配套，供视觉比对断言（面板本身按打开状态卸载）。 */
 html[data-theme="jiangxiao"] .session-body.no-review [data-component="review-panel"] {
   display: none;
+}
+
+/* ============================================================
+   梅花·姜晓浅色主题（ADR-016，词汇表「梅花主题」）
+   姜晓浅色变体：米白底 + 粉梅 + 金。与深色姜晓共用角色，仅视觉层换浅色调。
+   作用域 html[data-theme="meihua"]，与姜晓深色主题互不影响。
+   ============================================================ */
+
+/* ---------- 梅花 token 块（复用 --jx-* 命名，值为浅色粉梅系） ---------- */
+html[data-theme="meihua"] {
+  /* Ink 墨阶（浅底文字用暖墨色） */
+  --jx-ink-950:#2a241a; --jx-ink-900:#3d3a34; --jx-ink-800:#57524a; --jx-ink-700:#6f6a61; --jx-ink-600:#8a847a;
+  /* Gold 金族（沿用姜晓金，在米白底上用深金保证对比度） */
+  --jx-gold-bright:#9c7a1e; --jx-gold:#b8860b; --jx-gold-deep:#8a6508; --jx-gold-dim:#6f5306; --jx-ginkgo:#b8860b;
+  --jx-gold-foil:linear-gradient(135deg,#b8860b 0%,#d97a8e 50%,#8a6508 100%);
+  /* Seal 印章族（梅红印章） */
+  --jx-seal:#b24a5c; --jx-seal-deep:#8e3a49; --jx-seal-bright:#d97a8e; --jx-seal-ink:#fff8f6;
+  /* Atmosphere 氛围族（粉梅点缀） */
+  --jx-mist:#c9b8b4; --jx-mountain:#b3a49a; --jx-water:#a9a9b4; --jx-cloud:#f0e4e2; --jx-moon:#f3e2e2; --jx-hair:#dcc4ca; --jx-wisteria:#b85c74;
+  /* Text / Semantic */
+  --jx-cream:#5d4a42; --jx-cream-dim:#8d7a70; --jx-ink-on-light:#2a241a; --jx-cinnabar:#b24a5c;
+  /* 高亮变体（浅底上用深色，保证对比度） */
+  --jx-hl-file:#2c6a7a; --jx-hl-agent:#9c7a1e;
+  --jx-success:#3d7a3d; --jx-warn:#9c6b1e; --jx-error:#a83a3a;
+  --jx-border-deco:#d9c9b5; --jx-selection:rgba(178,74,92,.14);
+  --jx-scroll-track:#ece0d0; --jx-scroll-thumb:#d97a8e;
+  /* 表面/背景（米白底） */
+  --jx-surface-0:#faf5ee; --jx-surface-1:#f5eddf; --jx-surface-2:#efe3d0;
+}
+
+/* ---------- 顶栏：米白底 + 梅花纹样 ---------- */
+html[data-theme="meihua"] [data-slot="titlebar-v2"] {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='36' viewBox='0 0 220 36'%3E%3Cg fill='none' stroke='%23b24a5c' stroke-opacity='0.12' stroke-width='1'%3E%3Ccircle cx='16' cy='18' r='4'/%3E%3Ccircle cx='16' cy='11.5' r='3.6'/%3E%3Ccircle cx='16' cy='24.5' r='3.6'/%3E%3Ccircle cx='9.5' cy='18' r='3.6'/%3E%3Ccircle cx='22.5' cy='18' r='3.6'/%3E%3Cpath d='M16 12c1.5-2 4-2 5-4'/%3E%3Cpath d='M16 24c1.5 2 4 2 5 4'/%3E%3Ccircle cx='64' cy='18' r='2.4'/%3E%3Ccircle cx='120' cy='14' r='2'/%3E%3Ccircle cx='176' cy='20' r='2.6'/%3E%3C/g%3E%3Cpath d='M40 30c10-8 24-10 36-5' fill='none' stroke='%23b8860b' stroke-opacity='0.10' stroke-width='1'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, var(--jx-surface-1), var(--jx-surface-0));
+  border-bottom: 1px solid color-mix(in srgb, var(--jx-border-deco) 70%, transparent);
+}
+
+/* ---------- 顶栏文字/图标：暖墨色（浅底深字） ---------- */
+html[data-theme="meihua"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"],
+html[data-theme="meihua"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"] [data-slot="icon-svg"],
+html[data-theme="meihua"] [data-slot="titlebar-v2"] [data-slot="tab-link"],
+html[data-theme="meihua"] [data-slot="titlebar-v2"] [data-slot="tab-title"] {
+  color: var(--jx-ink-800);
+  -webkit-text-fill-color: var(--jx-ink-800);
+}
+
+html[data-theme="meihua"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"]:hover,
+html[data-theme="meihua"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"]:hover [data-slot="icon-svg"] {
+  color: var(--jx-cinnabar);
+  -webkit-text-fill-color: var(--jx-cinnabar);
+}
+
+/* ---------- 顶栏 tabs fade 遮罩：米白渐变 ---------- */
+html[data-theme="meihua"] [data-slot="titlebar-v2"] [data-slot="titlebar-tabs-fade-left"] {
+  background-image: linear-gradient(to right, var(--jx-surface-0), transparent);
+}
+
+html[data-theme="meihua"] [data-slot="titlebar-v2"] [data-slot="titlebar-tabs-fade-right"] {
+  background-image: linear-gradient(to left, var(--jx-surface-0), transparent);
+}
+
+/* ---------- 窗口控制按钮：红金配色（浅底上用深绯红，保证对比度 ≥ 4.5:1） ---------- */
+html[data-theme="meihua"] [data-slot="window-control-button"] {
+  color: var(--jx-seal-deep);
+  -webkit-text-fill-color: var(--jx-seal-deep);
+}
+
+html[data-theme="meihua"] [data-slot="window-control-button"]:hover,
+html[data-theme="meihua"] [data-slot="window-control-button"]:focus-visible {
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
+  background-color: color-mix(in srgb, var(--jx-gold-deep) 12%, transparent);
+}
+
+html[data-theme="meihua"] [data-slot="window-control-button"]:last-child:hover,
+html[data-theme="meihua"] [data-slot="window-control-button"]:last-child:focus-visible {
+  color: var(--jx-seal-ink);
+  -webkit-text-fill-color: var(--jx-seal-ink);
+  background-color: var(--jx-cinnabar);
+}
+
+/* ---------- 全局浅色背景（覆盖姜晓深底块不生效的 meihua 场景） ---------- */
+html[data-theme="meihua"] {
+  --v2-background-bg-deep: var(--jx-surface-0);
+  --v2-background-bg-base: var(--jx-surface-1);
+  --v2-background-bg-layer-01: var(--jx-surface-1);
+  --v2-background-bg-layer-02: var(--jx-surface-2);
+  --v2-background-bg-layer-03: var(--jx-surface-0);
+  --background-base: var(--jx-surface-0);
+  --background-surface-base: var(--jx-surface-1);
+  --surface-base: var(--jx-surface-1);
+  --surface-raised-base: var(--jx-surface-1);
+  --surface-raised-base-hover: color-mix(in srgb, var(--jx-surface-1) 85%, var(--jx-cinnabar) 15%);
+
+  /* 文字：浅底深字（与姜晓深底相反） */
+  --v2-text-text-base: var(--jx-ink-800);
+  --v2-text-text-faint: var(--jx-ink-700);
+  --v2-text-text-muted: var(--jx-ink-700);
+  --v2-text-text-strong: var(--jx-ink-950);
+  --v2-text-text-accent: var(--jx-cinnabar);
+  --v2-text-text-accent-hover: var(--jx-seal-deep);
+  --text-base: var(--jx-ink-800);
+  --text-strong: var(--jx-ink-950);
+  --text-weak: var(--jx-ink-700);
+
+  /* 边框：淡褐金 */
+  --v2-border-border-base: color-mix(in srgb, var(--jx-border-deco) 80%, transparent);
+  --v2-border-border-muted: color-mix(in srgb, var(--jx-border-deco) 55%, transparent);
+  --v2-border-border-strong: var(--jx-gold-deep);
+  --v2-border-border-focus: var(--jx-cinnabar);
+  --border-weak-base: var(--jx-border-deco);
+  --border-weaker-base: color-mix(in srgb, var(--jx-border-deco) 50%, transparent);
+
+  /* 图标：暖墨色 */
+  --v2-icon-icon-base: var(--jx-ink-700);
+  --v2-icon-icon-muted: var(--jx-ink-600);
+  --v2-icon-icon-accent: var(--jx-cinnabar);
+}
+
+/* ---------- 标题：梅金渐变（浅底上深色渐变，对比度达标） ---------- */
+html[data-theme="meihua"] :is(h1, h2, h3, h4) {
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  html[data-theme="meihua"] :is(h1, h2, h3, h4) {
+    background: var(--jx-gold-foil);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+html[data-theme="meihua"] :is(strong, b) {
+  color: var(--jx-cinnabar);
+  -webkit-text-fill-color: var(--jx-cinnabar);
 }

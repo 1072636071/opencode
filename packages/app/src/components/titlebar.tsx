@@ -9,6 +9,7 @@ import {
   Show,
   Switch,
   untrack,
+  type JSX,
 } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useLocation, useNavigate, useParams } from "@solidjs/router"
@@ -26,6 +27,7 @@ import { usePlatform } from "@/context/platform"
 import { useCommand } from "@/context/command"
 import { useLanguage } from "@/context/language"
 import { useSettings } from "@/context/settings"
+import type { DesktopMenuAction } from "@/desktop-menu"
 import { WindowsAppMenu } from "./windows-app-menu"
 import { applyPath, backPath, forwardPath } from "./titlebar-history"
 import { TitlebarTabStrip } from "@/components/titlebar-tab-strip"
@@ -430,7 +432,7 @@ export function Titlebar(props: { update?: TitlebarUpdate; debugTools?: { visibl
                   />
                 </TooltipV2>
                 <div class="flex-1" />
-                <TitlebarV2Right state={v2RightState()} />
+                <TitlebarV2Right state={v2RightState()} platform={platform} />
               </div>
             )
           }}
@@ -582,7 +584,7 @@ export function Titlebar(props: { update?: TitlebarUpdate; debugTools?: { visibl
             >
               <div id="opencode-titlebar-right" class="flex items-center gap-1 shrink-0 justify-end" />
               <Show when={windows()}>
-                <div class="shrink-0" style={{ width: windowsControlsWidth() }} />
+                <WindowControls platform={platform} />
               </Show>
             </div>
           </div>
@@ -605,13 +607,19 @@ type TitlebarV2RightState = {
   update: TitlebarUpdatePillState
 }
 
-function TitlebarV2Right(props: { state: TitlebarV2RightState }) {
+function TitlebarV2Right(props: {
+  state: TitlebarV2RightState
+  platform: ReturnType<typeof usePlatform>
+}) {
   return (
     <div class="relative z-20 flex shrink-0 items-center justify-end gap-0 overflow-visible">
       <Show when={props.state.update.visible}>
         <TitlebarUpdateIconButton state={props.state.update} />
       </Show>
       <div id="opencode-titlebar-right" class="flex shrink-0 items-center justify-end gap-0" />
+      <Show when={props.platform.platform === "desktop" && props.platform.os === "windows"}>
+        <WindowControls platform={props.platform} />
+      </Show>
     </div>
   )
 }
@@ -641,6 +649,60 @@ function TitlebarUpdateIconButton(props: { state: TitlebarUpdatePillState }) {
           </Show>
         </span>
       </button>
+    </div>
+  )
+}
+
+// Windows 自绘窗口控制按钮（ADR-016）。
+// 替代 Electron TitleBarOverlay：原生 overlay 的 symbolColor 只能黑/白且跟随
+// 系统深浅，无法渲染姜晓/梅花主题的红金色，且系统浅色时黑色按钮在深色顶栏上不可见。
+// 这里渲染 DOM 按钮，颜色由主题 CSS（jiangxiao.css / 梅花主题）完全控制。
+type WindowControlButtonProps = {
+  label: string
+  onClick: () => void
+  children: JSX.Element
+}
+
+function WindowControlButton(props: WindowControlButtonProps) {
+  return (
+    <button type="button" data-slot="window-control-button" aria-label={props.label} onClick={props.onClick}>
+      {props.children}
+    </button>
+  )
+}
+
+function WindowControls(props: { platform: ReturnType<typeof usePlatform> }) {
+  const maximized = () => props.platform.windowMaximized?.() ?? false
+  const run = (action: DesktopMenuAction) => () => void props.platform.runDesktopMenuAction?.(action)
+
+  return (
+    <div data-slot="window-controls" class="window-controls" aria-hidden="false">
+      <WindowControlButton label="最小化" onClick={run("window.minimize")}>
+        <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+          <line x1="1" y1="5" x2="9" y2="5" />
+        </svg>
+      </WindowControlButton>
+      <WindowControlButton label={maximized() ? "还原" : "最大化"} onClick={run("window.toggleMaximize")}>
+        <Show
+          when={maximized()}
+          fallback={
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+              <rect x="1.5" y="1.5" width="7" height="7" rx="0.5" />
+            </svg>
+          }
+        >
+          <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+            <path d="M2.5 3.5V2.5H8.5V8.5H7.5" />
+            <rect x="1.5" y="3.5" width="5" height="5" rx="0.5" />
+          </svg>
+        </Show>
+      </WindowControlButton>
+      <WindowControlButton label="关闭" onClick={run("window.close")}>
+        <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+          <line x1="1.5" y1="1.5" x2="8.5" y2="8.5" />
+          <line x1="8.5" y1="1.5" x2="1.5" y2="8.5" />
+        </svg>
+      </WindowControlButton>
     </div>
   )
 }

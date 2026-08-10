@@ -98,6 +98,9 @@ type PlatformBase = {
   /** Whether the native desktop window is fullscreen */
   windowFullscreen?: Accessor<boolean>
 
+  /** Whether the native desktop window is maximized (Windows custom titlebar buttons) */
+  windowMaximized?: Accessor<boolean>
+
   /** Get whether native pinch/Ctrl-scroll zoom gestures are enabled (desktop only) */
   getPinchZoomEnabled?(): Promise<boolean> | boolean
 

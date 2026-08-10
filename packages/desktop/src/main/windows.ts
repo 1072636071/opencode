@@ -102,15 +102,6 @@ function defaultBackgroundColor() {
   return oc2Background[tone()]
 }
 
-function overlay(theme: Partial<TitlebarTheme> = {}, zoom = 1) {
-  const mode = theme.mode ?? tone()
-  return {
-    color: "#00000000",
-    symbolColor: mode === "dark" ? "white" : "black",
-    height: Math.max(titlebarHeight, Math.round(titlebarHeight * zoom)),
-  }
-}
-
 export function setTitlebar(win: BrowserWindow, theme: Partial<TitlebarTheme> = {}) {
   titlebarThemes.set(win, theme)
   // macOS draws the window frame hairline and shadow using the NSWindow
@@ -120,13 +111,13 @@ export function setTitlebar(win: BrowserWindow, theme: Partial<TitlebarTheme> = 
   // "system" (not the resolved mode) or prefers-color-scheme stops tracking
   // OS appearance changes in the renderer.
   if (process.platform === "darwin") nativeTheme.themeSource = theme.scheme ?? theme.mode ?? "system"
-  updateTitlebar(win)
 }
 
-export function updateTitlebar(win: BrowserWindow) {
-  if (process.platform !== "win32") return
-  win.setTitleBarOverlay(overlay(titlebarThemes.get(win), win.webContents.getZoomFactor()))
-}
+// Windows 窗口控制按钮（最小化/最大化/关闭）由渲染进程自绘（ADR-016），
+// 不再使用原生 TitleBarOverlay（其 symbolColor 只能黑/白且跟随系统深浅，
+// 无法渲染姜晓/梅花主题的红金色，且系统浅色时黑色按钮在深色顶栏上不可见）。
+// 保留此 noop 以兼容既有调用点（updateZoom / ipc / desktop-menu-actions）。
+export function updateTitlebar(_win: BrowserWindow) {}
 
 export function setPinchZoomEnabled(enabled: boolean) {
   getStore().set(PINCH_ZOOM_ENABLED_KEY, enabled)
@@ -172,7 +163,6 @@ export function createMainWindow(id: string = randomUUID()) {
     defaultHeight: 800,
   })
 
-  const mode = tone()
   const win = new BrowserWindow({
     x: state.x,
     y: state.y,
@@ -193,7 +183,6 @@ export function createMainWindow(id: string = randomUUID()) {
       ? {
           frame: false,
           titleBarStyle: "hidden" as const,
-          titleBarOverlay: overlay({ mode }),
         }
       : {}),
     webPreferences: {
@@ -223,6 +212,7 @@ export function createMainWindow(id: string = randomUUID()) {
   state.manage(win)
   registerWindow(win, id)
   wireFullscreen(win)
+  wireMaximized(win)
   loadWindow(win, "index.html")
   wireZoom(win)
 
@@ -530,14 +520,35 @@ function wireZoom(win: BrowserWindow) {
   })
 }
 
-function wireFullscreen(win: BrowserWindow) {
-  const send = (fullscreen: boolean) => {
+type WindowBooleanState = { channel: string; register: (send: (value: boolean) => void) => void }
+
+function wireWindowBoolean(win: BrowserWindow, state: WindowBooleanState) {
+  const send = (value: boolean) => {
     if (win.isDestroyed() || win.webContents.isDestroyed()) return
-    win.webContents.send("window-fullscreen-changed", fullscreen)
+    win.webContents.send(state.channel, value)
   }
 
-  win.on("enter-full-screen", () => send(true))
-  win.on("leave-full-screen", () => send(false))
+  state.register(send)
+}
+
+function wireFullscreen(win: BrowserWindow) {
+  wireWindowBoolean(win, {
+    channel: "window-fullscreen-changed",
+    register: (send) => {
+      win.on("enter-full-screen", () => send(true))
+      win.on("leave-full-screen", () => send(false))
+    },
+  })
+}
+
+function wireMaximized(win: BrowserWindow) {
+  wireWindowBoolean(win, {
+    channel: "window-maximized-changed",
+    register: (send) => {
+      win.on("maximize", () => send(true))
+      win.on("unmaximize", () => send(false))
+    },
+  })
 }
 
 function clampZoom(value: number) {

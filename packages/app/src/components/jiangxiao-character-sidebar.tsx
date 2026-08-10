@@ -489,8 +489,12 @@ export function JiangxiaoCharacterSidebar() {
   const [isDragging, setIsDragging] = createSignal(false)
   let asideEl: HTMLElement | undefined
   let logBodyEl: HTMLDivElement | undefined
+  // dragStart 记录按下时刻的绝对值（absX/absY = 角色实际视口位置）与 CSS 基准值
+  // （cssX/cssY = 实际位置 − 当前偏移，即 left:10px/bottom:10px 的默认基准）。
+  // 修复二次拖动回跳 bug：dragOffset 语义是「相对 CSS 基准的偏移」，若用实际位置作减数，
+  // 每次拖动会把先前累积的偏移清零（第二次拖动即跳回起点、刷新后首次拖动亦跳回默认）。
   let dragStart:
-    | { px: number; py: number; originLeft: number; originTop: number; w: number; h: number }
+    | { px: number; py: number; absX: number; absY: number; cssX: number; cssY: number; w: number; h: number }
     | undefined
 
   // 视口尺寸（handleDragMove / syncPosition 共用）
@@ -503,7 +507,17 @@ export function JiangxiaoCharacterSidebar() {
     e.preventDefault()
     e.stopPropagation()
     const rect = asideEl.getBoundingClientRect()
-    dragStart = { px: e.clientX, py: e.clientY, originLeft: rect.left, originTop: rect.top, w: rect.width, h: rect.height }
+    const off = dragOffset()
+    dragStart = {
+      px: e.clientX,
+      py: e.clientY,
+      absX: rect.left,
+      absY: rect.top,
+      cssX: rect.left - off.x,
+      cssY: rect.top - off.y,
+      w: rect.width,
+      h: rect.height,
+    }
     setIsDragging(true)
     window.addEventListener("pointermove", handleDragMove)
     window.addEventListener("pointerup", handleDragEnd)
@@ -514,11 +528,12 @@ export function JiangxiaoCharacterSidebar() {
   function handleDragMove(e: PointerEvent) {
     if (!dragStart) return
     const clamped = clampPosition(
-      { x: dragStart.originLeft + e.clientX - dragStart.px, y: dragStart.originTop + e.clientY - dragStart.py },
+      { x: dragStart.absX + e.clientX - dragStart.px, y: dragStart.absY + e.clientY - dragStart.py },
       getViewport(),
       { width: dragStart.w, height: dragStart.h },
     )
-    setDragOffset({ x: clamped.x - dragStart.originLeft, y: clamped.y - dragStart.originTop })
+    // 偏移始终相对 CSS 基准（cssX/cssY），保证二次及后续拖动不跳回起点
+    setDragOffset({ x: clamped.x - dragStart.cssX, y: clamped.y - dragStart.cssY })
   }
 
   function handleDragEnd() {
