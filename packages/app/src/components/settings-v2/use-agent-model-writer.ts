@@ -40,7 +40,8 @@ export function useAgentModelWriter() {
       }
     }
     try {
-      const result = await api.omoConfigWrite(bind.name, target?.value)
+      // null 表示删除绑定（undefined 经 Electron IPC 不可靠序列化，显式用 null）
+      const result = await api.omoConfigWrite(bind.name, target?.value ?? null)
       return result.ok ? { ok: true } : { ok: false, error: result.error ?? "OMO 配置写入失败" }
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : String(err) }

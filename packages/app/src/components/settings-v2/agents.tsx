@@ -17,13 +17,12 @@ import "./settings-v2.css"
 
 type ModelOption = { value: string; label: string }
 
-const AUTO_OPTION: ModelOption = { value: "auto", label: "auto" }
-
 export const SettingsAgentsV2: Component = () => {
   const language = useLanguage()
   const serverSdk = useServerSDK()
   const models = useModels()
   const { write } = useAgentModelWriter()
+  const AUTO_OPTION = (): ModelOption => ({ value: "auto", label: language.t("settings.agents.model.placeholder") })
 
   const [agents] = createResource(async () => {
     const response = await serverSdk().client.app.agents()
@@ -40,11 +39,11 @@ export const SettingsAgentsV2: Component = () => {
     const opts = models
       .list()
       .map((m) => ({ value: modelSpec(m.provider.id, m.id), label: `${m.provider.name} · ${m.name}` }))
-    return [AUTO_OPTION, ...opts]
+    return [AUTO_OPTION(), ...opts]
   })
 
   const optionFor = (row: AgentModelRow): ModelOption => {
-    if (!row.model) return AUTO_OPTION
+    if (!row.model) return AUTO_OPTION()
     const value = modelSpec(row.model.providerID, row.model.modelID)
     return modelOptions().find((o) => o.value === value) ?? { value, label: value }
   }

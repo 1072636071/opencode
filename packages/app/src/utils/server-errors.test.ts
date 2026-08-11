@@ -172,4 +172,17 @@ describe("isSessionNotFoundError", () => {
       ),
     ).toBe(false)
   })
+
+  test("matches a SolidJS-castError-wrapped tagged error", () => {
+    const body = {
+      _tag: "SessionNotFoundError",
+      sessionID: "ses_missing",
+      message: "Session not found",
+    } satisfies SessionNotFoundError
+
+    // SolidJS castError wraps non-Error values as new Error("Unknown error", { cause: original })
+    const wrapped = new Error("Unknown error", { cause: body })
+    expect(isSessionNotFoundError(wrapped, body.sessionID)).toBe(true)
+    expect(isSessionNotFoundError(wrapped, "ses_other")).toBe(false)
+  })
 })

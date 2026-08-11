@@ -76,7 +76,7 @@ export function buildOpenCodeGlobalPatch(
   name: string,
   model: { providerID: string; modelID: string } | undefined,
 ): { agent: Record<string, { model?: string }> } {
-  return { agent: { [name]: model ? { model: modelSpec(model.providerID, model.modelID) } : {} } }
+  return { agent: { [name]: model ? { model: modelSpec(model.providerID, model.modelID) } : { model: undefined } } }
 }
 
 /** OMO 配置写入单条 edit（updateOmoConfig 的 edits 元素）。 */

@@ -36,8 +36,13 @@ export function formatServerError(error: unknown, translate?: Translator, fallba
 }
 
 function unwrapNamedError(error: unknown): unknown {
-  if (error instanceof Error && error.cause && typeof error.cause === "object" && "body" in error.cause) {
-    return (error.cause as Record<string, unknown>).body
+  if (error instanceof Error && error.cause && typeof error.cause === "object") {
+    const cause = error.cause as Record<string, unknown>
+    if ("body" in cause) return cause.body
+    // SolidJS castError wraps non-Error thrown values (e.g. protocol tagged
+    // errors from throwOnError clients) as new Error("Unknown error", { cause }),
+    // so unwrap the original tagged error from cause when it carries _tag.
+    if ("_tag" in cause) return cause
   }
   return error
 }

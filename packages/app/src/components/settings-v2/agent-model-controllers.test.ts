@@ -38,9 +38,9 @@ describe("agent model controllers (来源识别 + 写入路由 + 两态 payload)
       })
     })
 
-    test("auto omits the model field so patchJsonc deletes it", () => {
+    test("auto marks model as undefined so patchJsonc deletes it", () => {
       expect(buildOpenCodeGlobalPatch("江二妞", undefined)).toEqual({
-        agent: { 江二妞: {} },
+        agent: { 江二妞: { model: undefined } },
       })
     })
   })
@@ -78,7 +78,7 @@ describe("agent model controllers (来源识别 + 写入路由 + 两态 payload)
         model: undefined,
       })
       expect(source).toBe("opencode")
-      expect(openCodePatch).toEqual({ agent: { 江二妞: {} } })
+      expect(openCodePatch).toEqual({ agent: { 江二妞: { model: undefined } } })
       expect(omoEdits).toEqual([{ path: ["agents", "江二妞", "model"], value: undefined }])
     })
   })

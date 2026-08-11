@@ -141,8 +141,10 @@ export function registerIpcHandlers(deps: Deps) {
     const store = getStore(name)
     return Object.keys(store.store).length
   })
-  ipcMain.handle("omo-config-write", (_event: IpcMainInvokeEvent, name: string, model: string | undefined) =>
-    writeOmoAgentModel(name, model),
+  ipcMain.handle(
+    "omo-config-write",
+    (_event: IpcMainInvokeEvent, name: string, model: string | null) =>
+      writeOmoAgentModel(name, model ?? undefined),
   )
   ipcMain.handle("draft-get", (_event, key: string) => drafts.get(key))
   ipcMain.handle("draft-set", (_event, key: string, value: string) => drafts.set(key, value))

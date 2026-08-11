@@ -197,6 +197,7 @@ export function JiangxiaoSplash() {
             height: 100%;
             object-fit: cover;
             object-position: center;
+            pointer-events: none;
           }
           .jiangxiao-splash-vignette {
             position: absolute;
