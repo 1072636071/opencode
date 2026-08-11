@@ -2,7 +2,7 @@ import { existsSync } from "node:fs"
 import { readFile, writeFile, mkdir } from "node:fs/promises"
 import { dirname, join } from "node:path"
 import os from "node:os"
-import { applyEdits, format, modify, type ModificationOptions } from "jsonc-parser"
+import { applyEdits, format, modify, type FormattingOptions, type ModificationOptions } from "jsonc-parser"
 
 /**
  * OMO 全局配置写入（~/.omo/omo.jsonc）。
@@ -21,8 +21,10 @@ export type EditResult = { ok: boolean; error?: string }
 
 const OMO_CONFIG_PATH = () => join(os.homedir(), ".omo", "omo.jsonc")
 
+const formattingOptions: FormattingOptions = { insertSpaces: true, tabSize: 2, eol: "\n" }
+
 const modifyOptions: ModificationOptions = {
-  formattingOptions: { insertSpaces: true, tabSize: 2, eol: "\n" },
+  formattingOptions,
 }
 
 /**
@@ -41,7 +43,7 @@ export function applyAgentModelEdit(
   })
   const patched = applyEdits(text, edits)
   // 删除后可能残留多余空行/缩进，格式化一次（保留顶层注释）。
-  return applyEdits(patched, format(patched, undefined, modifyOptions.formattingOptions))
+  return applyEdits(patched, format(patched, undefined, formattingOptions))
 }
 
 /** 读取 omo.jsonc（不存在则返回空对象文本）。 */
@@ -64,5 +66,3 @@ export async function writeOmoAgentModel(name: string, model: string | undefined
     return { ok: false, error: err instanceof Error ? err.message : String(err) }
   }
 }
-
-export type { OmoConfigEdit }
