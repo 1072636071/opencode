@@ -23,9 +23,12 @@
                     "healthy": {
                       "type": "boolean",
                       "enum": [true]
+                    },
+                    "pid": {
+                      "type": "number"
                     }
                   },
-                  "required": ["healthy"],
+                  "required": ["healthy", "pid"],
                   "additionalProperties": false
                 }
               }

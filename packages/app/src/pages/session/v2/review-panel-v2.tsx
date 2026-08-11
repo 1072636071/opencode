@@ -13,6 +13,7 @@ import {
   type RenderDiff,
 } from "@/pages/session/v2/review-diff-kinds"
 import type { ReviewPanelV2State } from "@/pages/session/v2/review-panel-v2-state"
+import { highlightDiffRows } from "@/pages/session/v2/review-diff-highlight"
 
 type ReviewDiff = FileDiffInfo | SnapshotFileDiff | VcsFileDiff
 
@@ -139,6 +140,19 @@ export function ReviewPanelV2(props: ReviewPanelV2Props) {
     if (!value) return []
     return diffToDlRows(value)
   })
+
+  // 异步语法高亮（工单 10）：整段高亮 add/del 后按行拆分，ctx 行不高亮。
+  // key 用文件 + 行数快照，避免同文件切换时命中旧缓存；高亮未就绪前 fallback 纯文本。
+  const highlightSource = createMemo(() => {
+    const value = view()
+    if (!value) return undefined
+    return { value, rows: dlRows() }
+  })
+  const [highlighted] = createResource(highlightSource, async ({ value, rows }) => {
+    if (!rows.length) return undefined
+    // ReviewDlRow 为 HighlightRow 的结构超集（多 oldNo/newNo/sign 字段），可直接赋值。
+    return highlightDiffRows(rows, value)
+  })
   const activeLoading = createMemo(() => {
     const source = sourceActiveItem()
     if (!source || !props.loadDiff || !reviewDiffNeedsLoad(source)) return false
@@ -205,14 +219,23 @@ export function ReviewPanelV2(props: ReviewPanelV2Props) {
           <Show when={!activeLoading()} fallback={<div class="rv-placeholder">{language.t("common.loading")}{language.t("common.loading.ellipsis")}</div>}>
             <Show when={dlRows().length > 0} fallback={<div class="rv-placeholder">{language.t("ui.fileMedia.binary.title")}</div>}>
               <For each={dlRows()}>
-                {(row) => (
-                  <div classList={{ dl: true, [row.kind]: true }}>
-                    <span class="no">{row.oldNo}</span>
-                    <span class="no">{row.newNo}</span>
-                    <span class="sg">{row.sign}</span>
-                    <span class="code">{row.code}</span>
-                  </div>
-                )}
+                {(row, index) => {
+                  const hit = () => {
+                    const rows = highlighted()
+                    return rows?.[index()]?.html
+                  }
+                  return (
+                    <div classList={{ dl: true, [row.kind]: true }}>
+                      <span class="no">{row.oldNo}</span>
+                      <span class="no">{row.newNo}</span>
+                      <span class="sg">{row.sign}</span>
+                      {/* 高亮 token 已就绪时用 innerHTML 渲染（shiki 输出安全）；否则纯文本 */}
+                      <Show when={hit()} fallback={<span class="code">{row.code}</span>}>
+                        {(html) => <span class="code" innerHTML={html()} />}
+                      </Show>
+                    </div>
+                  )
+                }}
               </For>
             </Show>
           </Show>

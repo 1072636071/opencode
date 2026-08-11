@@ -1089,6 +1089,7 @@ export const dict = {
   "settings.models.title": "Modeller",
   "settings.models.description": "Modellinställningar kommer att kunna konfigureras här.",
   "settings.agents.title": "Agenter",
+  "settings.skills.title": "Färdigheter",
   "settings.agents.description": "Agentinställningar kommer att kunna konfigureras här.",
   "settings.agents.model.placeholder": "Automatiskt",
   "settings.agents.toast.saved.title": "Modellbindning sparad för {name}",

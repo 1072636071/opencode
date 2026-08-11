@@ -732,7 +732,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
 
   const openHiddenSkillsSettings = () => {
     void import("@/components/settings-v2").then((module) => {
-      void dialog.show(() => <module.DialogSettings />)
+      void dialog.show(() => <module.DialogSettings defaultValue="skills" />)
     })
   }
 

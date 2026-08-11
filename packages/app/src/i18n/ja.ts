@@ -992,6 +992,7 @@ export const dict = {
   "settings.models.title": "モデル",
   "settings.models.description": "モデル設定は今後ここで構成できるようになります。",
   "settings.agents.title": "エージェント",
+  "settings.skills.title": "スキル",
   "settings.agents.description": "エージェント設定は今後ここで構成できるようになります。",
   "settings.agents.model.placeholder": "自動",
   "settings.agents.toast.saved.title": "{name} のモデルバインディングを保存しました",

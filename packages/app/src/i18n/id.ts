@@ -1174,6 +1174,7 @@ export const dict = {
   "settings.models.title": "Model",
   "settings.models.description": "Pengaturan model akan dapat dikonfigurasi di sini.",
   "settings.agents.title": "Agen",
+  "settings.skills.title": "Keterampilan",
   "settings.agents.description": "Pengaturan agen akan dapat dikonfigurasi di sini.",
   "settings.agents.model.placeholder": "Otomatis",
   "settings.agents.toast.saved.title": "Ikatan model disimpan untuk {name}",

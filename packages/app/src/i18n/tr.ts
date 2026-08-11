@@ -1088,6 +1088,7 @@ export const dict = {
   "settings.models.title": "Modeller",
   "settings.models.description": "Model ayarları burada yapılandırılabilecek.",
   "settings.agents.title": "Ajanlar",
+  "settings.skills.title": "Beceriler",
   "settings.agents.description": "Ajan ayarları burada yapılandırılabilecek.",
   "settings.agents.model.placeholder": "Otomatik",
   "settings.agents.toast.saved.title": "{name} için model bağlama kaydedildi",

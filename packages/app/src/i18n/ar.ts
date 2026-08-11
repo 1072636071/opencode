@@ -1002,6 +1002,7 @@ export const dict = {
   "settings.models.title": "النماذج",
   "settings.models.description": "ستكون إعدادات النموذج قابلة للتكوين هنا.",
   "settings.agents.title": "الوكلاء",
+  "settings.skills.title": "المهارات",
   "settings.agents.description": "ستكون إعدادات الوكيل قابلة للتكوين هنا.",
   "settings.agents.model.placeholder": "تلقائي",
   "settings.agents.toast.saved.title": "تم حفظ ربط النموذج لـ {name}",

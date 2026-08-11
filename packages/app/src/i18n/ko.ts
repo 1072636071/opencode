@@ -713,6 +713,7 @@ export const dict = {
   "settings.models.title": "모델",
   "settings.models.description": "모델 설정은 여기서 구성할 수 있습니다.",
   "settings.agents.title": "에이전트",
+  "settings.skills.title": "기술",
   "settings.agents.description": "에이전트 설정은 여기서 구성할 수 있습니다.",
   "settings.agents.model.placeholder": "자동",
   "settings.agents.toast.saved.title": "{name}에 대한 모델 바인딩을 저장했습니다",

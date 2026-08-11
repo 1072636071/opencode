@@ -1190,6 +1190,7 @@ export const dict = {
   "settings.models.title": "Моделі",
   "settings.models.description": "Налаштування моделей будуть доступні тут.",
   "settings.agents.title": "Агенти",
+  "settings.skills.title": "Навички",
   "settings.agents.description": "Налаштування агентів будуть доступні тут.",
   "settings.agents.model.placeholder": "Авто",
   "settings.agents.toast.saved.title": "Прив'язку моделі збережено для {name}",

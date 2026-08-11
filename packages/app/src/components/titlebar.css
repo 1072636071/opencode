@@ -86,6 +86,16 @@
   -webkit-app-region: no-drag;
 }
 
+/* v2 顶栏下让窗口控制按钮贴 header 右上角撑满高度，
+   突破内层容器 pt-2 的压缩（与原生 Windows caption 行为一致）。 */
+[data-slot="titlebar-v2"] [data-slot="window-controls"] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  align-self: auto;
+}
+
 [data-slot="window-control-button"] {
   display: flex;
   align-items: center;

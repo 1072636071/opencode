@@ -519,10 +519,10 @@ html[data-theme="jiangxiao"] ::selection {
   background: var(--jx-selection);
 }
 
-/* ---------- 角色透明悬浮窗（ADR-007 定稿：fixed 左下、透明无底、不占布局、全页面常驻） ---------- */
+/* ---------- 角色透明悬浮窗（ADR-007 定稿：fixed 右下、透明无底、不占布局、全页面常驻） ---------- */
 html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] {
   position: fixed;
-  left: 10px;
+  right: 10px;
   bottom: 10px;
   z-index: var(--jx-z-character);
   display: flex;
@@ -715,10 +715,10 @@ html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] button.on {
 }
 
 /* ---------- 工单 07：角色状态演示面板（默认收起，右键菜单「状态演示」唤起；视觉复用 preview #char-tools） ---------- */
-/* 竖排小圆角按钮列：透明深底、hover 金底、on 亮金。absolute 挂于角色右侧（preview 同款左右并排布局） */
+/* 竖排小圆角按钮列：透明深底、hover 金底、on 亮金。absolute 挂于角色左侧（角色默认右下，面板向左展开） */
 html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] {
   position: absolute;
-  left: calc(100% + 8px);
+  right: calc(100% + 8px);
   bottom: 0;
   z-index: var(--jx-z-demo);
   display: flex;
@@ -774,11 +774,11 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
 }
 
 /* ---------- 调试叠加层（工单 02/03，memorial 001）：调试牌子 + 播放日志窗 ---------- */
-/* 调试牌子：演示面板右侧两行小字，等宽字体、深底浅字、pointer-events 穿透，随 demoOpen 显隐。
-   absolute 相对面板（character-demo-tools 自身即 absolute containing block）右侧定位。 */
+/* 调试牌子：演示面板左侧两行小字，等宽字体、深底浅字、pointer-events 穿透，随 demoOpen 显隐。
+   absolute 相对面板（character-demo-tools 自身即 absolute containing block）左侧定位。 */
 html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-debug-badge"] {
   position: absolute;
-  left: 100%;
+  right: 100%;
   top: 0;
   z-index: var(--jx-z-demo);
   display: flex;
@@ -806,10 +806,10 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
 }
 
 /* 播放日志窗：浮动小窗，渲染在角色 aside 内随拖动移动；约 280×200，深底浅字，等宽小字。
-   absolute 相对面板（character-demo-tools 自身即 absolute containing block）右侧定位。 */
+   absolute 相对面板（character-demo-tools 自身即 absolute containing block）左侧定位。 */
 html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] {
   position: absolute;
-  left: 100%;
+  right: 100%;
   top: 0;
   z-index: var(--jx-z-demo);
   width: 280px;
@@ -876,6 +876,32 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
 }
 
 /* ---------- 唐风楷体字体 ---------- */
+/* 工单 06（high-fidelity）：本地 woff2 打包入库（public/fonts/），离线可用。
+   font-family 用规范名 'Ma Shan Zheng' / 'Noto Serif SC'，与 --jx-font-display / --jx-font-ui
+   的族名一致，浏览器优先命中本地字面文件，local 回退保留（未打包环境仍可显示系统楷体/宋体）。 */
+@font-face {
+  font-family: "Ma Shan Zheng";
+  src:
+    url("/fonts/mashanzheng-l1.woff2") format("woff2"),
+    local("Ma Shan Zheng"),
+    local("楷体"),
+    local("KaiTi");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Noto Serif SC";
+  src:
+    url("/fonts/notoserifsc-l1.woff2") format("woff2-variations"),
+    url("/fonts/notoserifsc-l1.woff2") format("woff2"),
+    local("Noto Serif SC"),
+    local("宋体"),
+    local("SimSun");
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+}
 @font-face {
   font-family: "TangKai";
   src:
@@ -984,12 +1010,12 @@ html[data-theme="jiangxiao"] :is(strong, b) {
 
 /* --- 首页双列容器 --- */
 html[data-theme="jiangxiao"] .jx-home-grid {
+  --jx-home-grid-py: 154px; /* padding-top(64) + padding-bottom(90)，供 aside 高度 calc 使用 */
   display: grid;
-  grid-template-columns: 280px minmax(0, 720px);
+  grid-template-columns: 280px minmax(0, 1fr); /* 会话列吃满剩余宽度 */
   grid-template-rows: minmax(0, 1fr); /* ADR-011: 高度链——外层行撑满，aside 高度才有效 */
-  min-height: 100%; /* ADR-011: 对齐上游 min-h-full，防止高度链断裂 */
+  height: 100%; /* 固定高度=viewport，防止 grid row 1fr 膨胀撑出外层滚动条 */
   gap: 40px;
-  justify-content: center;
   padding: 64px var(--jx-space-6) 90px;
   position: relative;
   z-index: 2;
@@ -997,15 +1023,19 @@ html[data-theme="jiangxiao"] .jx-home-grid {
 }
 @media (max-width: 1280px) {
   html[data-theme="jiangxiao"] .jx-home-grid {
-    grid-template-columns: 220px minmax(0, 720px);
+    --jx-home-grid-py: 120px; /* 48 + 72 */
+    grid-template-columns: 220px minmax(0, 1fr);
     gap: var(--jx-space-6);
     padding: var(--jx-space-12) var(--jx-space-4) 72px;
   }
 }
 @media (max-width: 1024px) {
   html[data-theme="jiangxiao"] .jx-home-grid {
+    --jx-home-grid-py: 88px; /* 32 + 56 */
     grid-template-columns: 1fr;
     grid-template-rows: auto; /* ADR-011: 单列时恢复自然排布，子项（项目/会话/工具导航）依次堆叠 */
+    height: auto; /* 小屏允许自然高度，外层 scroll-view 可滚动 */
+    min-height: 100%;
     gap: var(--jx-space-6);
     padding: var(--jx-space-8) var(--jx-space-4) 56px;
   }
@@ -1127,9 +1157,10 @@ html[data-theme="jiangxiao"] .jx-proj-item-label {
 }
 
 /* --- 工具导航（设置 / 帮助）--- */
+/* 不设 display：让 Tailwind 的 hidden/flex/lg:hidden/lg:flex 正确生效，
+   避免主题 CSS 覆盖响应式可见性（曾导致大屏同时显示两套 utility-nav）。 */
 html[data-theme="jiangxiao"] .jx-utility-nav {
   margin-top: 28px;
-  display: flex;
   gap: var(--jx-space-2);
   flex-wrap: wrap;
 }

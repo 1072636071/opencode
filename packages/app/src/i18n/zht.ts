@@ -1049,6 +1049,7 @@ export const dict = {
   "settings.models.title": "模型",
   "settings.models.description": "模型設定將在此處可設定。",
   "settings.agents.title": "代理程式",
+  "settings.skills.title": "技能命令",
   "settings.agents.description": "代理程式設定將在此處可設定。",
   "settings.agents.model.placeholder": "自動",
   "settings.agents.toast.saved.title": "已儲存 {name} 的模型綁定",

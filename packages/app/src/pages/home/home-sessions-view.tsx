@@ -5,6 +5,8 @@ import { ScrollView } from "@opencode-ai/ui/scroll-view"
 import { Icon } from "@opencode-ai/ui/v2/icon"
 import { IconButtonV2 } from "@opencode-ai/ui/v2/icon-button-v2"
 import { useLanguage } from "@/context/language"
+import type { ServerConnection } from "@/context/server"
+import { useSessionTabAvatarState } from "@/pages/layout/project-avatar-state"
 import { shouldOpenSessionInBackground } from "../home-session-open"
 
 import {
@@ -36,6 +38,7 @@ export type HomeSessionsViewProps = {
   groups: Accessor<HomeSessionGroup[]>
   showProjectName: Accessor<boolean>
   canCreateSession: Accessor<boolean>
+  server: Accessor<ServerConnection.Key>
   searchValue: Accessor<string>
   searchPlaceholder: Accessor<string>
   searchOpen: Accessor<boolean>
@@ -290,6 +293,11 @@ function HomeSessionRow(props: HomeSessionsViewProps & { record: HomeSessionReco
     ),
   )
   const snip = () => props.record.projectName
+  const avatar = useSessionTabAvatarState(
+    props.server,
+    () => props.record.session.directory,
+    () => props.record.session.id,
+  )
 
   return (
     <button
@@ -308,7 +316,7 @@ function HomeSessionRow(props: HomeSessionsViewProps & { record: HomeSessionReco
       }}
     >
       <Show
-        when={props.active}
+        when={avatar.loading()}
         fallback={
           <span class="jx-sess-avatar">
             <JiangxiaoIcon name="leaf" size={13} />
@@ -334,7 +342,7 @@ function HomeSessionRow(props: HomeSessionsViewProps & { record: HomeSessionReco
 
 function HomeSessionsEmpty(props: { onNewSession?: () => void; language: ReturnType<typeof useLanguage> }) {
   return (
-    <div class="flex min-h-full flex-col items-center gap-4 px-6 pt-[52px] text-center">
+    <div class="flex flex-1 flex-col items-center gap-4 px-6 pt-[52px] text-center">
       <div class="shrink-0 text-[13px] leading-[13px] tracking-[-0.04px] text-v2-text-text-base [font-weight:530]">
         {props.language.t("home.sessions.empty")}
       </div>

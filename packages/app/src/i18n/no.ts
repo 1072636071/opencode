@@ -903,6 +903,7 @@ export const dict = {
   "settings.models.title": "Modeller",
   "settings.models.description": "Modellinnstillinger vil kunne konfigureres her.",
   "settings.agents.title": "Agenter",
+  "settings.skills.title": "Ferdigheter",
   "settings.agents.description": "Agentinnstillinger vil kunne konfigureres her.",
   "settings.agents.model.placeholder": "Automatisk",
   "settings.agents.toast.saved.title": "Modellbinding lagret for {name}",

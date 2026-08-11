@@ -1097,6 +1097,7 @@ export const dict = {
   "settings.models.title": "Mô hình",
   "settings.models.description": "Cài đặt mô hình sẽ được cấu hình ở đây.",
   "settings.agents.title": "Tác nhân",
+  "settings.skills.title": "Kỹ năng",
   "settings.agents.description": "Cài đặt tác nhân sẽ được cấu hình ở đây.",
   "settings.agents.model.placeholder": "Tự động",
   "settings.agents.toast.saved.title": "Đã lưu liên kết mô hình cho {name}",

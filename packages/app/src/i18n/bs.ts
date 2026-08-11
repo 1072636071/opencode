@@ -1080,6 +1080,7 @@ export const dict = {
   "settings.models.title": "Modeli",
   "settings.models.description": "Postavke modela će se ovdje moći podešavati.",
   "settings.agents.title": "Agenti",
+  "settings.skills.title": "Vještine",
   "settings.agents.description": "Postavke agenata će se ovdje moći podešavati.",
   "settings.agents.model.placeholder": "Automatski",
   "settings.agents.toast.saved.title": "Povezivanje modela sačuvano za {name}",

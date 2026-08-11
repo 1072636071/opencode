@@ -1092,6 +1092,7 @@ export const dict = {
   "settings.models.title": "मॉडल",
   "settings.models.description": "मॉडल सेटिंग्स यहां कॉन्फ़िगर करने योग्य होंगी।",
   "settings.agents.title": "एजेंट",
+  "settings.skills.title": "कौशल",
   "settings.agents.description": "एजेंट सेटिंग्स यहां कॉन्फ़िगर करने योग्य होंगी।",
   "settings.agents.model.placeholder": "स्वचालित",
   "settings.agents.toast.saved.title": "{name} के लिए मॉडल बाइंडिंग सहेजी गई",

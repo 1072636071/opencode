@@ -68,7 +68,7 @@ export function PromptInputV2Composer(props: PromptInputV2ComposerProps) {
 
   const openHiddenSkillsSettings = () => {
     void import("@/components/settings-v2").then((module) => {
-      void dialog.show(() => <module.DialogSettings />)
+      void dialog.show(() => <module.DialogSettings defaultValue="skills" />)
     })
   }
 

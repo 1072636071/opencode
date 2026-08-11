@@ -142,7 +142,7 @@ export function LegacyHome() {
             }}
           </For>
         </ul>
-        <div class="jx-utility-nav">
+        <div class="jx-utility-nav flex">
           <Button
             size="normal"
             variant="ghost"

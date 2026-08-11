@@ -78,7 +78,7 @@ export function HomeProjectsView(props: HomeProjectsViewProps) {
     <aside
       class={`
         mt-6 flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden
-        lg:sticky lg:top-14 lg:mt-14 lg:h-[calc(100cqh-56px)] lg:self-start lg:pt-[52px]
+        lg:sticky lg:top-14 lg:mt-14 lg:h-[calc(100cqh-56px-var(--jx-home-grid-py))] lg:self-start lg:pt-[52px]
       `}
       aria-label={props.language.t("home.projects")}
       onWheel={(event) => {

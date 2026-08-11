@@ -1077,6 +1077,7 @@ export const dict = {
   "settings.models.title": "Models",
   "settings.models.description": "Model settings will be configurable here.",
   "settings.agents.title": "Agents",
+  "settings.skills.title": "Skills",
   "settings.agents.description": "Agent settings will be configurable here.",
   "settings.agents.model.placeholder": "Auto",
   "settings.agents.toast.saved.title": "Model binding saved for {name}",

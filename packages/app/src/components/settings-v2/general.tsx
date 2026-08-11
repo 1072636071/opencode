@@ -1,5 +1,4 @@
-import { Component, For, Show, createMemo, createResource } from "solid-js"
-import type { CommandInfo } from "@opencode-ai/client/promise"
+import { Component, Show, createMemo, createResource } from "solid-js"
 import { createMediaQuery } from "@solid-primitives/media"
 import { ButtonV2 } from "@opencode-ai/ui/v2/button-v2"
 import { SelectV2 } from "@opencode-ai/ui/v2/select-v2"
@@ -10,9 +9,7 @@ import { useLanguage } from "@/context/language"
 import { usePlatform } from "@/context/platform"
 import { useUpdaterAction } from "../updater-action"
 import { useSettings } from "@/context/settings"
-import { toggleHiddenSkill } from "@/context/settings"
 import { useServerSync } from "@/context/server-sync"
-import { useServerSDK } from "@/context/server-sdk"
 import { ExternalLink } from "../external-link"
 import { SettingsListV2 } from "./parts/list"
 import { SettingsRowV2 } from "./parts/row"
@@ -283,30 +280,7 @@ export const SettingsGeneralV2: Component<{
   const dialog = useDialog()
   const settings = useSettings()
   const serverSync = useServerSync()
-  const serverSdk = useServerSDK()
   const mobile = createMediaQuery("(max-width: 767px)")
-
-  // 全局技能列表（B2，工单 05）：设置弹窗经 Portal 渲染，逃逸目录级
-  // SDKProvider 范围，禁止 useSDK()/useSync()（ADR-015）。改用 server 级
-  // useServerSDK() 调全局 app.skills()（/skill 端点，directory 可选），
-  // Home 页（无 session/draft 上下文）与 session 页显示一致。name 与
-  // skill 注册为 command 的 name 同源（opencode/src/command/index.ts:134-152）。
-  const [skills] = createResource(
-    () => serverSdk()?.client,
-    async (client) => {
-      if (!client) return [] as CommandInfo[]
-      const res = await client.app.skills()
-      return (res.data ?? []).map(
-        (skill): CommandInfo => ({
-          name: skill.name,
-          template: skill.content,
-          description: skill.description,
-        }),
-      )
-    },
-    { initialValue: [] as CommandInfo[] },
-  )
-  const commands = createMemo(() => skills() ?? [])
   const updater = useUpdaterAction()
   const permissionScope = createPermissionScopeController(() => props.sessionID)
   const shell = createShellSettingsController()
@@ -466,26 +440,6 @@ export const SettingsGeneralV2: Component<{
             />
           </div>
         </SettingsRowV2>
-
-        <Show when={commands().length > 0}>
-          <div class="text-xs font-medium text-text-subtle pt-2">
-            {language.t("settings.general.row.skillCommands.title")}
-          </div>
-          <For each={commands()}>
-            {(cmd) => (
-              <SettingsRowV2 title={cmd.name} description={cmd.description ?? ""}>
-                <div data-action={`settings-skill-visibility-${cmd.name}`}>
-                  <Switch
-                    checked={!settings.general.hiddenSkills().includes(cmd.name)}
-                    onChange={(checked) =>
-                      settings.general.setHiddenSkills(toggleHiddenSkill(settings.general.hiddenSkills(), cmd.name, checked))
-                    }
-                  />
-                </div>
-              </SettingsRowV2>
-            )}
-          </For>
-        </Show>
       </SettingsListV2>
     </div>
   )

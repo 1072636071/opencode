@@ -987,6 +987,7 @@ export const dict = {
   "settings.models.title": "Mallit",
   "settings.models.description": "Mallin asetukset voidaan määrittää täällä.",
   "settings.agents.title": "Agentit",
+  "settings.skills.title": "Taidot",
   "settings.agents.description": "Agentin asetukset voidaan määrittää täällä.",
   "settings.agents.model.placeholder": "Automaattinen",
   "settings.agents.toast.saved.title": "Mallin sidonta tallennettu kohteelle {name}",

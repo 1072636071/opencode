@@ -45,7 +45,6 @@ import { normalizeSessionInfo } from "@/utils/session"
 const legacyTitlebarHeight = 40
 const v2TitlebarHeight = 36
 const minTitlebarZoom = 0.25
-const windowsControlsBaseWidth = 138 // 3 native Windows caption buttons at 46px each.
 const macTrafficLightsBaseWidth = 84
 
 export type TitlebarUpdate = {
@@ -91,8 +90,6 @@ export function Titlebar(props: { update?: TitlebarUpdate; debugTools?: { visibl
     if (windows()) return `${height / Math.min(titlebarZoom(), 1)}px`
     return undefined
   }
-  const windowsControlsWidth = () => `${windowsControlsBaseWidth / Math.max(titlebarZoom(), 1)}px`
-
   const [history, setHistory] = createStore({
     stack: [] as string[],
     index: 0,
@@ -183,10 +180,6 @@ export function Titlebar(props: { update?: TitlebarUpdate; debugTools?: { visibl
         "min-height": minHeight(),
         // Keep native macOS traffic lights clear even when the desktop window is narrow.
         "padding-left": macTrafficLights() ? `${macTrafficLightsBaseWidth / zoom()}px` : 0,
-        width: windows() ? `env(titlebar-area-width, calc(100vw - ${windowsControlsWidth()}))` : undefined,
-        "max-width": windows() ? `env(titlebar-area-width, calc(100vw - ${windowsControlsWidth()}))` : undefined,
-        // Native Windows caption controls remain on the physical right in both writing directions.
-        "margin-right": windows() ? "auto" : undefined,
       }}
       data-tauri-drag-region
     >
@@ -361,6 +354,7 @@ export function Titlebar(props: { update?: TitlebarUpdate; debugTools?: { visibl
             const [tabsAreOverflowing, setTabsAreOverflowing] = createSignal(false)
 
             return (
+              <>
               <div
                 class="h-full flex-1 overflow-hidden flex flex-row items-center gap-1.5 px-2 md:pr-3"
                 classList={{
@@ -369,6 +363,7 @@ export function Titlebar(props: { update?: TitlebarUpdate; debugTools?: { visibl
                   "md:pl-2": macTrafficLights(),
                   "md:pl-4": !macTrafficLights(),
                 }}
+                style={windows() ? { "padding-right": "138px" } : undefined}
               >
                 <ChannelIndicator debugTools={props.debugTools} />
                 <Show when={windows() || linux()}>
@@ -432,8 +427,12 @@ export function Titlebar(props: { update?: TitlebarUpdate; debugTools?: { visibl
                   />
                 </TooltipV2>
                 <div class="flex-1" />
-                <TitlebarV2Right state={v2RightState()} platform={platform} />
+                <TitlebarV2Right state={v2RightState()} />
               </div>
+              <Show when={windows()}>
+                <WindowControls platform={platform} />
+              </Show>
+              </>
             )
           }}
         </Match>
@@ -607,19 +606,13 @@ type TitlebarV2RightState = {
   update: TitlebarUpdatePillState
 }
 
-function TitlebarV2Right(props: {
-  state: TitlebarV2RightState
-  platform: ReturnType<typeof usePlatform>
-}) {
+function TitlebarV2Right(props: { state: TitlebarV2RightState }) {
   return (
     <div class="relative z-20 flex shrink-0 items-center justify-end gap-0 overflow-visible">
       <Show when={props.state.update.visible}>
         <TitlebarUpdateIconButton state={props.state.update} />
       </Show>
       <div id="opencode-titlebar-right" class="flex shrink-0 items-center justify-end gap-0" />
-      <Show when={props.platform.platform === "desktop" && props.platform.os === "windows"}>
-        <WindowControls platform={props.platform} />
-      </Show>
     </div>
   )
 }

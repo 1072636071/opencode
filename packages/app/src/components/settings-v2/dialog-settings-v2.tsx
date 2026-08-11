@@ -9,6 +9,7 @@ import { SettingsKeybinds } from "../settings-keybinds"
 import { SettingsProvidersV2 } from "./providers"
 import { SettingsModelsV2 } from "./models"
 import { SettingsAgentsV2 } from "./agents"
+import { SettingsSkillsV2 } from "./skills"
 import "./settings-v2.css"
 import { SettingsServersV2 } from "./servers"
 import { useDialog } from "@opencode-ai/ui/context/dialog"
@@ -66,6 +67,10 @@ export const DialogSettings: Component<{
                       <Icon name="keyboard" />
                       {language.t("settings.tab.shortcuts")}
                     </TabsV2.Trigger>
+                    <TabsV2.Trigger value="skills">
+                      <Icon name="checklist" />
+                      {language.t("settings.skills.title")}
+                    </TabsV2.Trigger>
                   </div>
                 </div>
 
@@ -103,6 +108,9 @@ export const DialogSettings: Component<{
         </TabsV2.Content>
         <TabsV2.Content value="shortcuts" class="settings-v2-panel">
           <SettingsKeybinds v2 />
+        </TabsV2.Content>
+        <TabsV2.Content value="skills" class="settings-v2-panel">
+          <SettingsSkillsV2 />
         </TabsV2.Content>
         <TabsV2.Content value="servers" class="settings-v2-panel">
           <SettingsServersV2 />
