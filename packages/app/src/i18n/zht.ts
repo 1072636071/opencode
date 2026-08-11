@@ -926,6 +926,11 @@ export const dict = {
   "settings.general.row.skillCommands.title": "技能命令",
   "settings.general.row.showCustomAgents.title": "自訂代理程式",
   "settings.general.row.showCustomAgents.description": "在輸入區顯示代理程式選擇器",
+  "settings.general.row.backgroundDeco.title": "背景裝飾",
+  "settings.general.row.backgroundDeco.description": "在背景顯示裝飾特效。將遵循系統的減少動效偏好。",
+  "settings.general.row.backgroundDeco.off": "關閉",
+  "settings.general.row.backgroundDeco.static": "靜態",
+  "settings.general.row.backgroundDeco.dynamic": "動態",
   "settings.general.row.reasoningSummaries.title": "顯示推理摘要",
   "settings.general.row.reasoningSummaries.description": "在時間軸中顯示模型推理摘要",
 

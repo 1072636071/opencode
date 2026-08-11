@@ -26,6 +26,7 @@ import {
   terminalFontFamily,
   terminalInput,
   useSettings,
+  backgroundDecoOptions,
 } from "@/context/settings"
 import { decode64 } from "@/utils/base64"
 import { playSoundById, SOUND_OPTIONS } from "@/utils/sound"
@@ -209,6 +210,7 @@ export const SettingsGeneral: Component = () => {
     { value: "light", label: language.t("theme.scheme.light") },
     { value: "dark", label: language.t("theme.scheme.dark") },
   ])
+
 
   const languageOptions = createMemo(() =>
     language.locales.map((locale) => ({
@@ -450,6 +452,24 @@ export const SettingsGeneral: Component = () => {
               onChange={(checked) => settings.general.setShowCustomAgents(checked)}
             />
           </div>
+        </SettingsRow>
+
+        <SettingsRow
+          title={language.t("settings.general.row.backgroundDeco.title")}
+          description={language.t("settings.general.row.backgroundDeco.description")}
+        >
+          <Select
+            data-action="settings-background-deco"
+            options={backgroundDecoOptions}
+            current={backgroundDecoOptions.find((o) => o.value === settings.general.backgroundDeco())}
+            value={(o) => o.value}
+            label={(o) => language.t(o.label)}
+            onSelect={(option) => option && settings.general.setBackgroundDeco(option.value)}
+            variant="secondary"
+            size="small"
+            triggerVariant="settings"
+            triggerStyle={{ "min-width": "220px" }}
+          />
         </SettingsRow>
       </SettingsList>
     </div>

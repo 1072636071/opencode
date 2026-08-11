@@ -950,6 +950,12 @@ export const dict = {
   "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Prilagođeni agenti",
   "settings.general.row.showCustomAgents.description": "Prikaži izbor agenta u uređivaču poruke",
+  "settings.general.row.backgroundDeco.title": "Dekoracija pozadine",
+  "settings.general.row.backgroundDeco.description":
+    "Prikaz dekorativnih efekata na pozadini. Poštuje sistemsku preferenciju smanjenog kretanja.",
+  "settings.general.row.backgroundDeco.off": "Isključeno",
+  "settings.general.row.backgroundDeco.static": "Statično",
+  "settings.general.row.backgroundDeco.dynamic": "Dinamično",
   "settings.general.row.reasoningSummaries.title": "Prikaži sažetke rasuđivanja",
   "settings.general.row.reasoningSummaries.description": "Prikaži sažetke rasuđivanja modela na vremenskoj traci",
 

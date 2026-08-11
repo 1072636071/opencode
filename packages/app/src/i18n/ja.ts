@@ -871,6 +871,12 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "エージェントを表示",
   "settings.general.row.showCustomAgents.description":
     "コンポーザーでエージェントを切り替えます。非表示の場合は、デフォルトでBuildエージェントが使用されます。",
+  "settings.general.row.backgroundDeco.title": "背景装飾",
+  "settings.general.row.backgroundDeco.description":
+    "背景に装飾エフェクトを表示します。システムのアニメーション削減設定を尊重します。",
+  "settings.general.row.backgroundDeco.off": "オフ",
+  "settings.general.row.backgroundDeco.static": "静的",
+  "settings.general.row.backgroundDeco.dynamic": "動的",
   "settings.general.row.reasoningSummaries.title": "推論の要約を表示",
   "settings.general.row.reasoningSummaries.description": "タイムラインにモデルの推論の要約を表示します",
   "settings.general.row.shellToolPartsExpanded.title": "shell ツールパーツを展開",

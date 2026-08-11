@@ -3,13 +3,13 @@
    ============================================================ */
 
 /* ---------- 色值变量表（ADR-006 决策 1，深底烫金统一新表） ----------
-   作用域限定 html[data-theme="jiangxiao"]，不影响其他主题。
+   作用域限定 :is([data-theme="jiangxiao"], [data-theme="meihua"])，不影响其他主题。
    本表两段：
    ① 规范 token 块（DESIGN.md §10 附录）——唯一落地形式，一律引用规范名；
    ② 装饰 SVG 变量（值取 docs/image/产出/jiangxiao-ui-preview.html :root 内联）。
    后续工单（02-07）一律通过 var() 引用本表，不再硬编码色值。
    注：inline SVG data URI 内的颜色无法引用 var()，使用新表字面量保持一致。 */
-html[data-theme="jiangxiao"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) {
   /* === ① DESIGN.md §10 规范 token 块 === */
   /* Ink 墨阶 */
   --jx-ink-950:#0b090d; --jx-ink-900:#121016; --jx-ink-800:#1a1620; --jx-ink-700:#2d242f; --jx-ink-600:#3d343c;
@@ -56,13 +56,13 @@ html[data-theme="jiangxiao"] {
 }
 
 /* ---------- 全局背景：深色底 + 云纹水印 ---------- */
-html[data-theme="jiangxiao"] body,
-html[data-theme="jiangxiao"] #root {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) body,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) #root {
   background-color: var(--jx-ink-950);
 }
 
 /* 云纹/宝相花水印（静态纹理），通过 data-oc-deco 开关控制 */
-html[data-theme="jiangxiao"][data-oc-deco="static"] #root::before {
+:is([data-theme="jiangxiao"], [data-theme="meihua"])[data-oc-deco="static"] #root::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -84,7 +84,7 @@ html[data-theme="jiangxiao"][data-oc-deco="static"] #root::before {
 }
 
 /* 金粉飘落（动态特效），通过 data-oc-deco="dynamic" 开关控制 */
-html[data-theme="jiangxiao"][data-oc-deco="dynamic"] #root::before {
+:is([data-theme="jiangxiao"], [data-theme="meihua"])[data-oc-deco="dynamic"] #root::before {
   content: "";
   position: fixed;
   inset: -40px 0 0 0;
@@ -108,32 +108,32 @@ html[data-theme="jiangxiao"][data-oc-deco="dynamic"] #root::before {
 }
 
 /* 确保应用内容位于装饰层之上 */
-html[data-theme="jiangxiao"][data-oc-deco] #root > * {
+:is([data-theme="jiangxiao"], [data-theme="meihua"])[data-oc-deco] #root > * {
   position: relative;
   z-index: var(--jx-z-fx);
 }
 
 /* ---------- 顶部栏：深色底 + 金色标题 + 云纹 ---------- */
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] {
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='48' viewBox='0 0 180 48'%3E%3Cpath d='M20 24c6-10 18-12 26-6 6 4 14 4 20-2 4-4 10-6 16-4' fill='none' stroke='%23B8860B' stroke-opacity='0.16' stroke-width='1'/%3E%3Cpath d='M10 38c8-8 20-8 30-4 6 2 14 1 20-4 6-5 14-6 22-3' fill='none' stroke='%23B8860B' stroke-opacity='0.10' stroke-width='1'/%3E%3Ccircle cx='150' cy='12' r='2' fill='%23B8860B' fill-opacity='0.14'/%3E%3Ccircle cx='70' cy='14' r='1.4' fill='%23B8860B' fill-opacity='0.12'/%3E%3C/svg%3E"),
     linear-gradient(to bottom, var(--jx-ink-900), var(--jx-ink-950));
   border-bottom: 1px solid color-mix(in srgb, var(--jx-gold-deep) 22%, transparent);
 }
 
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="tab-title"],
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-titlebar-tab-title] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-slot="tab-title"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-titlebar-tab-title] {
   color: var(--jx-gold-bright);
   font-weight: 600;
   letter-spacing: 0.08em;
 }
 
 /* 标题栏金色端饰（唐风纹样感） */
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] {
   position: relative;
 }
 
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"]::after {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"]::after {
   content: "";
   position: absolute;
   inset-block-start: 50%;
@@ -149,70 +149,70 @@ html[data-theme="jiangxiao"] [data-slot="titlebar-v2"]::after {
 /* 顶栏内文字：深底浅字惯例（ADR-004/006）
    顶栏内 text-v2-text-text-base（light=#161616）/text-v2-text-text-faint（#808080）
    在 light color-scheme 下会深字配深底，须逐一配套浅色 */
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="tab-link"],
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-titlebar-tab-link] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-slot="tab-link"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-titlebar-tab-link] {
   color: var(--jx-cream);
   -webkit-text-fill-color: var(--jx-cream);
 }
 
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-tab-item"][data-active="true"] [data-slot="tab-link"],
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-tab-item"][data-state="pressed"] [data-slot="tab-link"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-slot="titlebar-tab-item"][data-active="true"] [data-slot="tab-link"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-slot="titlebar-tab-item"][data-state="pressed"] [data-slot="tab-link"] {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
 
 /* 顶栏内 ghost-muted 按钮（Home/NewTab/Update 等）：图标和文字浅色 */
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"],
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"] [data-slot="icon-svg"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"] [data-slot="icon-svg"] {
   color: var(--jx-cream);
   -webkit-text-fill-color: var(--jx-cream);
 }
 
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"]:hover,
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"]:hover [data-slot="icon-svg"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"]:hover,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"]:hover [data-slot="icon-svg"] {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
 
 /* 自绘窗口控制按钮（ADR-016）：红金配色。默认朱红图标，hover 亮金；
    关闭按钮 hover 朱红底 + 亮金图标（呼应 Windows 关闭高亮惯例，用品牌朱红）。 */
-html[data-theme="jiangxiao"] [data-slot="window-control-button"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="window-control-button"] {
   color: var(--jx-cinnabar);
   -webkit-text-fill-color: var(--jx-cinnabar);
 }
 
-html[data-theme="jiangxiao"] [data-slot="window-control-button"]:hover,
-html[data-theme="jiangxiao"] [data-slot="window-control-button"]:focus-visible {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="window-control-button"]:hover,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="window-control-button"]:focus-visible {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
   background-color: color-mix(in srgb, var(--jx-cinnabar) 16%, transparent);
 }
 
-html[data-theme="jiangxiao"] [data-slot="window-control-button"]:last-child:hover,
-html[data-theme="jiangxiao"] [data-slot="window-control-button"]:last-child:focus-visible {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="window-control-button"]:last-child:hover,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="window-control-button"]:last-child:focus-visible {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
   background-color: var(--jx-cinnabar);
 }
 
 /* 顶栏 Update 按钮文字（text-v2-text-text-accent）浅色 */
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-update-loader"],
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] .text-v2-text-text-accent {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-slot="titlebar-update-loader"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] .text-v2-text-text-accent {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
 
 /* 顶栏 tabs fade 遮罩：用深底色渐变（原 var(--v2-background-bg-deep) 在 light 下是浅色） */
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-tabs-fade-left"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-slot="titlebar-tabs-fade-left"] {
   background-image: linear-gradient(to right, var(--jx-ink-950), transparent);
 }
 
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-tabs-fade-right"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"] [data-slot="titlebar-tabs-fade-right"] {
   background-image: linear-gradient(to left, var(--jx-ink-950), transparent);
 }
 
 /* ---------- 新建会话页：深底 + 金纹 + 浅紫点缀（工单 03） ---------- */
-html[data-theme="jiangxiao"] [data-component="session-new-design"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="session-new-design"] {
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='48' viewBox='0 0 180 48'%3E%3Cpath d='M20 24c6-10 18-12 26-6 6 4 14 4 20-2 4-4 10-6 16-4' fill='none' stroke='%23B8860B' stroke-opacity='0.10' stroke-width='1'/%3E%3Cpath d='M10 38c8-8 20-8 30-4 6 2 14 1 20-4 6-5 14-6 22-3' fill='none' stroke='%23B8860B' stroke-opacity='0.07' stroke-width='1'/%3E%3Ccircle cx='150' cy='12' r='2' fill='%23B8860B' fill-opacity='0.10'/%3E%3Ccircle cx='70' cy='14' r='1.4' fill='%23B8860B' fill-opacity='0.08'/%3E%3C/svg%3E"),
     var(--jx-ink-950);
@@ -223,28 +223,28 @@ html[data-theme="jiangxiao"] [data-component="session-new-design"] {
 }
 
 /* 新建会话页内所有文字：深底浅字（覆盖 light 下深色 text token） */
-html[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-text-text-faint,
-html[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-text-text-base,
-html[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-text-text-muted {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="session-new-design"] .text-v2-text-text-faint,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="session-new-design"] .text-v2-text-text-base,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="session-new-design"] .text-v2-text-text-muted {
   color: var(--jx-cream);
   -webkit-text-fill-color: var(--jx-cream);
 }
 
 /* 新建会话页内图标：烫金 */
-html[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-icon-icon-muted,
-html[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-icon-icon-base {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="session-new-design"] .text-v2-icon-icon-muted,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="session-new-design"] .text-v2-icon-icon-base {
   color: var(--jx-gold-deep);
   -webkit-text-fill-color: var(--jx-gold-deep);
 }
 
 /* 项目下拉框 trigger 文字烫金（data-action="prompt-project" 精确匹配） */
-html[data-theme="jiangxiao"] [data-action="prompt-project"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-action="prompt-project"] {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
 
-html[data-theme="jiangxiao"] [data-action="prompt-project"] .text-v2-icon-icon-muted,
-html[data-theme="jiangxiao"] [data-action="prompt-project"] .text-v2-icon-icon-base {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-action="prompt-project"] .text-v2-icon-icon-muted,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-action="prompt-project"] .text-v2-icon-icon-base {
   color: var(--jx-gold-deep);
   -webkit-text-fill-color: var(--jx-gold-deep);
 }
@@ -252,39 +252,39 @@ html[data-theme="jiangxiao"] [data-action="prompt-project"] .text-v2-icon-icon-b
 /* 本地/分支 trigger 显式烫金（工单 03 补齐，ADR-006 决策 1）
    在 prompt-workspace-selector.tsx 中通过 data-slot 标记定位（纯视觉标记，不改逻辑）。
    不再依赖工单 07 全局变量重写的隐式覆盖。 */
-html[data-theme="jiangxiao"] [data-slot="prompt-workspace-trigger"],
-html[data-theme="jiangxiao"] [data-slot="prompt-workspace-trigger"] [data-component="icon"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="prompt-workspace-trigger"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="prompt-workspace-trigger"] [data-component="icon"] {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
 
-html[data-theme="jiangxiao"] [data-slot="prompt-workspace-trigger"] svg,
-html[data-theme="jiangxiao"] [data-slot="prompt-workspace-trigger"] [data-slot="icon-svg"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="prompt-workspace-trigger"] svg,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="prompt-workspace-trigger"] [data-slot="icon-svg"] {
   color: var(--jx-gold-deep);
   -webkit-text-fill-color: var(--jx-gold-deep);
 }
 
-html[data-theme="jiangxiao"] [data-slot="prompt-git-status"],
-html[data-theme="jiangxiao"] [data-slot="prompt-git-status"] [data-component="icon"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="prompt-git-status"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="prompt-git-status"] [data-component="icon"] {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
 
-html[data-theme="jiangxiao"] [data-slot="prompt-git-status"] svg,
-html[data-theme="jiangxiao"] [data-slot="prompt-git-status"] [data-slot="icon-svg"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="prompt-git-status"] svg,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="prompt-git-status"] [data-slot="icon-svg"] {
   color: var(--jx-gold-deep);
   -webkit-text-fill-color: var(--jx-gold-deep);
 }
 
 
 /* 新建会话页 WordmarkV2（text-v2-background-bg-inverse）：保持可见 */
-html[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-background-bg-inverse {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="session-new-design"] .text-v2-background-bg-inverse {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
 
 /* ---------- 输入框：宣纸笺样式 ---------- */
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"] {
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--jx-border-deco) 94%, var(--jx-gold-deep) 6%),
@@ -296,7 +296,7 @@ html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] {
     0 4px 24px color-mix(in srgb, var(--jx-ink-950) 32%, transparent);
 }
 
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"]:focus-within {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"]:focus-within {
   border-color: color-mix(in srgb, var(--jx-gold-deep) 62%, transparent) !important;
   box-shadow:
     inset 0 0 24px color-mix(in srgb, var(--jx-gold-deep) 13%, transparent),
@@ -305,7 +305,7 @@ html[data-theme="jiangxiao"] [data-component="prompt-input-v2"]:focus-within {
 }
 
 /* 发送按钮：朱红印章风格圆钮 */
-html[data-theme="jiangxiao"] [data-action="prompt-submit"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-action="prompt-submit"] {
   border-radius: 9999px !important;
   background-image: none !important;
   background-color: var(--jx-seal) !important;
@@ -319,72 +319,72 @@ html[data-theme="jiangxiao"] [data-action="prompt-submit"] {
     transform 0.1s ease;
 }
 
-html[data-theme="jiangxiao"] [data-action="prompt-submit"]:hover:not(:disabled) {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-action="prompt-submit"]:hover:not(:disabled) {
   background-color: var(--jx-seal-bright) !important;
   transform: translateY(-1px);
 }
 
-html[data-theme="jiangxiao"] [data-action="prompt-submit"]:active:not(:disabled) {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-action="prompt-submit"]:active:not(:disabled) {
   transform: translateY(0) scale(0.96);
 }
 
 /* 发送按钮图标微调（印章感） */
-html[data-theme="jiangxiao"] [data-action="prompt-submit"] svg {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-action="prompt-submit"] svg {
   color: var(--jx-seal-ink) !important;
 }
 
 /* 输入框文字：烫金效果 */
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [contenteditable="true"],
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] textarea,
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-component="prompt-input"] [contenteditable="true"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"] [contenteditable="true"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"] textarea,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"] [data-component="prompt-input"] [contenteditable="true"] {
   color: var(--jx-gold-bright) !important;
   text-shadow: 0 0 6px color-mix(in srgb, var(--jx-gold-bright) 35%, transparent);
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
 
 /* 输入框占位符：暗金 */
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [contenteditable="true"]::before,
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] textarea::placeholder,
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] ::placeholder {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"] [contenteditable="true"]::before,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"] textarea::placeholder,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"] ::placeholder {
   color: color-mix(in srgb, var(--jx-gold-deep) 55%, var(--jx-gold-dim)) !important;
   -webkit-text-fill-color: color-mix(in srgb, var(--jx-gold-deep) 55%, var(--jx-gold-dim));
 }
 
 /* 输入框内 mention 高亮：保持可读的暖金 */
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-mention="file"],
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-mention="agent"],
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-mention="reference"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"] [data-mention="file"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"] [data-mention="agent"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"] [data-mention="reference"] {
   -webkit-text-fill-color: initial;
   text-shadow: none;
 }
 
 /* 输入框底部 agent / model / variant 选择按钮（ghost-muted）：提亮 */
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-component="button-v2"][data-variant="ghost-muted"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"] [data-component="button-v2"][data-variant="ghost-muted"] {
   color: color-mix(in srgb, var(--jx-gold-deep) 75%, var(--jx-gold-bright) 25%);
 }
 
-html[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-component="button-v2"][data-variant="ghost-muted"] [data-slot="icon-svg"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="prompt-input-v2"] [data-component="button-v2"][data-variant="ghost-muted"] [data-slot="icon-svg"] {
   color: color-mix(in srgb, var(--jx-gold-deep) 75%, var(--jx-gold-bright) 25%);
 }
 
 /* ---------- 自定义滚动条：金边细条 ---------- */
-html[data-theme="jiangxiao"] *::-webkit-scrollbar {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) *::-webkit-scrollbar {
   width: var(--jx-space-2);
   height: var(--jx-space-2);
 }
 
-html[data-theme="jiangxiao"] *::-webkit-scrollbar-track {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) *::-webkit-scrollbar-track {
   background: var(--jx-scroll-track);
 }
 
-html[data-theme="jiangxiao"] *::-webkit-scrollbar-thumb {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) *::-webkit-scrollbar-thumb {
   background: var(--jx-gold-deep);
   border-radius: var(--jx-radius-lg);
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
-html[data-theme="jiangxiao"] *::-webkit-scrollbar-thumb:hover {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) *::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--jx-gold-bright) 50%, var(--jx-gold-deep));
   border: 2px solid transparent;
   background-clip: padding-box;
@@ -393,7 +393,7 @@ html[data-theme="jiangxiao"] *::-webkit-scrollbar-thumb:hover {
 /* ---------- 消息卷轴：助手消息黑漆卷轴深底米白字 + 用户消息金边气泡 ----------
    工单 04：推翻原「宣纸卷轴浅底深字」设计（ADR-006 决策 2）。
    助手消息改深底米白字（黑漆卷轴刻字感），与用户消息深底烫金区分。 */
-html[data-theme="jiangxiao"] [data-component="text-part"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="text-part"] {
   background: linear-gradient(
     to right,
     color-mix(in srgb, var(--jx-ink-900) 92%, var(--jx-gold-deep) 8%),
@@ -408,46 +408,46 @@ html[data-theme="jiangxiao"] [data-component="text-part"] {
 }
 
 /* 助手消息内 markdown 正文文字米白 */
-html[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="text-part"] [data-component="markdown"] {
   color: var(--jx-cream);
   -webkit-text-fill-color: var(--jx-cream);
 }
 
 /* 助手消息内 markdown 标题/加粗：亮金强调 */
-html[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] :is(h1, h2, h3, h4, h5, h6),
-html[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] :is(strong, b) {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="text-part"] [data-component="markdown"] :is(h1, h2, h3, h4, h5, h6),
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="text-part"] [data-component="markdown"] :is(strong, b) {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
 
 /* 助手消息内链接：亮金 */
-html[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] a {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="text-part"] [data-component="markdown"] a {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
 
 /* 助手消息内列表 marker、blockquote：暗金/米白 */
-html[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] li::marker,
-html[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] blockquote {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="text-part"] [data-component="markdown"] li::marker,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="text-part"] [data-component="markdown"] blockquote {
   color: var(--jx-gold-deep);
   -webkit-text-fill-color: var(--jx-gold-deep);
 }
 
 /* 助手消息内行内 code：深底暗金 */
-html[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] :not(pre) > code {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="text-part"] [data-component="markdown"] :not(pre) > code {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
   background: color-mix(in srgb, var(--jx-gold-deep) 12%, transparent);
 }
 
 /* 助手消息 meta 文字（text-text-weak）：米白 */
-html[data-theme="jiangxiao"] [data-component="text-part"] .text-text-weak,
-html[data-theme="jiangxiao"] [data-component="text-part"] [data-slot="text-part-meta"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="text-part"] .text-text-weak,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="text-part"] [data-slot="text-part-meta"] {
   color: var(--jx-cream);
   -webkit-text-fill-color: var(--jx-cream);
 }
 
-html[data-theme="jiangxiao"] [data-component="user-message"] [data-slot="user-message-text"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="user-message"] [data-slot="user-message-text"] {
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--jx-ink-on-light) 92%, var(--jx-gold-deep) 8%),
@@ -465,12 +465,12 @@ html[data-theme="jiangxiao"] [data-component="user-message"] [data-slot="user-me
 }
 
 /* 气泡内 file/agent 高亮：light 变体下 syntax 色偏暗，深底上须提亮（ADR-004） */
-html[data-theme="jiangxiao"] [data-component="user-message"] [data-slot="user-message-text"] [data-highlight="file"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="user-message"] [data-slot="user-message-text"] [data-highlight="file"] {
   color: var(--jx-hl-file);
   -webkit-text-fill-color: var(--jx-hl-file);
 }
 
-html[data-theme="jiangxiao"] [data-component="user-message"] [data-slot="user-message-text"] [data-highlight="agent"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="user-message"] [data-slot="user-message-text"] [data-highlight="agent"] {
   color: var(--jx-hl-agent);
   -webkit-text-fill-color: var(--jx-hl-agent);
 }
@@ -478,18 +478,18 @@ html[data-theme="jiangxiao"] [data-component="user-message"] [data-slot="user-me
 /* ---------- 代码块容器唐风化（工单 05，ADR-006 决策 4） ----------
    只改代码块容器边框/背景为唐风深底+金色描边。
    语法高亮配色（.shiki code span token 颜色）完全不动，保持原版专业配色。 */
-html[data-theme="jiangxiao"] [data-component="markdown"] .shiki {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="markdown"] .shiki {
   background: var(--jx-ink-950) !important;
   border: 1px solid color-mix(in srgb, var(--jx-gold-deep) 35%, transparent) !important;
   border-radius: var(--jx-radius-md);
 }
 
 /* 代码块容器外层（markdown-code）：金色描边装饰 */
-html[data-theme="jiangxiao"] [data-component="markdown-code"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="markdown-code"] {
   position: relative;
 }
 
-html[data-theme="jiangxiao"] [data-component="markdown-code"]::before {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="markdown-code"]::before {
   content: "";
   position: absolute;
   inset-inline-start: 0;
@@ -503,24 +503,24 @@ html[data-theme="jiangxiao"] [data-component="markdown-code"]::before {
 }
 
 /* 代码块复制按钮：深底浅字 */
-html[data-theme="jiangxiao"] [data-component="markdown"] [data-slot="markdown-copy-button"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="markdown"] [data-slot="markdown-copy-button"] {
   color: var(--jx-cream);
   -webkit-text-fill-color: var(--jx-cream);
 }
 
 /* 代码块 shell 变体：深底 */
-html[data-theme="jiangxiao"] [data-component="markdown"] [data-component="markdown-code"][data-code-kind="shell"] .shiki {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="markdown"] [data-component="markdown-code"][data-code-kind="shell"] .shiki {
   background: var(--jx-ink-900) !important;
   border-color: color-mix(in srgb, var(--jx-gold-deep) 25%, transparent) !important;
 }
 
 /* ---------- 选择高亮：暗金半透明（ADR-006 决策 1） ---------- */
-html[data-theme="jiangxiao"] ::selection {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) ::selection {
   background: var(--jx-selection);
 }
 
 /* ---------- 角色透明悬浮窗（ADR-007 定稿：fixed 右下、透明无底、不占布局、全页面常驻） ---------- */
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] {
   position: fixed;
   right: 10px;
   bottom: 10px;
@@ -534,7 +534,7 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] {
   border: none;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-video"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-video"] {
   position: relative;
   height: min(46vh, 520px);
   aspect-ratio: 9 / 16;
@@ -543,7 +543,7 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
 }
 
 /* WebP 动画用 <img> 播放：默认 opacity:0，data-active 标记当前状态 opacity:1，data-prev 标记淡出中的前一状态 */
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-video"] img {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-video"] img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -554,24 +554,24 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   transition: opacity 0.1s ease;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-video"] img[data-active] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-video"] img[data-active] {
   opacity: var(--jx-opacity-on);
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-video"] img[data-prev] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-video"] img[data-prev] {
   opacity: var(--jx-opacity-off);
 }
 
 /* 过渡 img（ADR-013 §4）：播放时叠加于循环 img 之上，loop=1 播一遍，定时器主切态后移除。
    基础 img 规则 opacity:0，此处用 data-transition-active 显式显示并置于顶层。 */
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-video"] img[data-transition-active] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-video"] img[data-transition-active] {
   opacity: var(--jx-opacity-on);
   z-index: var(--jx-z-fx);
   transition: var(--jx-transition-none);
 }
 
 /* 角色状态文字（悬浮小字，无描边） */
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-status"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-status"] {
   padding: 2px var(--jx-space-2);
   color: var(--jx-gold-deep);
   font-size: var(--jx-fs-caption);
@@ -582,7 +582,7 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
 }
 
 /* 折叠钮（chevron 图标，无单字中文） */
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-toggle"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-toggle"] {
   position: absolute;
   top: var(--jx-space-1);
   right: -28px;
@@ -600,13 +600,13 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   transition: opacity var(--jx-dur-fast) ease, color var(--jx-dur-fast) ease;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-toggle"]:hover {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-toggle"]:hover {
   opacity: 1;
   color: var(--jx-gold-bright);
 }
 
 /* 拖拽手柄（ADR-010）：角色头顶上方，线描四向移动图标，默认半透 hover 变亮 */
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-drag-handle"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-drag-handle"] {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -620,18 +620,18 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   align-self: center;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-drag-handle"]:hover {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-drag-handle"]:hover {
   opacity: 1;
   color: var(--jx-gold-bright);
 }
 
 /* 拖动中视觉反馈（ADR-010）：缩放 0.95 + 透明度略降 + 金边发光 */
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-dragging="true"] [data-slot="character-drag-handle"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"][data-dragging="true"] [data-slot="character-drag-handle"] {
   cursor: grabbing;
   opacity: 1;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-dragging="true"] [data-slot="character-video"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"][data-dragging="true"] [data-slot="character-video"] {
   transform: scale(0.95);
   opacity: 0.85;
   filter: drop-shadow(0 0 6px var(--jx-gold-bright));
@@ -639,16 +639,16 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-draggin
 }
 
 /* 折叠时角色整体隐藏，手柄无拖动对象，一并隐藏 */
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-collapsed="true"] [data-slot="character-drag-handle"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"][data-collapsed="true"] [data-slot="character-drag-handle"] {
   display: none;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-collapsed="true"] [data-slot="character-video"],
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-collapsed="true"] [data-slot="character-status"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"][data-collapsed="true"] [data-slot="character-video"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"][data-collapsed="true"] [data-slot="character-status"] {
   display: none;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-collapsed="true"] [data-slot="character-toggle"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"][data-collapsed="true"] [data-slot="character-toggle"] {
   top: auto;
   right: auto;
   left: 0;
@@ -657,19 +657,19 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-collaps
 
 /* 窄屏按比例缩小，不隐藏（ADR-007 §响应式） */
 @media (max-width: 1024px) {
-  html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-video"] {
+  :is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-video"] {
     height: min(30vh, 340px);
   }
 }
 
 @media (max-width: 640px) {
-  html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-video"] {
+  :is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-video"] {
     height: min(24vh, 280px);
   }
 }
 
 /* ---------- 工单 05：角色透明度右键菜单（唐风暗金主题；Portal 到 body 后与角色同处根上下文，z 用 --jx-z-demo 保证盖在角色之上） ---------- */
-html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="character-opacity-menu"] {
   position: fixed;
   z-index: var(--jx-z-demo);
   display: flex;
@@ -683,7 +683,7 @@ html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] {
   font-family: "TangKai", "Inter", sans-serif;
 }
 
-html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] button {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="character-opacity-menu"] button {
   padding: 6px var(--jx-space-3);
   background: transparent;
   border: none;
@@ -695,28 +695,28 @@ html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] button {
   transition: background 0.12s ease, color 0.12s ease;
 }
 
-html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] button:hover,
-html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] button:focus-visible {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="character-opacity-menu"] button:hover,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="character-opacity-menu"] button:focus-visible {
   background: color-mix(in srgb, var(--jx-gold-deep) 18%, transparent);
   color: var(--jx-gold-bright);
   outline: none;
 }
 
 /* 右键菜单：状态演示入口（分隔线 + on 态） */
-html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] [data-slot="opacity-menu-sep"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="character-opacity-menu"] [data-slot="opacity-menu-sep"] {
   height: 1px;
   background: var(--jx-border-deco);
   margin: 3px var(--jx-space-1);
 }
 
-html[data-theme="jiangxiao"] [data-slot="character-opacity-menu"] button.on {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="character-opacity-menu"] button.on {
   background: var(--jx-selection);
   color: var(--jx-gold-bright);
 }
 
 /* ---------- 工单 07：角色状态演示面板（默认收起，右键菜单「状态演示」唤起；视觉复用 preview #char-tools） ---------- */
 /* 竖排小圆角按钮列：透明深底、hover 金底、on 亮金。absolute 挂于角色左侧（角色默认右下，面板向左展开） */
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] {
   position: absolute;
   right: calc(100% + 8px);
   bottom: 0;
@@ -732,7 +732,7 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   backdrop-filter: blur(3px);
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] button {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] button {
   min-width: 32px;
   min-height: 32px;
   display: flex;
@@ -746,24 +746,24 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   transition: color var(--jx-dur-fast) ease, background var(--jx-dur-fast) ease;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] button:hover {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] button:hover {
   color: var(--jx-cream);
   background: color-mix(in srgb, var(--jx-gold-deep) 12%, transparent);
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] button.on {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] button.on {
   color: var(--jx-gold-bright);
   background: var(--jx-selection);
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] [data-slot="char-demo-sep"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] [data-slot="char-demo-sep"] {
   height: 1px;
   background: var(--jx-border-deco);
   margin: 2px 3px;
 }
 
 /* 「回到自动」文字钮：加宽、暗金小字 + 火花图标 */
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] button.char-demo-auto {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-demo-tools"] button.char-demo-auto {
   width: auto;
   padding: 3px 6px;
   gap: var(--jx-space-1);
@@ -776,7 +776,7 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
 /* ---------- 调试叠加层（工单 02/03，memorial 001）：调试牌子 + 播放日志窗 ---------- */
 /* 调试牌子：演示面板左侧两行小字，等宽字体、深底浅字、pointer-events 穿透，随 demoOpen 显隐。
    absolute 相对面板（character-demo-tools 自身即 absolute containing block）左侧定位。 */
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-debug-badge"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-debug-badge"] {
   position: absolute;
   right: 100%;
   top: 0;
@@ -792,7 +792,7 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   user-select: none;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-debug-badge"] [data-slot="debug-badge-line"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-debug-badge"] [data-slot="debug-badge-line"] {
   font-family: var(--jx-font-code);
   font-size: var(--jx-fs-caption);
   line-height: var(--jx-lh-body);
@@ -801,13 +801,13 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   white-space: nowrap;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-debug-badge"] [data-slot="debug-badge-line"]:first-child {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-debug-badge"] [data-slot="debug-badge-line"]:first-child {
   color: var(--jx-gold-bright);
 }
 
 /* 播放日志窗：浮动小窗，渲染在角色 aside 内随拖动移动；约 280×200，深底浅字，等宽小字。
    absolute 相对面板（character-demo-tools 自身即 absolute containing block）左侧定位。 */
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-playback-log"] {
   position: absolute;
   right: 100%;
   top: 0;
@@ -823,7 +823,7 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   overflow: hidden;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-head"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-head"] {
   display: flex;
   align-items: center;
   gap: var(--jx-space-1);
@@ -835,11 +835,11 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   letter-spacing: 0.08em;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-head"] span {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-head"] span {
   flex: 1;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-head"] button {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-head"] button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -854,12 +854,12 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   transition: color var(--jx-dur-fast) ease, background var(--jx-dur-fast) ease;
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-head"] button:hover {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-head"] button:hover {
   color: var(--jx-cream);
   background: color-mix(in srgb, var(--jx-gold-deep) 12%, transparent);
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-body"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-body"] {
   flex: 1;
   overflow-y: auto;
   padding: var(--jx-space-1) var(--jx-space-2);
@@ -869,7 +869,7 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   color: var(--jx-cream);
 }
 
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-body"] [data-slot="playback-log-line"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-playback-log"] [data-slot="playback-log-body"] [data-slot="playback-log-line"] {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -912,18 +912,18 @@ html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="
   font-weight: 400 700;
 }
 
-html[data-theme="jiangxiao"] [data-slot="titlebar-v2"],
-html[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-status"],
-html[data-theme="jiangxiao"] h1,
-html[data-theme="jiangxiao"] h2,
-html[data-theme="jiangxiao"] h3 {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-slot="titlebar-v2"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="jiangxiao-character"] [data-slot="character-status"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) h1,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) h2,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) h3 {
   font-family: "TangKai", "Inter", sans-serif;
 }
 
 /* ============================================================
    工单 07：全局其他页面深底烫金 + 验收补齐（ADR-006 决策 1）
    ============================================================
-   策略：在 html[data-theme="jiangxiao"] 作用域内重写 v2/legacy 设计 token
+   策略：在 :is([data-theme="jiangxiao"], [data-theme="meihua"]) 作用域内重写 v2/legacy 设计 token
    变量（背景/文字/边框/图标），让所有未被工单 02-06 精细覆盖的页面容器
    （首页/草稿页/设置模态/侧边栏/错误页/main 容器等）自动深底烫金，
    避免逐一加规则且杜绝 light 下深 token 黑字黑底遗漏。
@@ -933,7 +933,7 @@ html[data-theme="jiangxiao"] h3 {
    （.text-v2-text-text-base 等编译为 color:var(--v2-text-text-base)），
    故不受本块变量重写影响。代码语法高亮用 .shiki span token 直接色值，
    亦不受影响。 */
-html[data-theme="jiangxiao"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) {
   /* —— 背景变量：所有页面容器自动深底（首页/layout-new/设置模态/侧边栏等）—— */
   --v2-background-bg-deep: var(--jx-ink-950);
   --v2-background-bg-base: var(--jx-ink-900);
@@ -978,13 +978,13 @@ html[data-theme="jiangxiao"] {
    @supports 兜底：不支持 background-clip:text 的浏览器回退到亮金纯色。
    助手消息内标题（工单 04 [data-component="text-part"] markdown h1-h6）
    特异性 (0,3,2) 高于本规则 (0,1,2)，保持工单 04 亮金纯色不冲突。 */
-html[data-theme="jiangxiao"] :is(h1, h2, h3, h4) {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) :is(h1, h2, h3, h4) {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
 
 @supports (background-clip: text) or (-webkit-background-clip: text) {
-  html[data-theme="jiangxiao"] :is(h1, h2, h3, h4) {
+  :is([data-theme="jiangxiao"], [data-theme="meihua"]) :is(h1, h2, h3, h4) {
     background: var(--jx-gold-foil);
     -webkit-background-clip: text;
     background-clip: text;
@@ -994,7 +994,7 @@ html[data-theme="jiangxiao"] :is(h1, h2, h3, h4) {
 }
 
 /* —— 全局 strong/b 强调元素：亮金纯色（烫金系，不叠加渐变避免正文斑驳）—— */
-html[data-theme="jiangxiao"] :is(strong, b) {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) :is(strong, b) {
   color: var(--jx-gold-bright);
   -webkit-text-fill-color: var(--jx-gold-bright);
 }
@@ -1009,7 +1009,7 @@ html[data-theme="jiangxiao"] :is(strong, b) {
    ============================================================ */
 
 /* --- 首页双列容器 --- */
-html[data-theme="jiangxiao"] .jx-home-grid {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-home-grid {
   --jx-home-grid-py: 154px; /* padding-top(64) + padding-bottom(90)，供 aside 高度 calc 使用 */
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr); /* 会话列吃满剩余宽度 */
@@ -1022,7 +1022,7 @@ html[data-theme="jiangxiao"] .jx-home-grid {
   font-family: var(--jx-font-ui);
 }
 @media (max-width: 1280px) {
-  html[data-theme="jiangxiao"] .jx-home-grid {
+  :is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-home-grid {
     --jx-home-grid-py: 120px; /* 48 + 72 */
     grid-template-columns: 220px minmax(0, 1fr);
     gap: var(--jx-space-6);
@@ -1030,7 +1030,7 @@ html[data-theme="jiangxiao"] .jx-home-grid {
   }
 }
 @media (max-width: 1024px) {
-  html[data-theme="jiangxiao"] .jx-home-grid {
+  :is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-home-grid {
     --jx-home-grid-py: 88px; /* 32 + 56 */
     grid-template-columns: 1fr;
     grid-template-rows: auto; /* ADR-011: 单列时恢复自然排布，子项（项目/会话/工具导航）依次堆叠 */
@@ -1042,14 +1042,14 @@ html[data-theme="jiangxiao"] .jx-home-grid {
 }
 
 /* --- 项目栏容器 --- */
-html[data-theme="jiangxiao"] .jx-projects-aside {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-projects-aside {
   display: flex;
   flex-direction: column;
   gap: var(--jx-space-1);
   min-height: 0;
   min-width: 0;
 }
-html[data-theme="jiangxiao"] .jx-projects-aside-list {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-projects-aside-list {
   display: flex;
   flex-direction: column;
   gap: var(--jx-space-1);
@@ -1061,7 +1061,7 @@ html[data-theme="jiangxiao"] .jx-projects-aside-list {
 }
 
 /* --- 项目卡片（avatar + name + path）--- */
-html[data-theme="jiangxiao"] .jx-proj-card {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-proj-card {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1070,7 +1070,7 @@ html[data-theme="jiangxiao"] .jx-proj-card {
   border-radius: var(--jx-radius-lg);
   background: var(--jx-ink-900);
 }
-html[data-theme="jiangxiao"] .jx-proj-avatar {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-proj-avatar {
   width: 30px;
   height: 30px;
   border-radius: var(--jx-radius-md);
@@ -1083,7 +1083,7 @@ html[data-theme="jiangxiao"] .jx-proj-avatar {
   flex: 0 0 auto;
   font-family: inherit;
 }
-html[data-theme="jiangxiao"] .jx-proj-avatar svg {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-proj-avatar svg {
   width: var(--jx-icon-l);
   height: var(--jx-icon-l);
   stroke: currentColor;
@@ -1093,13 +1093,13 @@ html[data-theme="jiangxiao"] .jx-proj-avatar svg {
   stroke-linejoin: round;
   display: block;
 }
-html[data-theme="jiangxiao"] .jx-proj-meta {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-proj-meta {
   display: flex;
   flex-direction: column;
   min-width: 0;
   line-height: 1.4;
 }
-html[data-theme="jiangxiao"] .jx-proj-name {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-proj-name {
   color: var(--jx-cream);
   font-weight: 600;
   font-size: var(--jx-fs-body);
@@ -1107,7 +1107,7 @@ html[data-theme="jiangxiao"] .jx-proj-name {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-html[data-theme="jiangxiao"] .jx-proj-path {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-proj-path {
   font-family: var(--jx-font-code);
   font-size: var(--jx-fs-caption);
   color: var(--jx-cream-dim);
@@ -1117,7 +1117,7 @@ html[data-theme="jiangxiao"] .jx-proj-path {
 }
 
 /* --- 项目列表项 --- */
-html[data-theme="jiangxiao"] .jx-proj-item {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-proj-item {
   display: flex;
   align-items: center;
   gap: var(--jx-space-2);
@@ -1136,19 +1136,19 @@ html[data-theme="jiangxiao"] .jx-proj-item {
     color var(--jx-dur-fast) var(--jx-ease);
   min-width: 0;
 }
-html[data-theme="jiangxiao"] .jx-proj-item:hover {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-proj-item:hover {
   background: color-mix(in srgb, var(--jx-gold-deep) 12%, transparent);
   color: var(--jx-cream);
 }
-html[data-theme="jiangxiao"] .jx-proj-item.on {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-proj-item.on {
   background: var(--jx-selection);
   color: var(--jx-gold-bright);
 }
-html[data-theme="jiangxiao"] .jx-proj-item:focus-visible {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-proj-item:focus-visible {
   outline: none;
   background: color-mix(in srgb, var(--jx-gold-deep) 18%, transparent);
 }
-html[data-theme="jiangxiao"] .jx-proj-item-label {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-proj-item-label {
   min-width: 0;
   flex: 1;
   overflow: hidden;
@@ -1159,12 +1159,12 @@ html[data-theme="jiangxiao"] .jx-proj-item-label {
 /* --- 工具导航（设置 / 帮助）--- */
 /* 不设 display：让 Tailwind 的 hidden/flex/lg:hidden/lg:flex 正确生效，
    避免主题 CSS 覆盖响应式可见性（曾导致大屏同时显示两套 utility-nav）。 */
-html[data-theme="jiangxiao"] .jx-utility-nav {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-utility-nav {
   margin-top: 28px;
   gap: var(--jx-space-2);
   flex-wrap: wrap;
 }
-html[data-theme="jiangxiao"] .jx-ghost-btn {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-ghost-btn {
   color: var(--jx-gold-dim);
   font-size: var(--jx-fs-small);
   letter-spacing: 0.1em;
@@ -1184,16 +1184,16 @@ html[data-theme="jiangxiao"] .jx-ghost-btn {
     color var(--jx-dur-fast) var(--jx-ease),
     border-bottom-color var(--jx-dur-fast) var(--jx-ease);
 }
-html[data-theme="jiangxiao"] .jx-ghost-btn:hover {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-ghost-btn:hover {
   color: var(--jx-gold-bright);
   border-bottom-color: var(--jx-gold-dim);
 }
-html[data-theme="jiangxiao"] .jx-ghost-btn:focus-visible {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-ghost-btn:focus-visible {
   outline: none;
   color: var(--jx-gold-bright);
   border-bottom-color: var(--jx-gold);
 }
-html[data-theme="jiangxiao"] .jx-ghost-btn svg {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-ghost-btn svg {
   width: var(--jx-icon-s);
   height: var(--jx-icon-s);
   stroke: currentColor;
@@ -1205,18 +1205,18 @@ html[data-theme="jiangxiao"] .jx-ghost-btn svg {
 }
 
 /* --- 会话列头部：搜索 + 新会话金钮 --- */
-html[data-theme="jiangxiao"] .jx-home-sessions-head {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-home-sessions-head {
   display: flex;
   align-items: center;
   gap: var(--jx-space-3);
   margin-bottom: 14px;
 }
-html[data-theme="jiangxiao"] .jx-search-wrap {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-search-wrap {
   position: relative;
   flex: 1;
   min-width: 0;
 }
-html[data-theme="jiangxiao"] .jx-search-wrap .jx-search-icon {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-search-wrap .jx-search-icon {
   position: absolute;
   left: 10px;
   top: 50%;
@@ -1227,7 +1227,7 @@ html[data-theme="jiangxiao"] .jx-search-wrap .jx-search-icon {
   color: var(--jx-cream-dim);
   pointer-events: none;
 }
-html[data-theme="jiangxiao"] .jx-search-wrap .jx-search-icon svg {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-search-wrap .jx-search-icon svg {
   width: var(--jx-icon-s);
   height: var(--jx-icon-s);
   stroke: currentColor;
@@ -1237,7 +1237,7 @@ html[data-theme="jiangxiao"] .jx-search-wrap .jx-search-icon svg {
   stroke-linejoin: round;
   display: block;
 }
-html[data-theme="jiangxiao"] .jx-search-input {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-search-input {
   width: 100%;
   background: var(--jx-ink-900);
   border: 1px solid var(--jx-border-deco);
@@ -1249,17 +1249,17 @@ html[data-theme="jiangxiao"] .jx-search-input {
   font-family: inherit;
   -webkit-text-fill-color: var(--jx-cream);
 }
-html[data-theme="jiangxiao"] .jx-search-input::placeholder {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-search-input::placeholder {
   color: var(--jx-cream-dim);
   -webkit-text-fill-color: var(--jx-cream-dim);
 }
-html[data-theme="jiangxiao"] .jx-search-input:focus {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-search-input:focus {
   border-color: var(--jx-gold-deep);
   box-shadow: var(--jx-gold-rim);
 }
 
 /* --- 新会话金钮（gold-btn）--- */
-html[data-theme="jiangxiao"] .jx-gold-btn {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-gold-btn {
   background: var(--jx-ink-700);
   border: 1px solid var(--jx-border-deco);
   color: var(--jx-gold-bright);
@@ -1278,23 +1278,23 @@ html[data-theme="jiangxiao"] .jx-gold-btn {
     border-color var(--jx-dur-fast) var(--jx-ease),
     box-shadow var(--jx-dur-fast) var(--jx-ease);
 }
-html[data-theme="jiangxiao"] .jx-gold-btn:hover:not(:disabled) {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-gold-btn:hover:not(:disabled) {
   border-color: var(--jx-gold-deep);
   box-shadow: var(--jx-gold-rim);
 }
-html[data-theme="jiangxiao"] .jx-gold-btn:focus-visible {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-gold-btn:focus-visible {
   outline: none;
   border-color: var(--jx-gold-deep);
   box-shadow: var(--jx-gold-rim);
 }
-html[data-theme="jiangxiao"] .jx-gold-btn:active:not(:disabled) {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-gold-btn:active:not(:disabled) {
   transform: translateY(0.5px);
 }
-html[data-theme="jiangxiao"] .jx-gold-btn:disabled {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-gold-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-html[data-theme="jiangxiao"] .jx-gold-btn svg {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-gold-btn svg {
   width: var(--jx-icon-s);
   height: var(--jx-icon-s);
   stroke: currentColor;
@@ -1306,7 +1306,7 @@ html[data-theme="jiangxiao"] .jx-gold-btn svg {
 }
 
 /* --- 会话行（sess-row）--- */
-html[data-theme="jiangxiao"] .jx-sess-row {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-sess-row {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: var(--jx-space-3);
@@ -1328,19 +1328,19 @@ html[data-theme="jiangxiao"] .jx-sess-row {
     border-left-color var(--jx-dur-fast) var(--jx-ease);
   margin-bottom: var(--jx-space-1);
 }
-html[data-theme="jiangxiao"] .jx-sess-row:hover {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-sess-row:hover {
   background: color-mix(in srgb, var(--jx-gold-deep) 8%, transparent);
 }
-html[data-theme="jiangxiao"] .jx-sess-row.on {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-sess-row.on {
   background: var(--jx-selection);
   border-left-color: var(--jx-gold);
 }
-html[data-theme="jiangxiao"] .jx-sess-row:focus-visible {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-sess-row:focus-visible {
   outline: none;
   border-left-color: var(--jx-gold);
 }
 
-html[data-theme="jiangxiao"] .jx-sess-avatar {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-sess-avatar {
   width: 32px;
   height: 32px;
   border-radius: var(--jx-radius-md);
@@ -1352,7 +1352,7 @@ html[data-theme="jiangxiao"] .jx-sess-avatar {
   justify-content: center;
   flex: 0 0 auto;
 }
-html[data-theme="jiangxiao"] .jx-sess-avatar svg {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-sess-avatar svg {
   width: var(--jx-icon-s);
   height: var(--jx-icon-s);
   stroke: currentColor;
@@ -1364,7 +1364,7 @@ html[data-theme="jiangxiao"] .jx-sess-avatar svg {
 }
 
 /* --- busy-dots 三点动画（当前会话指示）--- */
-html[data-theme="jiangxiao"] .jx-busy-dots {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-busy-dots {
   display: flex;
   gap: 3px;
   align-items: center;
@@ -1376,7 +1376,7 @@ html[data-theme="jiangxiao"] .jx-busy-dots {
   border: 1px solid var(--jx-border-deco);
   flex: 0 0 auto;
 }
-html[data-theme="jiangxiao"] .jx-busy-dots i {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-busy-dots i {
   width: var(--jx-space-1);
   height: var(--jx-space-1);
   border-radius: var(--jx-radius-seal);
@@ -1384,10 +1384,10 @@ html[data-theme="jiangxiao"] .jx-busy-dots i {
   animation: jx-bpulse 1.2s ease-in-out infinite;
   display: block;
 }
-html[data-theme="jiangxiao"] .jx-busy-dots i:nth-child(2) {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-busy-dots i:nth-child(2) {
   animation-delay: 0.2s;
 }
-html[data-theme="jiangxiao"] .jx-busy-dots i:nth-child(3) {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-busy-dots i:nth-child(3) {
   animation-delay: 0.4s;
 }
 @keyframes jx-bpulse {
@@ -1400,19 +1400,22 @@ html[data-theme="jiangxiao"] .jx-busy-dots i:nth-child(3) {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  html[data-theme="jiangxiao"] .jx-busy-dots i {
+  :is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-busy-dots i {
+    animation: none;
+  }
+  :is([data-theme="jiangxiao"], [data-theme="meihua"])[data-oc-deco="dynamic"] #root::before {
     animation: none;
   }
 }
 
 /* --- 会话文本（title + snippet）--- */
-html[data-theme="jiangxiao"] .jx-sess-text {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-sess-text {
   display: flex;
   flex-direction: column;
   min-width: 0;
   line-height: 1.4;
 }
-html[data-theme="jiangxiao"] .jx-sess-title {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-sess-title {
   font-size: var(--jx-fs-body);
   color: var(--jx-cream);
   -webkit-text-fill-color: var(--jx-cream);
@@ -1420,7 +1423,7 @@ html[data-theme="jiangxiao"] .jx-sess-title {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-html[data-theme="jiangxiao"] .jx-sess-snip {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-sess-snip {
   font-size: var(--jx-fs-small);
   color: var(--jx-cream-dim);
   -webkit-text-fill-color: var(--jx-cream-dim);
@@ -1428,7 +1431,7 @@ html[data-theme="jiangxiao"] .jx-sess-snip {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-html[data-theme="jiangxiao"] .jx-sess-time {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-sess-time {
   font-size: var(--jx-fs-caption);
   color: var(--jx-cream-dim);
   -webkit-text-fill-color: var(--jx-cream-dim);
@@ -1436,7 +1439,7 @@ html[data-theme="jiangxiao"] .jx-sess-time {
 }
 
 /* --- 会话列滚动容器 --- */
-html[data-theme="jiangxiao"] .jx-sessions-body {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-sessions-body {
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -1444,7 +1447,7 @@ html[data-theme="jiangxiao"] .jx-sessions-body {
 }
 
 /* --- 搜索下拉面板（在 jx-search-wrap 内绝对定位，保持现有功能 + 深底样式）--- */
-html[data-theme="jiangxiao"] .jx-search-dropdown {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-search-dropdown {
   background: var(--jx-ink-900) !important;
   border: 1px solid var(--jx-border-deco) !important;
   box-shadow:
@@ -1452,11 +1455,11 @@ html[data-theme="jiangxiao"] .jx-search-dropdown {
     var(--jx-gold-rim) !important;
   color: var(--jx-cream);
 }
-html[data-theme="jiangxiao"] .jx-search-dropdown [data-component="home-session-search-row"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-search-dropdown [data-component="home-session-search-row"] {
   color: var(--jx-cream);
 }
-html[data-theme="jiangxiao"] .jx-search-dropdown [data-component="home-session-search-row"]:hover,
-html[data-theme="jiangxiao"] .jx-search-dropdown [data-component="home-session-search-row"][aria-selected="true"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-search-dropdown [data-component="home-session-search-row"]:hover,
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .jx-search-dropdown [data-component="home-session-search-row"][aria-selected="true"] {
   background: var(--jx-selection) !important;
   color: var(--jx-gold-bright) !important;
 }
@@ -1470,7 +1473,7 @@ html[data-theme="jiangxiao"] .jx-search-dropdown [data-component="home-session-s
    + .rv-diff（.dl.add/.dl.del/.dl.ctx 行块，行号+符号+代码三列）。
    配色用 --jx-* 规范 token；代码行文字色用上游 --syntax-* 专业配色
    （dark 值作用域内重写，保证 light 系统偏好下深底仍用暗色系）。 */
-html[data-theme="jiangxiao"] [data-component="review-panel"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] {
 
   width: 100%;
   min-width: 0;
@@ -1482,7 +1485,7 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] {
 }
 
 /* —— 面板头：标题 + 收起按钮（i-x 线描图标）—— */
-html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .rv-head {
   padding: var(--jx-space-3) 14px var(--jx-space-2);
   font-family: var(--jx-font-display);
   color: var(--jx-gold);
@@ -1496,7 +1499,7 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head {
   min-width: 0;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head .rv-t {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .rv-head .rv-t {
   display: flex;
   align-items: center;
   gap: var(--jx-space-2);
@@ -1504,12 +1507,12 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head .rv-t {
   overflow: hidden;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head .rv-t > svg {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .rv-head .rv-t > svg {
   color: var(--jx-gold-deep);
   flex: 0 0 auto;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head .rv-title {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .rv-head .rv-title {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1517,12 +1520,12 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head .rv-title 
 }
 
 /* 标题内的模式下拉（SelectV2 inline）：融入头文字 */
-html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head [data-component="select-v2"],
-html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head [data-component="select-v2"] [data-slot="select-v2-trigger"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .rv-head [data-component="select-v2"],
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .rv-head [data-component="select-v2"] [data-slot="select-v2-trigger"] {
   color: var(--jx-gold);
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head button {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .rv-head button {
   color: var(--jx-cream-dim);
   display: flex;
   align-items: center;
@@ -1535,13 +1538,13 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head button {
   flex: 0 0 auto;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head button:hover {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .rv-head button:hover {
   color: var(--jx-gold-bright);
   background: var(--jx-selection);
 }
 
 /* —— 文件树：.ft-row 文件行（file 图标 + 文件名 + 增删统计）—— */
-html[data-theme="jiangxiao"] [data-component="review-panel"] [data-component="file-tree-v2"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] [data-component="file-tree-v2"] {
   overflow-y: auto;
   padding: var(--jx-space-1) 0 10px;
   border-top: 1px solid var(--jx-border-deco);
@@ -1550,7 +1553,7 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] [data-component="fi
   gap: 0;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .ft-row {
   display: flex;
   gap: var(--jx-space-2);
   align-items: center;
@@ -1566,22 +1569,22 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row {
   min-width: 0;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row:hover {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .ft-row:hover {
   background: color-mix(in srgb, var(--jx-gold-deep) 8%, transparent);
   color: var(--jx-cream);
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row.on {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .ft-row.on {
   background: var(--jx-selection);
   color: var(--jx-gold-bright);
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row > svg {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .ft-row > svg {
   color: var(--jx-gold-dim);
   flex: 0 0 auto;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row .nm {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .ft-row .nm {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1589,20 +1592,20 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row .nm {
   min-width: 0;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row .dc-add {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .ft-row .dc-add {
   color: var(--jx-success);
   flex: 0 0 auto;
   font-size: var(--jx-fs-caption);
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row .dc-del {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .ft-row .dc-del {
   color: var(--jx-error);
   flex: 0 0 auto;
   font-size: var(--jx-fs-caption);
 }
 
 /* —— diff 区：.dl 行块（add 绿底浅绿字 / del 红底浅红字 / ctx 灰，行号+符号+代码）—— */
-html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-diff {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .rv-diff {
   border-top: 1px solid var(--jx-border-deco);
   overflow: auto;
   flex: 1 1 auto;
@@ -1610,19 +1613,19 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-diff {
   padding: var(--jx-space-2) 0;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .dl {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .dl {
   display: grid;
   grid-template-columns: 36px 36px var(--jx-space-4) minmax(0, 1fr);
   padding: 0 var(--jx-space-2);
   min-width: 0;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .dl > span {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .dl > span {
   padding: 0 var(--jx-space-1);
   white-space: pre;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .dl .no {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .dl .no {
   color: var(--jx-cream-dim);
   opacity: 0.55;
   text-align: right;
@@ -1631,12 +1634,12 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] .dl .no {
   user-select: none;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .dl .sg {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .dl .sg {
   font-family: var(--jx-font-code);
   font-size: var(--jx-fs-small);
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .dl .code {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .dl .code {
   font-family: var(--jx-font-code);
   font-size: var(--jx-fs-small);
   line-height: 1.7;
@@ -1645,36 +1648,36 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] .dl .code {
   text-overflow: ellipsis;
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.add {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .dl.add {
   background: color-mix(in srgb, var(--jx-success) 10%, transparent);
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.add .code {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .dl.add .code {
   color: var(--syntax-diff-add);
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.add .sg {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .dl.add .sg {
   color: var(--jx-success);
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.del {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .dl.del {
   background: color-mix(in srgb, var(--jx-error) 10%, transparent);
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.del .code {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .dl.del .code {
   color: var(--syntax-diff-delete);
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.del .sg {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .dl.del .sg {
   color: var(--jx-error);
 }
 
-html[data-theme="jiangxiao"] [data-component="review-panel"] .dl.ctx .sg {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .dl.ctx .sg {
   color: var(--jx-cream-dim);
 }
 
 /* 空 / 加载占位 */
-html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-placeholder {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) [data-component="review-panel"] .rv-placeholder {
   padding: var(--jx-space-3) var(--jx-space-4);
   color: var(--jx-cream-dim);
   font-size: var(--jx-fs-small);
@@ -1685,7 +1688,7 @@ html[data-theme="jiangxiao"] [data-component="review-panel"] .rv-placeholder {
 /* —— 收起态：session-body.no-review（网格变单列、面板隐藏）——
    收起钮点击后由 ReviewPanelV2 切换 view().reviewPanel，本规则与布局行
    的 .no-review 类配套，供视觉比对断言（面板本身按打开状态卸载）。 */
-html[data-theme="jiangxiao"] .session-body.no-review [data-component="review-panel"] {
+:is([data-theme="jiangxiao"], [data-theme="meihua"]) .session-body.no-review [data-component="review-panel"] {
   display: none;
 }
 
@@ -1715,6 +1718,8 @@ html[data-theme="meihua"] {
   --jx-scroll-track:#ece0d0; --jx-scroll-thumb:#d97a8e;
   /* 表面/背景（米白底） */
   --jx-surface-0:#faf5ee; --jx-surface-1:#f5eddf; --jx-surface-2:#efe3d0;
+  /* 金边阴影（浅底版：淡褐金边框 + 粉梅微光晕，覆盖深底 #3d3218 版） */
+  --jx-gold-rim:0 0 0 1px var(--jx-border-deco),0 0 14px color-mix(in srgb, var(--jx-seal-bright) 10%, transparent);
 }
 
 /* ---------- 顶栏：米白底 + 梅花纹样 ---------- */
@@ -1826,4 +1831,23 @@ html[data-theme="meihua"] :is(h1, h2, h3, h4) {
 html[data-theme="meihua"] :is(strong, b) {
   color: var(--jx-cinnabar);
   -webkit-text-fill-color: var(--jx-cinnabar);
+}
+
+/* ---------- 梅花背景装饰粒子色差异覆盖（ADR-018） ----------
+   合并选择器后 meihua 共用 #root::before 装饰规则，但浅底上深金粒子（--jx-gold-deep）
+   像污渍，需覆盖为浅底和谐的色值：
+   - 动态飘落 → 粉梅瓣（--jx-seal-bright，#d97a8e）
+   - 静态水印 → 浅金隐纹（--jx-gold，#b8860b）
+   keyframe/布局不变，仅覆盖 background-image 粒子色。 */
+html[data-theme="meihua"][data-oc-deco="dynamic"] #root::before {
+  background-image: radial-gradient(circle at 50% 0, var(--jx-seal-bright) 2px, transparent 2.5px);
+}
+
+html[data-theme="meihua"][data-oc-deco="static"] #root::before {
+  background-image:
+    radial-gradient(circle at 20% 10%, var(--jx-gold) 1px, transparent 1px),
+    radial-gradient(circle at 80% 90%, var(--jx-gold) 1px, transparent 1px),
+    radial-gradient(circle at 60% 30%, var(--jx-gold) 1px, transparent 1px),
+    radial-gradient(circle at 30% 70%, var(--jx-gold) 1px, transparent 1px),
+    radial-gradient(circle at 90% 50%, var(--jx-gold) 1px, transparent 1px);
 }

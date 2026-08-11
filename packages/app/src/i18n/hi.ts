@@ -970,6 +970,12 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "एजेंट दिखाएँ",
   "settings.general.row.showCustomAgents.description":
     "कंपोज़र में एजेंट के बीच स्विच करें। छिपाए जाने पर, डिफ़ॉल्ट रूप से बिल्ड एजेंट हो जाता है।",
+  "settings.general.row.backgroundDeco.title": "पृष्ठभूमि सजावट",
+  "settings.general.row.backgroundDeco.description":
+    "पृष्ठभूमि पर सजावटी प्रभाव दिखाएँ। सिस्टम की कम गति प्राथमिका का सम्मान करता है।",
+  "settings.general.row.backgroundDeco.off": "बंद",
+  "settings.general.row.backgroundDeco.static": "स्थिर",
+  "settings.general.row.backgroundDeco.dynamic": "गतिशील",
   "settings.general.row.reasoningSummaries.title": "तर्क सारांश दिखाएँ",
   "settings.general.row.reasoningSummaries.description": "टाइमलाइन में मॉडल तर्क सारांश प्रदर्शित करें",
   "settings.general.row.shellToolPartsExpanded.title": "शेल टूल पार्ट्स का विस्तार करें",

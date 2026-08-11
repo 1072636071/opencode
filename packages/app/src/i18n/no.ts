@@ -1257,6 +1257,12 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "Vis agent",
   "settings.general.row.showCustomAgents.description":
     "Bytt mellom agenter i skrivefeltet. Når velgeren er skjult, brukes Build-agenten som standard.",
+  "settings.general.row.backgroundDeco.title": "Bakgrunnsdekorasjon",
+  "settings.general.row.backgroundDeco.description":
+    "Vis dekorative effekter på bakgrunnen. Respekterer systemets reduserte bevegelse-preferanse.",
+  "settings.general.row.backgroundDeco.off": "Av",
+  "settings.general.row.backgroundDeco.static": "Statisk",
+  "settings.general.row.backgroundDeco.dynamic": "Dynamisk",
   "settings.general.row.newInterface.title": "Nytt oppsett",
   "settings.general.row.newInterface.badge": "Ny",
   "settings.general.row.newInterface.description":

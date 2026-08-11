@@ -827,6 +827,12 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "Vis agent",
   "settings.general.row.showCustomAgents.description":
     "Skift mellem agenter i promptfeltet. Når vælgeren er skjult, bruges Build-agenten som standard.",
+  "settings.general.row.backgroundDeco.title": "Baggrundsdekoration",
+  "settings.general.row.backgroundDeco.description":
+    "Vis dekorative effekter på baggrunden. Respekterer systemets reducerede bevægelse-præference.",
+  "settings.general.row.backgroundDeco.off": "Fra",
+  "settings.general.row.backgroundDeco.static": "Statisk",
+  "settings.general.row.backgroundDeco.dynamic": "Dynamisk",
   "settings.general.row.reasoningSummaries.title": "Vis ræsonneringsoversigter",
   "settings.general.row.reasoningSummaries.description": "Vis oversigter over modellens ræsonnering på tidslinjen",
 

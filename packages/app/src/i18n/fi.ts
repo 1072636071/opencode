@@ -863,6 +863,12 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "Näytä agentin valinta",
   "settings.general.row.showCustomAgents.description":
     "Vaihda agenttien välillä viestikentässä. Kun valinta on piilotettu, Build-agenttia käytetään oletuksena.",
+  "settings.general.row.backgroundDeco.title": "Taustakoristelu",
+  "settings.general.row.backgroundDeco.description":
+    "Näytä koristelutehosteita taustalla. Kunnioittaa järjestelmän vähennettyä liikettä -asetusta.",
+  "settings.general.row.backgroundDeco.off": "Pois",
+  "settings.general.row.backgroundDeco.static": "Staattinen",
+  "settings.general.row.backgroundDeco.dynamic": "Dynaaminen",
   "settings.general.row.reasoningSummaries.title": "Näytä päättelyn yhteenvedot",
   "settings.general.row.reasoningSummaries.description": "Näytä mallin päättelyn yhteenvedot aikajanalla",
   "settings.general.row.shellToolPartsExpanded.title": "Laajenna shell-työkalun osat",

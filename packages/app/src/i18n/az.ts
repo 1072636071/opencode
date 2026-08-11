@@ -974,6 +974,12 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "Agenti göstər",
   "settings.general.row.showCustomAgents.description":
     "Mesaj sahəsində agentlər arasında keçid edin. Gizlədildikdə Build agenti seçilir.",
+  "settings.general.row.backgroundDeco.title": "Fon dekorasiyası",
+  "settings.general.row.backgroundDeco.description":
+    "Fonda dekorativ effektləri göstərmək. Sistemin azaldılmış hərəkət üstünlüyünə hörmət edir.",
+  "settings.general.row.backgroundDeco.off": "Bağlı",
+  "settings.general.row.backgroundDeco.static": "Statik",
+  "settings.general.row.backgroundDeco.dynamic": "Dinamik",
   "settings.general.row.reasoningSummaries.title": "Düşünmə xülasələrini göstər",
   "settings.general.row.reasoningSummaries.description": "Zaman xəttində modelin düşünmə xülasələrini göstər",
   "settings.general.row.shellToolPartsExpanded.title": "Shell alət hissələrini genişlət",

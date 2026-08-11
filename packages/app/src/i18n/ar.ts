@@ -882,6 +882,12 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "إظهار الوكيل",
   "settings.general.row.showCustomAgents.description":
     "التبديل بين الوكلاء في محرر الرسائل. عند إخفائه، يُستخدم وكيل Build افتراضيًا.",
+  "settings.general.row.backgroundDeco.title": "زخرفة الخلفية",
+  "settings.general.row.backgroundDeco.description":
+    "إظهار تأثيرات زخرفية على الخلفية. يحترم تفضيل النظام لتقليل الحركة.",
+  "settings.general.row.backgroundDeco.off": "إيقاف",
+  "settings.general.row.backgroundDeco.static": "ثابت",
+  "settings.general.row.backgroundDeco.dynamic": "ديناميكي",
   "settings.general.row.reasoningSummaries.title": "إظهار ملخصات الاستدلال",
   "settings.general.row.reasoningSummaries.description": "عرض ملخصات استدلال النموذج في الشريط الزمني",
   "settings.general.row.shellToolPartsExpanded.title": "توسيع أجزاء أداة shell",

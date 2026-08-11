@@ -582,7 +582,7 @@ export function JiangxiaoCharacterSidebar() {
   })
 
   return (
-    <Show when={theme.themeId() === "jiangxiao"}>
+    <Show when={["jiangxiao", "meihua"].includes(theme.themeId())}>
       <aside
         ref={asideEl}
         data-component="jiangxiao-character"

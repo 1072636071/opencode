@@ -893,6 +893,12 @@ export const dict = {
   "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Agents personnalisés",
   "settings.general.row.showCustomAgents.description": "Afficher le sélecteur d'agent dans la zone de saisie",
+  "settings.general.row.backgroundDeco.title": "Décoration d'arrière-plan",
+  "settings.general.row.backgroundDeco.description":
+    "Afficher des effets décoratifs en arrière-plan. Respecte la préférence de mouvement réduit du système.",
+  "settings.general.row.backgroundDeco.off": "Désactivé",
+  "settings.general.row.backgroundDeco.static": "Statique",
+  "settings.general.row.backgroundDeco.dynamic": "Dynamique",
   "settings.general.row.reasoningSummaries.title": "Afficher les résumés de raisonnement",
   "settings.general.row.reasoningSummaries.description":
     "Afficher les résumés de raisonnement du modèle dans la chronologie",
