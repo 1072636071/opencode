@@ -13,6 +13,23 @@ type SidecarMessage =
   | { type: "ready" }
   | { type: "stopped" }
   | { type: "error"; error: { message: string; stack?: string } }
+  | { type: "plugin-log"; line: string; level: "log" | "warn" | "error"; ts: number }
+  | {
+      type: "plugin-stage"
+      event: "start" | "loaded" | "error" | "missing"
+      spec: string
+      stage?: string
+      message?: string
+      ts: number
+    }
+
+export type PluginStageEvent = {
+  event: "start" | "loaded" | "error" | "missing"
+  spec: string
+  stage?: string
+  message?: string
+  ts: number
+}
 
 export type SidecarListener = { stop: () => Promise<void> }
 
@@ -25,6 +42,8 @@ type SpawnLocalServerOptions = {
   onStdout?: (message: string) => void
   onStderr?: (message: string) => void
   onExit?: (code: number) => void
+  onPluginLog?: (line: string, level: "log" | "warn" | "error", ts: number) => void
+  onPluginStage?: (event: PluginStageEvent) => void
 }
 
 export function getDefaultServerUrl(): string | null {
@@ -111,6 +130,14 @@ export async function spawnLocalServer(
         done = true
         cleanup()
         resolve()
+        return
+      }
+      if (message.type === "plugin-log") {
+        options.onPluginLog?.(message.line, message.level, message.ts)
+        return
+      }
+      if (message.type === "plugin-stage") {
+        options.onPluginStage?.(message)
         return
       }
       if (message.type === "error") {

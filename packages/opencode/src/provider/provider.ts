@@ -1409,14 +1409,16 @@ const layer = Layer.effect(
           provider.models = yield* Effect.promise(async () => {
             const next = await models(toPublicInfo(provider), { auth: pluginAuth })
             return Object.fromEntries(
-              Object.entries(next).map(([id, model]) => [
-                id,
-                {
-                  ...model,
-                  id: ModelV2.ID.make(id),
-                  providerID,
-                },
-              ]),
+              Object.entries(next)
+                .map(([id, model]) => [
+                  id,
+                  {
+                    ...model,
+                    id: ModelV2.ID.make(id),
+                    providerID,
+                  },
+                ])
+                .filter(([, model]) => Schema.is(Model)(model)),
             )
           })
         }
@@ -1435,6 +1437,7 @@ const layer = Layer.effect(
 
           for (const [modelID, model] of Object.entries(provider.models ?? {})) {
             const existingModel = parsed.models[model.id ?? modelID]
+            const existingCaps = existingModel?.capabilities
             const apiID = model.id ?? existingModel?.api.id ?? modelID
             const apiNpm =
               model.provider?.npm ??
@@ -1458,30 +1461,27 @@ const layer = Layer.effect(
               name,
               providerID: ProviderV2.ID.make(providerID),
               capabilities: {
-                temperature: model.temperature ?? existingModel?.capabilities.temperature ?? false,
-                reasoning: model.reasoning ?? existingModel?.capabilities.reasoning ?? false,
-                attachment: model.attachment ?? existingModel?.capabilities.attachment ?? false,
-                toolcall: model.tool_call ?? existingModel?.capabilities.toolcall ?? true,
+                temperature: model.temperature ?? existingCaps?.temperature ?? false,
+                reasoning: model.reasoning ?? existingCaps?.reasoning ?? false,
+                attachment: model.attachment ?? existingCaps?.attachment ?? false,
+                toolcall: model.tool_call ?? existingCaps?.toolcall ?? true,
                 input: {
-                  text: model.modalities?.input?.includes("text") ?? existingModel?.capabilities.input.text ?? true,
-                  audio: model.modalities?.input?.includes("audio") ?? existingModel?.capabilities.input.audio ?? false,
-                  image: model.modalities?.input?.includes("image") ?? existingModel?.capabilities.input.image ?? false,
-                  video: model.modalities?.input?.includes("video") ?? existingModel?.capabilities.input.video ?? false,
-                  pdf: model.modalities?.input?.includes("pdf") ?? existingModel?.capabilities.input.pdf ?? false,
+                  text: model.modalities?.input?.includes("text") ?? existingCaps?.input?.text ?? true,
+                  audio: model.modalities?.input?.includes("audio") ?? existingCaps?.input?.audio ?? false,
+                  image: model.modalities?.input?.includes("image") ?? existingCaps?.input?.image ?? false,
+                  video: model.modalities?.input?.includes("video") ?? existingCaps?.input?.video ?? false,
+                  pdf: model.modalities?.input?.includes("pdf") ?? existingCaps?.input?.pdf ?? false,
                 },
                 output: {
-                  text: model.modalities?.output?.includes("text") ?? existingModel?.capabilities.output.text ?? true,
-                  audio:
-                    model.modalities?.output?.includes("audio") ?? existingModel?.capabilities.output.audio ?? false,
-                  image:
-                    model.modalities?.output?.includes("image") ?? existingModel?.capabilities.output.image ?? false,
-                  video:
-                    model.modalities?.output?.includes("video") ?? existingModel?.capabilities.output.video ?? false,
-                  pdf: model.modalities?.output?.includes("pdf") ?? existingModel?.capabilities.output.pdf ?? false,
+                  text: model.modalities?.output?.includes("text") ?? existingCaps?.output?.text ?? true,
+                  audio: model.modalities?.output?.includes("audio") ?? existingCaps?.output?.audio ?? false,
+                  image: model.modalities?.output?.includes("image") ?? existingCaps?.output?.image ?? false,
+                  video: model.modalities?.output?.includes("video") ?? existingCaps?.output?.video ?? false,
+                  pdf: model.modalities?.output?.includes("pdf") ?? existingCaps?.output?.pdf ?? false,
                 },
                 interleaved:
                   (typeof model.interleaved === "string" ? { field: model.interleaved } : model.interleaved) ??
-                  existingModel?.capabilities.interleaved ??
+                  existingCaps?.interleaved ??
                   (!existingModel && apiNpm === "@ai-sdk/openai-compatible" && apiID.includes("deepseek")
                     ? { field: "reasoning_content" }
                     : false),
@@ -1490,8 +1490,8 @@ const layer = Layer.effect(
                 input: model?.cost?.input ?? existingModel?.cost?.input ?? 0,
                 output: model?.cost?.output ?? existingModel?.cost?.output ?? 0,
                 cache: {
-                  read: model?.cost?.cache_read ?? existingModel?.cost?.cache.read ?? 0,
-                  write: model?.cost?.cache_write ?? existingModel?.cost?.cache.write ?? 0,
+                  read: model?.cost?.cache_read ?? existingModel?.cost?.cache?.read ?? 0,
+                  write: model?.cost?.cache_write ?? existingModel?.cost?.cache?.write ?? 0,
                 },
               },
               options: mergeDeep(existingModel?.options ?? {}, model.options ?? {}),

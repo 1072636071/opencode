@@ -186,12 +186,24 @@ const layer = Layer.effect(
             items: plugins,
             kind: "server",
             report: {
-              start(candidate) {},
-              missing(candidate, _retry, message) {},
+              // launcher 诊断（ADR-020 D7）：结构化加载事件，sidecar console hook 捕获后回传 launcher。
+              // 只加日志，不改任何加载逻辑。
+              start(candidate, retry) {
+                console.log(`[opencode-plugin-load] ${JSON.stringify({ event: "start", spec: candidate.plan.spec, retry })}`)
+              },
+              missing(candidate, _retry, message) {
+                console.log(
+                  `[opencode-plugin-load] ${JSON.stringify({ event: "missing", spec: candidate.plan.spec, message })}`,
+                )
+              },
               error(candidate, _retry, stage, error, resolved) {
                 const spec = candidate.plan.spec
                 const cause = error instanceof Error ? (error.cause ?? error) : error
                 const message = stage === "load" ? errorMessage(error) : errorMessage(cause)
+
+                console.log(
+                  `[opencode-plugin-load] ${JSON.stringify({ event: "error", spec, stage, message })}`,
+                )
 
                 if (stage === "install") {
                   const parsed = parsePluginSpecifier(spec)
@@ -216,6 +228,8 @@ const layer = Layer.effect(
         )
         for (const load of loaded) {
           if (!load) continue
+
+          console.log(`[opencode-plugin-load] ${JSON.stringify({ event: "loaded", spec: load.spec })}`)
 
           // Keep plugin execution sequential so hook registration and execution
           // order remains deterministic across plugin runs.

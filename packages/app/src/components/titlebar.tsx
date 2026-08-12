@@ -38,6 +38,9 @@ import { useGlobal } from "@/context/global"
 import { ServerConnection, useServer } from "@/context/server"
 import { tabKey, useTabs } from "@/context/tabs"
 import type { PromptSession } from "@/context/prompt"
+import { useTheme } from "@opencode-ai/ui/theme/context"
+import { JiangxiaoIcon } from "@/components/jiangxiao-icons"
+import { getCharacterVisible, toggleCharacterVisible } from "@/components/jiangxiao-character-sidebar"
 import "./titlebar.css"
 import { newTabTooltipKeybind } from "./command-tooltip-keybind"
 import { normalizeSessionInfo } from "@/utils/session"
@@ -612,8 +615,37 @@ function TitlebarV2Right(props: { state: TitlebarV2RightState }) {
       <Show when={props.state.update.visible}>
         <TitlebarUpdateIconButton state={props.state.update} />
       </Show>
+      <JiangxiaoCharacterToggleButton />
       <div id="opencode-titlebar-right" class="flex shrink-0 items-center justify-end gap-0" />
     </div>
+  )
+}
+
+/**
+ * 姜晓角色显隐切换按钮（仅姜晓主题下渲染）。
+ * - visible=true（角色显示中）→ eye 图标 + aria-label「隐藏姜晓」，点击完全隐藏角色
+ * - visible=false（角色隐藏中）→ eye-off 图标 + aria-label「显示姜晓」，点击重新唤出
+ * 与角色自身的 collapsed 折叠态独立：折叠留角落小按钮，本按钮控制完全显隐。
+ */
+function JiangxiaoCharacterToggleButton() {
+  const theme = useTheme()
+  const visible = () => getCharacterVisible()
+  return (
+    <Show when={theme.themeId() === "jiangxiao"}>
+      <TooltipV2 placement="bottom" value={visible() ? "隐藏姜晓" : "显示姜晓"} class="shrink-0">
+        <IconButtonV2
+          type="button"
+          variant="ghost-muted"
+          size="large"
+          class="!w-9 shrink-0"
+          icon={<JiangxiaoIcon name={visible() ? "eye" : "eye-off"} size={16} />}
+          state={!visible() ? "pressed" : undefined}
+          onClick={toggleCharacterVisible}
+          aria-label={visible() ? "隐藏姜晓" : "显示姜晓"}
+          aria-pressed={!visible()}
+        />
+      </TooltipV2>
+    </Show>
   )
 }
 

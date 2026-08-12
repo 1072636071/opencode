@@ -1,0 +1,1055 @@
+/* 姜晓视觉主题令牌（深色）——与 DESIGN.md §10 同值。
+   launcher 是独立 renderer 入口，不依赖 app 主题系统，故自洽内联令牌块。
+   令牌名遵循 AGENTS.md 规范（--jx-*），禁止裸值。 */
+:root,
+html[data-theme="jiangxiao"] {
+  --jx-surface-0: #0b090d;
+  --jx-surface-1: #121016;
+  --jx-surface-2: #1a1620;
+  --jx-surface-3: #2d242f;
+  --jx-text-strong: #f2ead8;
+  --jx-text-base: #f2ead8;
+  --jx-text-weak: #a99c8a;
+  --jx-text-faint: #a99c8a;
+  --jx-gold-bright: #f6d365;
+  --jx-gold: #d6b34a;
+  --jx-gold-deep: #b8860b;
+  --jx-gold-dim: #996515;
+  --jx-ginkgo: #dfb793;
+  --jx-seal: #c7493a;
+  --jx-seal-deep: #a8382b;
+  --jx-seal-bright: #d85444;
+  --jx-seal-ink: #fff8ef;
+  --jx-cinnabar: #c3272b;
+  --jx-hl-file: #7fd8e8;
+  --jx-hl-agent: #e5c07b;
+  --jx-success: #86b08a;
+  --jx-warn: #d9a05b;
+  --jx-error: #d06552;
+  --jx-border-deco: #3d3218;
+  --jx-selection: rgba(184, 134, 11, 0.3);
+  --jx-scroll-track: #2a2210;
+  --jx-scroll-thumb: #b8860b;
+  --jx-font-display: "Ma Shan Zheng", "Kaiti SC", "STKaiti", "KaiTi", serif;
+  --jx-font-ui: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --jx-font-code: ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --jx-fs-display: clamp(44px, 4.5vw, 64px);
+  --jx-fs-h1: 32px;
+  --jx-fs-h2: 24px;
+  --jx-fs-h3: 18px;
+  --jx-fs-body: 14px;
+  --jx-fs-small: 12px;
+  --jx-fs-caption: 11px;
+  --jx-lh-body: 1.8;
+  --jx-ls-caps: 0.18em;
+  --jx-space-1: 4px;
+  --jx-space-2: 8px;
+  --jx-space-3: 12px;
+  --jx-space-4: 16px;
+  --jx-space-6: 24px;
+  --jx-space-8: 32px;
+  --jx-space-12: 48px;
+  --jx-radius-sm: 4px;
+  --jx-radius-md: 6px;
+  --jx-radius-lg: 8px;
+  --jx-radius-xl: 12px;
+  --jx-shadow-1: 0 2px 8px rgba(5, 3, 8, 0.5);
+  --jx-shadow-2: 0 8px 24px rgba(5, 3, 8, 0.55);
+  --jx-gold-rim: 0 0 0 1px #3d3218, 0 0 14px rgba(246, 211, 101, 0.12);
+  --jx-dur-fast: 0.15s;
+  --jx-dur: 0.35s;
+  --jx-ease: ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--jx-surface-0);
+  color: var(--jx-text-base);
+  font-family: var(--jx-font-ui);
+  font-size: var(--jx-fs-body);
+  line-height: var(--jx-lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* launcher 外壳布局 */
+.launcher-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--jx-surface-0);
+  background-image: radial-gradient(ellipse at top, rgba(184, 134, 11, 0.08) 0%, transparent 60%);
+}
+
+/* 标题栏（自绘，Win11 frame:false / macOS titleBarStyle:hidden） */
+.launcher-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 var(--jx-space-4);
+  background-color: var(--jx-surface-1);
+  border-bottom: 1px solid var(--jx-border-deco);
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.launcher-titlebar__title {
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h3);
+  color: var(--jx-gold-bright);
+  letter-spacing: var(--jx-ls-caps);
+}
+
+.launcher-titlebar__actions {
+  display: flex;
+  gap: var(--jx-space-2);
+  -webkit-app-region: no-drag;
+}
+
+/* 印章风按钮（线描图标 + aria-label，不用单字中文——ADR-006） */
+.launcher-iconbtn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-sm);
+  background: transparent;
+  color: var(--jx-text-weak);
+  cursor: pointer;
+  transition:
+    color var(--jx-dur-fast) var(--jx-ease),
+    border-color var(--jx-dur-fast) var(--jx-ease);
+}
+
+.launcher-iconbtn:hover {
+  color: var(--jx-gold-bright);
+  border-color: var(--jx-gold-deep);
+}
+
+.launcher-iconbtn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+}
+
+/* 主体内容区 */
+.launcher-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--jx-space-12);
+  gap: var(--jx-space-6);
+  overflow: auto;
+}
+
+.launcher-hero__title {
+  margin: 0;
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-display);
+  color: var(--jx-gold-bright);
+  letter-spacing: var(--jx-ls-caps);
+  text-align: center;
+}
+
+.launcher-hero__subtitle {
+  margin: 0;
+  font-family: var(--jx-font-ui);
+  font-size: var(--jx-fs-body);
+  color: var(--jx-text-weak);
+  text-align: center;
+  max-width: 480px;
+}
+
+/* 状态栏（底部） */
+.launcher-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 28px;
+  padding: 0 var(--jx-space-4);
+  background-color: var(--jx-surface-1);
+  border-top: 1px solid var(--jx-border-deco);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-faint);
+}
+
+.launcher-statusbar__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--jx-text-faint);
+  margin-right: var(--jx-space-2);
+  vertical-align: middle;
+}
+
+.launcher-statusbar__dot--idle {
+  background-color: var(--jx-text-faint);
+}
+
+.launcher-statusbar__dot--starting,
+.launcher-statusbar__dot--stopping {
+  background-color: var(--jx-warn);
+}
+
+.launcher-statusbar__dot--running {
+  background-color: var(--jx-success);
+}
+
+.launcher-statusbar__dot--failed {
+  background-color: var(--jx-error);
+}
+
+/* 控制面板（启动/停止按钮） */
+.launcher-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--jx-space-3);
+  margin-top: var(--jx-space-6);
+}
+
+.launcher-btn {
+  font-family: var(--jx-font-ui);
+  font-size: var(--jx-fs-body);
+  padding: var(--jx-space-3) var(--jx-space-8);
+  border-radius: var(--jx-radius-md);
+  border: 1px solid var(--jx-border-deco);
+  background-color: var(--jx-surface-2);
+  color: var(--jx-text-base);
+  cursor: pointer;
+  transition:
+    background-color var(--jx-dur-fast) var(--jx-ease),
+    border-color var(--jx-dur-fast) var(--jx-ease),
+    color var(--jx-dur-fast) var(--jx-ease);
+}
+
+.launcher-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.launcher-btn--primary {
+  background-color: var(--jx-gold-deep);
+  border-color: var(--jx-gold);
+  color: var(--jx-surface-0);
+  font-weight: 600;
+}
+
+.launcher-btn--primary:hover:not(:disabled) {
+  background-color: var(--jx-gold);
+  border-color: var(--jx-gold-bright);
+}
+
+.launcher-error {
+  max-width: 560px;
+  margin: 0;
+  padding: var(--jx-space-4);
+  background-color: var(--jx-surface-2);
+  border: 1px solid var(--jx-error);
+  border-radius: var(--jx-radius-md);
+  color: var(--jx-error);
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 160px;
+  overflow: auto;
+}
+
+/* snapshot 面板 */
+.launcher-snapshots {
+  width: 100%;
+  max-width: 560px;
+  margin-top: var(--jx-space-6);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  padding: var(--jx-space-4);
+  box-shadow: var(--jx-shadow-1);
+}
+
+.launcher-snapshots__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--jx-space-3);
+}
+
+.launcher-snapshots__title {
+  margin: 0;
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h3);
+  color: var(--jx-gold);
+}
+
+.launcher-btn--small {
+  padding: var(--jx-space-2) var(--jx-space-4);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-btn--mini {
+  padding: 2px var(--jx-space-2);
+  font-size: var(--jx-fs-caption);
+  border-radius: var(--jx-radius-sm);
+}
+
+.launcher-snapshots__input {
+  padding: 2px var(--jx-space-2);
+  font-size: var(--jx-fs-small);
+  font-family: var(--jx-font-ui);
+  background-color: var(--jx-surface-2);
+  border: 1px solid var(--jx-gold-deep);
+  border-radius: var(--jx-radius-sm);
+  color: var(--jx-text-base);
+  width: 100px;
+}
+
+.launcher-snapshots__input:focus {
+  outline: none;
+  border-color: var(--jx-gold-bright);
+}
+
+.launcher-snapshots__progress {
+  font-size: var(--jx-fs-small);
+  color: var(--jx-warn);
+  margin-left: auto;
+  margin-right: var(--jx-space-3);
+}
+
+.launcher-btn--danger {
+  border-color: var(--jx-seal-deep);
+  color: var(--jx-seal-bright);
+}
+
+.launcher-btn--danger:hover:not(:disabled) {
+  background-color: var(--jx-seal-deep);
+  color: var(--jx-seal-ink);
+}
+
+.launcher-btn--danger:disabled {
+  opacity: 0.4;
+}
+
+/* 资源面板 */
+.launcher-resources {
+  width: 100%;
+  max-width: 560px;
+  margin-top: var(--jx-space-6);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  padding: var(--jx-space-4);
+  box-shadow: var(--jx-shadow-1);
+}
+
+.launcher-resources__title {
+  margin: 0 0 var(--jx-space-3);
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h3);
+  color: var(--jx-gold);
+}
+
+.launcher-resources__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--jx-space-2);
+  margin-bottom: var(--jx-space-4);
+}
+
+.launcher-resources__subtitle {
+  margin: 0 0 var(--jx-space-2);
+  font-family: var(--jx-font-ui);
+  font-size: var(--jx-fs-body);
+  color: var(--jx-text-strong);
+}
+
+.launcher-resources__plugins {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.launcher-resources__plugin {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  padding: var(--jx-space-2) 0;
+  border-bottom: 1px solid var(--jx-border-deco);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-resources__plugin:last-child {
+  border-bottom: none;
+}
+
+.launcher-resources__plugin-name {
+  color: var(--jx-gold-bright);
+  font-family: var(--jx-font-code);
+  min-width: 180px;
+}
+
+.launcher-resources__plugin-desc {
+  color: var(--jx-text-weak);
+  flex: 1;
+}
+
+.launcher-resources__active {
+  color: var(--jx-success);
+  font-size: var(--jx-fs-caption);
+}
+
+/* 设置面板 */
+.launcher-settings {
+  width: 100%;
+  max-width: 560px;
+  margin-top: var(--jx-space-6);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  padding: var(--jx-space-4);
+  box-shadow: var(--jx-shadow-1);
+}
+
+.launcher-settings__item {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+  cursor: pointer;
+}
+
+.launcher-settings__item input[type="checkbox"] {
+  accent-color: var(--jx-gold-deep);
+  width: 16px;
+  height: 16px;
+}
+
+.launcher-snapshots__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.launcher-snapshots__item {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  padding: var(--jx-space-2) 0;
+  border-bottom: 1px solid var(--jx-border-deco);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-snapshots__item:last-child {
+  border-bottom: none;
+}
+
+.launcher-snapshots__time {
+  color: var(--jx-text-weak);
+  flex: 1;
+}
+
+.launcher-snapshots__type {
+  padding: 1px var(--jx-space-2);
+  border-radius: var(--jx-radius-sm);
+  font-size: var(--jx-fs-caption);
+  text-transform: uppercase;
+  letter-spacing: var(--jx-ls-caps);
+}
+
+.launcher-snapshots__type--auto {
+  background-color: var(--jx-surface-3);
+  color: var(--jx-text-faint);
+}
+
+.launcher-snapshots__type--manual {
+  background-color: var(--jx-gold-deep);
+  color: var(--jx-surface-0);
+}
+
+.launcher-snapshots__tag {
+  color: var(--jx-gold-bright);
+  font-family: var(--jx-font-code);
+}
+
+.launcher-snapshots__count {
+  color: var(--jx-text-faint);
+}
+
+/* 占位卡片（后续工单填充功能面板） */
+.launcher-placeholder {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--jx-space-4);
+  justify-content: center;
+  margin-top: var(--jx-space-8);
+}
+
+.launcher-card {
+  width: 220px;
+  padding: var(--jx-space-6);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  box-shadow: var(--jx-shadow-1);
+  text-align: center;
+}
+
+.launcher-card__title {
+  margin: 0 0 var(--jx-space-2);
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h3);
+  color: var(--jx-gold);
+}
+
+.launcher-card__desc {
+  margin: 0;
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-weak);
+  line-height: 1.6;
+}
+
+/* 安全模式面板（工单 06） */
+.launcher-safemode {
+  margin-top: var(--jx-space-6);
+  padding: var(--jx-space-6);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  box-shadow: var(--jx-shadow-1);
+}
+
+.launcher-safemode__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--jx-space-4);
+}
+
+.launcher-safemode__title {
+  margin: 0;
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h2);
+  color: var(--jx-gold);
+}
+
+.launcher-safemode__item {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  font-size: var(--jx-fs-body);
+  color: var(--jx-text-base);
+  cursor: pointer;
+}
+
+.launcher-safemode__item input[type="checkbox"] {
+  accent-color: var(--jx-seal);
+  width: 16px;
+  height: 16px;
+}
+
+.launcher-safemode__plugins {
+  margin-top: var(--jx-space-4);
+  padding-top: var(--jx-space-4);
+  border-top: 1px solid var(--jx-border-deco);
+}
+
+.launcher-safemode__plugins-head {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  margin-bottom: var(--jx-space-3);
+}
+
+.launcher-safemode__count {
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-weak);
+  flex: 1;
+}
+
+.launcher-safemode__empty {
+  margin: 0;
+  padding: var(--jx-space-4);
+  text-align: center;
+  color: var(--jx-text-faint);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-safemode__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.launcher-safemode__plugin {
+  padding: var(--jx-space-2) 0;
+  border-bottom: 1px solid var(--jx-border-deco);
+}
+
+.launcher-safemode__plugin:last-child {
+  border-bottom: none;
+}
+
+.launcher-safemode__plugin label {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  cursor: pointer;
+}
+
+.launcher-safemode__plugin input[type="checkbox"] {
+  accent-color: var(--jx-gold-deep);
+  width: 14px;
+  height: 14px;
+}
+
+.launcher-safemode__spec {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.launcher-safemode__source {
+  padding: 1px var(--jx-space-2);
+  border-radius: var(--jx-radius-sm);
+  font-size: var(--jx-fs-caption);
+  text-transform: uppercase;
+  letter-spacing: var(--jx-ls-caps);
+}
+
+.launcher-safemode__source--npm {
+  background-color: var(--jx-surface-3);
+  color: var(--jx-text-faint);
+}
+
+.launcher-safemode__source--file {
+  background-color: var(--jx-gold-deep);
+  color: var(--jx-surface-0);
+}
+
+.launcher-safemode__diagnosis {
+  margin-top: var(--jx-space-4);
+  padding-top: var(--jx-space-4);
+  border-top: 1px solid var(--jx-border-deco);
+}
+
+.launcher-safemode__diagnosis-head {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  margin-bottom: var(--jx-space-3);
+}
+
+.launcher-safemode__diagnosis-head .launcher-safemode__subtitle {
+  margin: 0;
+  flex: 1;
+}
+
+.launcher-safemode__subtitle {
+  margin: 0 0 var(--jx-space-3);
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h3);
+  color: var(--jx-gold);
+}
+
+.launcher-safemode__logs {
+  margin: 0;
+  padding: var(--jx-space-3);
+  background-color: var(--jx-surface-0);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-sm);
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-weak);
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* 配置编辑面板（工单 09） */
+.launcher-configedit {
+  margin-top: var(--jx-space-6);
+  padding: var(--jx-space-6);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  box-shadow: var(--jx-shadow-1);
+}
+
+.launcher-configedit__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--jx-space-4);
+}
+
+.launcher-configedit__title {
+  margin: 0;
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h2);
+  color: var(--jx-gold);
+}
+
+.launcher-configedit__empty {
+  color: var(--jx-text-faint);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-configedit__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jx-space-4);
+}
+
+.launcher-configedit__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jx-space-2);
+}
+
+.launcher-configedit__label {
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-weak);
+}
+
+.launcher-configedit__input {
+  padding: var(--jx-space-2) var(--jx-space-3);
+  background-color: var(--jx-surface-0);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-sm);
+  color: var(--jx-text-base);
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-configedit__plugins {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.launcher-configedit__plugin {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  padding: var(--jx-space-2) 0;
+  border-bottom: 1px solid var(--jx-border-deco);
+}
+
+.launcher-configedit__plugin:last-child {
+  border-bottom: none;
+}
+
+.launcher-configedit__spec {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+  flex: 1;
+}
+
+/* 版本更新面板（工单 11） */
+.launcher-update {
+  margin-top: var(--jx-space-6);
+  padding: var(--jx-space-6);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  box-shadow: var(--jx-shadow-1);
+}
+
+.launcher-update__title {
+  margin: 0 0 var(--jx-space-3);
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h2);
+  color: var(--jx-gold);
+}
+
+.launcher-update__status {
+  margin: 0 0 var(--jx-space-3);
+  font-size: var(--jx-fs-body);
+  color: var(--jx-text-base);
+}
+
+.launcher-update__hint {
+  margin: var(--jx-space-3) 0 0;
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-faint);
+}
+
+/* 插件管理面板（工单 13） */
+.launcher-pluginmgr {
+  margin-top: var(--jx-space-6);
+  padding: var(--jx-space-6);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  box-shadow: var(--jx-shadow-1);
+}
+
+.launcher-pluginmgr__title {
+  margin: 0 0 var(--jx-space-4);
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h2);
+  color: var(--jx-gold);
+}
+
+.launcher-pluginmgr__install {
+  display: flex;
+  gap: var(--jx-space-3);
+  margin-bottom: var(--jx-space-4);
+}
+
+.launcher-pluginmgr__input {
+  flex: 1;
+  padding: var(--jx-space-2) var(--jx-space-3);
+  background-color: var(--jx-surface-0);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-sm);
+  color: var(--jx-text-base);
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-pluginmgr__empty {
+  color: var(--jx-text-faint);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-pluginmgr__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.launcher-pluginmgr__item {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  padding: var(--jx-space-2) 0;
+  border-bottom: 1px solid var(--jx-border-deco);
+}
+
+.launcher-pluginmgr__item:last-child {
+  border-bottom: none;
+}
+
+.launcher-pluginmgr__spec {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+  flex: 1;
+}
+
+.launcher-pluginmgr__source {
+  padding: 1px var(--jx-space-2);
+  border-radius: var(--jx-radius-sm);
+  font-size: var(--jx-fs-caption);
+  text-transform: uppercase;
+}
+
+.launcher-pluginmgr__source--npm {
+  background-color: var(--jx-surface-3);
+  color: var(--jx-text-faint);
+}
+
+.launcher-pluginmgr__source--file {
+  background-color: var(--jx-gold-deep);
+  color: var(--jx-surface-0);
+}
+
+.launcher-pluginmgr__version {
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-weak);
+}
+
+/* 插件加载详情（工单 07） */
+.launcher-pluginload {
+  margin-top: var(--jx-space-4);
+  padding-top: var(--jx-space-4);
+  border-top: 1px solid var(--jx-border-deco);
+}
+
+.launcher-pluginload__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.launcher-pluginload__item {
+  padding: var(--jx-space-2) 0;
+  border-bottom: 1px solid var(--jx-border-deco);
+}
+
+.launcher-pluginload__item:last-child {
+  border-bottom: none;
+}
+
+.launcher-pluginload__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--jx-space-3);
+  margin-bottom: var(--jx-space-2);
+}
+
+.launcher-pluginload__spec {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.launcher-pluginload__status {
+  padding: 1px var(--jx-space-2);
+  border-radius: var(--jx-radius-sm);
+  font-size: var(--jx-fs-caption);
+  letter-spacing: var(--jx-ls-caps);
+}
+
+.launcher-pluginload__status--loading,
+.launcher-pluginload__status--pending {
+  background-color: var(--jx-surface-3);
+  color: var(--jx-warn);
+}
+
+.launcher-pluginload__status--loaded {
+  background-color: rgba(134, 176, 138, 0.2);
+  color: var(--jx-success);
+}
+
+.launcher-pluginload__status--failed {
+  background-color: var(--jx-seal-deep);
+  color: var(--jx-seal-ink);
+}
+
+.launcher-pluginload__stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--jx-space-2);
+}
+
+.launcher-pluginload__stage {
+  padding: 1px var(--jx-space-2);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-sm);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-faint);
+}
+
+.launcher-pluginload__stage--loaded {
+  border-color: var(--jx-success);
+  color: var(--jx-success);
+}
+
+.launcher-pluginload__stage--failed {
+  border-color: var(--jx-seal-deep);
+  color: var(--jx-seal-bright);
+}
+
+.launcher-pluginload__stage--loading {
+  border-color: var(--jx-warn);
+  color: var(--jx-warn);
+}
+
+.launcher-pluginload__error {
+  margin: var(--jx-space-2) 0 0;
+  padding: var(--jx-space-2) var(--jx-space-3);
+  background-color: var(--jx-surface-0);
+  border: 1px solid var(--jx-seal-deep);
+  border-radius: var(--jx-radius-sm);
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-seal-bright);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* 诊断报告（工单 08） */
+.launcher-diagnostic {
+  margin-top: var(--jx-space-4);
+  padding-top: var(--jx-space-4);
+  border-top: 1px solid var(--jx-border-deco);
+}
+
+.launcher-diagnostic__head {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  margin-bottom: var(--jx-space-3);
+}
+
+.launcher-diagnostic__head .launcher-safemode__subtitle {
+  margin: 0;
+  flex: 1;
+}
+
+.launcher-diagnostic__snippets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.launcher-diagnostic__snippet {
+  padding: var(--jx-space-2) 0;
+  border-bottom: 1px solid var(--jx-border-deco);
+}
+
+.launcher-diagnostic__snippet:last-child {
+  border-bottom: none;
+}
+
+.launcher-diagnostic__loc {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-hl-file);
+}
+
+.launcher-diagnostic__meta {
+  margin-left: var(--jx-space-3);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-gold-dim);
+}
+
+.launcher-diagnostic__message {
+  margin: var(--jx-space-1) 0 0;
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-weak);
+  white-space: pre-wrap;
+  word-break: break-all;
+}

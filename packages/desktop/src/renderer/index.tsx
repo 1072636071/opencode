@@ -348,7 +348,7 @@ function DesktopRoot(props: { windowState: DesktopWindowState }) {
     return next satisfies Locale
   }
 
-  // Fetch sidecar credentials (available immediately, before health check)
+  // 凭据在 server health check 通过后才会由 main 进程暴露，避免插件加载期间的连接竞态。
   const [sidecar] = createResource(() => window.api.awaitInitialization())
 
   const [defaultServer] = createResource(() => platform.getDefaultServer?.())

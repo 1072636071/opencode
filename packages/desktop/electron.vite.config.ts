@@ -110,6 +110,7 @@ const require = __cjs_mod__.createRequire(import.meta.url);
       rollupOptions: {
         input: {
           main: "src/renderer/index.html",
+          launcher: "src/renderer/launcher.html",
         },
       },
     },

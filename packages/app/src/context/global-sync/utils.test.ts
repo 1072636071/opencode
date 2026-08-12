@@ -8,6 +8,36 @@ import type {
 import { directoryKey, normalizeAgentList, normalizePermissionRequest, normalizeProviderList } from "./utils"
 
 describe("normalizeAgentList", () => {
+  test("handles v2 agents whose request has no settings field", () => {
+    const result = normalizeAgentList([
+      {
+        id: "build",
+        mode: "primary",
+        hidden: false,
+        request: { headers: {}, body: {} },
+        permissions: [{ action: "read", resource: "*", effect: "allow" }],
+      },
+    ] as unknown as AgentListOutput["data"])
+
+    expect(result).toEqual([
+      {
+        name: "build",
+        description: undefined,
+        mode: "primary",
+        hidden: false,
+        temperature: undefined,
+        topP: undefined,
+        color: undefined,
+        permission: [{ permission: "read", pattern: "*", action: "allow" }],
+        model: undefined,
+        variant: undefined,
+        prompt: undefined,
+        options: {},
+        steps: undefined,
+      },
+    ])
+  })
+
   test("adapts current agents to the app agent shape", () => {
     const result = normalizeAgentList([
       {

@@ -173,7 +173,10 @@
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 96 L50 72 C44 70 36 64 30 54 C26 46 20 40 14 30 C24 32 32 38 38 46 C36 38 32 26 34 14 C40 24 44 36 48 48 C50 36 50 24 50 12 C50 24 50 36 52 48 C56 36 60 24 66 14 C68 26 64 38 62 46 C68 38 76 32 86 30 C80 40 74 46 70 54 C64 64 56 70 50 72 Z' fill='%23b8860b'/%3E%3Cpath d='M50 72 L14 30 M50 72 L34 14 M50 72 L50 12 M50 72 L66 14 M50 72 L86 30' fill='none' stroke='%23996515' stroke-width='1.2' stroke-opacity='0.6'/%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg transform='rotate(-12 50 50)'%3E%3Cpath d='M50 96 L50 72 C44 70 36 64 30 54 C26 46 20 40 14 30 C24 32 32 38 38 46 C36 38 32 26 34 14 C40 24 44 36 48 48 C50 36 50 24 50 12 C50 24 50 36 52 48 C56 36 60 24 66 14 C68 26 64 38 62 46 C68 38 76 32 86 30 C80 40 74 46 70 54 C64 64 56 70 50 72 Z' fill='%23d6b34a'/%3E%3Cpath d='M50 72 L14 30 M50 72 L34 14 M50 72 L50 12 M50 72 L66 14 M50 72 L86 30' fill='none' stroke='%23996515' stroke-width='1.2' stroke-opacity='0.6'/%3E%3C/g%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg transform='rotate(20 50 50)'%3E%3Cpath d='M50 92 L50 70 C44 68 36 62 30 52 C26 44 20 38 16 32 C24 34 32 40 38 44 C36 36 32 24 36 16 C40 22 44 34 48 46 C50 34 50 22 50 14 C50 22 50 34 52 46 C56 34 60 22 64 16 C68 24 64 36 62 44 C68 40 76 34 84 32 C80 38 74 44 70 52 C64 62 56 68 50 70 Z' fill='%23dfb793'/%3E%3Cpath d='M50 70 L16 32 M50 70 L36 16 M50 70 L50 14 M50 70 L64 16 M50 70 L84 32' fill='none' stroke='%23b8860b' stroke-width='1.2' stroke-opacity='0.6'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: 80px 120px, 110px 150px, 65px 95px;
+  background-size:
+    80px 120px,
+    110px 150px,
+    65px 95px;
   background-repeat: repeat;
   animation: jiangxiao-leaf-fall 28s linear infinite;
   opacity: 0.42;
@@ -182,10 +185,16 @@
 
 @keyframes jiangxiao-leaf-fall {
   0% {
-    background-position: 200px -120px, 260px -150px, 160px -95px;
+    background-position:
+      200px -120px,
+      260px -150px,
+      160px -95px;
   }
   100% {
-    background-position: -200px 100vh, -260px 100vh, -160px 100vh;
+    background-position:
+      -200px 100vh,
+      -260px 100vh,
+      -160px 100vh;
   }
 }
 
@@ -2018,17 +2027,26 @@
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23d97a8e'%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(72 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(144 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(216 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(288 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='5' fill='%23b24a5c'/%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23e89aa8' transform='rotate(36 50 50)'%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(72 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(144 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(216 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(288 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='5' fill='%23b24a5c'/%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23b24a5c'%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z'/%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z' transform='rotate(72 50 50)'/%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z' transform='rotate(144 50 50)'/%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z' transform='rotate(216 50 50)'/%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z' transform='rotate(288 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='4' fill='%238e3a49'/%3E%3C/svg%3E");
-  background-size: 70px 100px, 95px 130px, 55px 80px;
+  background-size:
+    70px 100px,
+    95px 130px,
+    55px 80px;
   animation: jiangxiao-petal-fall 28s linear infinite;
   opacity: 0.5;
 }
 
 @keyframes jiangxiao-petal-fall {
   0% {
-    background-position: 170px -100px, 220px -130px, 135px -80px;
+    background-position:
+      170px -100px,
+      220px -130px,
+      135px -80px;
   }
   100% {
-    background-position: -170px 100vh, -220px 100vh, -135px 100vh;
+    background-position:
+      -170px 100vh,
+      -220px 100vh,
+      -135px 100vh;
   }
 }
 

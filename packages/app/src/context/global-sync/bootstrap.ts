@@ -237,9 +237,11 @@ export const loadProvidersQuery = (
         const [providers, models, defaultModel] = await Promise.all([
           sdk.provider.list(location),
           sdk.model.list(location),
-          sdk.model.default(location),
+          // vendored client 1.17 的 model.default 请求 /api/model/default（1.18 server 无此路由）；
+          // 失败时回退为 undefined，normalizeProviderList 会从 models 推断默认模型
+          sdk.model.default(location).catch(() => null),
         ])
-        return normalizeProviderList(providers.data, models.data, defaultModel.data)
+        return normalizeProviderList(providers.data, models.data, defaultModel?.data ?? undefined)
       }),
   })
 

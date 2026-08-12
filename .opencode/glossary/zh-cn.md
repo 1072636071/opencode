@@ -21,6 +21,9 @@ These are preferred terms for docs/UI prose and may evolve.
 | prompt                  | 提示词    | Keep `--prompt` unchanged in flags/code     |
 | session                 | 会话      |                                             |
 | provider                | 提供商    |                                             |
+| custom provider         | 自定义提供商 | OpenAI 兼容自定义厂商；ADR-025 恢复入口     |
+| LLM API                 | LLM API   | Keep casing; launch-added quick form (ADR-025) |
+| API Key                 | API Key   | Keep casing in code/paths; `auth.json` field |
 | share link / shared URL | 分享链接  | Prefer `分享` for user-facing share actions |
 | headless (server)       | 无界面    | Docs wording                                |
 | authentication          | 认证      | Prefer in auth/OAuth contexts               |

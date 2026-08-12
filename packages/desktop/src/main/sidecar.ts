@@ -25,6 +25,15 @@ type SidecarMessage =
   | { type: "ready" }
   | { type: "stopped" }
   | { type: "error"; error: { message: string; stack?: string } }
+  | { type: "plugin-log"; line: string; level: "log" | "warn" | "error"; ts: number }
+  | {
+      type: "plugin-stage"
+      event: "start" | "loaded" | "error" | "missing"
+      spec: string
+      stage?: string
+      message?: string
+      ts: number
+    }
 
 type ParentPort = {
   postMessage(message: SidecarMessage): void
@@ -54,6 +63,7 @@ async function start(command: StartCommand) {
     ensureLoopbackNoProxy()
     useSystemCertificates()
     useEnvProxy()
+    hookConsoleForPluginLogs()
     const { Server } = await import("virtual:opencode-server")
 
     listener = await Server.listen({
@@ -125,6 +135,67 @@ function useEnvProxy() {
   } catch (error) {
     console.warn("failed to load proxy environment", error)
   }
+}
+
+// 拦截 console 输出，把插件加载相关行回传给 parent（launcher 诊断面板）。
+// 不改上游 loader.ts，仅在 sidecar worker thread 边界做 hook（ADR-020 D7）。
+function hookConsoleForPluginLogs() {
+  const isPluginLine = (text: string) =>
+    text.includes("[tui.plugin]") || text.includes("[plugin]") || text.includes("plugin") || text.includes("Plugin")
+  const send = (line: string, level: "log" | "warn" | "error") => {
+    // server 端 report 回调输出结构化加载事件（[opencode-plugin-load] 前缀 + JSON）。
+    if (line.startsWith("[opencode-plugin-load]")) {
+      const payload = line.slice("[opencode-plugin-load]".length).trim()
+      const parsed = tryParsePluginStage(payload)
+      if (parsed) {
+        parentPort.postMessage({ type: "plugin-stage", ...parsed, ts: Date.now() })
+        return
+      }
+    }
+    if (!isPluginLine(line)) return
+    parentPort.postMessage({ type: "plugin-log", line, level, ts: Date.now() })
+  }
+  for (const level of ["log", "warn", "error"] as const) {
+    const original = console[level].bind(console)
+    console[level] = (...args: unknown[]) => {
+      const text = args.map((arg) => (typeof arg === "string" ? arg : String(arg))).join(" ")
+      send(text, level)
+      original(...args)
+    }
+  }
+}
+
+type PluginStageEvent = {
+  event: "start" | "loaded" | "error" | "missing"
+  spec: string
+  stage?: string
+  message?: string
+}
+
+// 解析 server 端 report 回调的结构化加载事件 JSON。解析失败返回 undefined（按文本日志处理）。
+function tryParsePluginStage(payload: string): PluginStageEvent | undefined {
+  try {
+    const data = JSON.parse(payload) as {
+      event?: string
+      spec?: string
+      stage?: string
+      message?: string
+    }
+    if (data && typeof data.event === "string" && typeof data.spec === "string") {
+      const event = data.event
+      if (event === "start" || event === "loaded" || event === "error" || event === "missing") {
+        return {
+          event,
+          spec: data.spec,
+          ...(data.stage ? { stage: data.stage } : {}),
+          ...(typeof data.message === "string" ? { message: data.message } : {}),
+        }
+      }
+    }
+  } catch {
+    // fallthrough: 非结构化行，按 plugin-log 处理
+  }
+  return undefined
 }
 
 function parseCommand(value: unknown): SidecarCommand | undefined {

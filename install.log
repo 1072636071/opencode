@@ -1,0 +1,12 @@
+﻿bun install v1.3.14 (0d9b296a)
+bun.exe : Resolving dependencies
+At C:\nvm4w\nodejs\bun.ps1:14 char:3
++   & "$basedir/node_modules/bun/bin/bun.exe"   $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Resolving dependencies:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Resolved, downloaded and extracted [40]
+error: UNABLE_TO_VERIFY_LEAF_SIGNATURE downloading tarball ghostty-web@github:anomalyco/ghostty-web#83c0a07b8628b748aed
+073b232cb4b52a6ca11c1
+error: ghostty-web@github:anomalyco/ghostty-web#83c0a07b8628b748aed073b232cb4b52a6ca11c1 failed to resolve

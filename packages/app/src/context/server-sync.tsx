@@ -105,7 +105,9 @@ export const loadMcpQuery = (
   >({
     queryKey: [scope, directory, "mcp"] as const,
     queryFn: async () => {
-      if ((await protocol) === "v1" && legacy) return (await legacy.mcp.status()).data ?? {}
+      // vendored client 1.17 的 mcp.list 请求 /api/mcp（1.18 server 无此路由），
+      // 统一走 sdk 的 /mcp（v1 兼容端点，v1/v2 server 均有效）
+      if (legacy) return (await legacy.mcp.status()).data ?? {}
       return api
         .list({ location: { directory } })
         .then((result) => Object.fromEntries(result.data.map((server) => [server.name, server.status])))
@@ -127,7 +129,8 @@ export const loadMcpResourcesQuery = (
   >({
     queryKey: [scope, directory, "mcpResources"] as const,
     queryFn: async () => {
-      if ((await protocol) === "v1" && legacy) {
+      // 1.18 server 移除了 v2 的 /api/mcp/resource，统一走 sdk 的 /experimental/resource（v1 兼容端点）
+      if (legacy) {
         return Object.fromEntries(
           Object.entries((await legacy.experimental.resource.list()).data ?? {}).map(([key, resource]) => [
             key,

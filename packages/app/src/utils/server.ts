@@ -45,9 +45,30 @@ export function createApiForServer(input: {
   server: ServerConnection.HttpBase
   fetch?: typeof globalThis.fetch
 }): OpenCodeClient {
+  const baseFetch = input.fetch ?? globalThis.fetch
+  // opencode server 的 InstanceHttpApi 挂载在 root（/project/*），
+  // 而 vendored client 1.17 仍请求 /api/project/*：改写路径以匹配当前 server。
+  const compatFetch = ((
+    request: RequestInfo | URL,
+    init?: RequestInit,
+  ): Promise<Response> => {
+    const url = new URL(
+      typeof request === "string" ? request : request instanceof URL ? request.href : request.url,
+    )
+    if (url.pathname.startsWith("/api/project")) {
+      url.pathname = url.pathname.replace(/^\/api/, "")
+    }
+    const nextRequest: RequestInfo =
+      typeof request === "string"
+        ? url.toString()
+        : request instanceof URL
+          ? new Request(url.toString(), init)
+          : new Request(url.toString(), request)
+    return baseFetch(nextRequest, init)
+  }) as typeof globalThis.fetch
   return OpenCode.make({
     baseUrl: input.server.url,
-    fetch: input.fetch,
+    fetch: compatFetch,
     headers: input.server.password
       ? {
           Authorization: `Basic ${authTokenFromCredentials({

@@ -19,7 +19,7 @@ import { useTheme } from "@opencode-ai/ui/theme/context"
  * 清单（DESIGN.md Iconography）：
  * send / enter / x / chev-l / chev-r / chev-u / chev-d / plus / search / gear /
  * help / file / read / brush / term / shield / cmd / clip / bot / spark /
- * menu / eye / leaf / swap / diff / msg / alert / check / clock / move
+ * menu / eye / eye-off / leaf / swap / diff / msg / alert / check / clock / move
  *
  * 纯视觉组件，不影响任何功能逻辑。作用域：自研组件内引用，不影响其他主题。
  */
@@ -47,6 +47,7 @@ export type JiangxiaoIconName =
   | "spark"
   | "menu"
   | "eye"
+  | "eye-off"
   | "leaf"
   | "swap"
   | "diff"
@@ -100,6 +101,8 @@ const ICON_PATHS: Record<JiangxiaoIconName, string> = {
   menu: "M4 7h16 M4 12h16 M4 17h16",
   // 眼睛（eye=review）
   eye: "M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z M12 9a3 3 0 1 0 0 .01",
+  // 闭眼（eye-off=隐藏）：眼睛轮廓 + 斜线穿过
+  "eye-off": "M3 3l18 18 M10.5 5.2A9.6 9.6 0 0 1 12 5c6 0 10 7 10 7a16 16 0 0 1-3.2 3.9 M6 6.7A16 16 0 0 0 2 12s4 7 10 7a9.6 9.6 0 0 0 3.6-.7 M9.5 9.6a3 3 0 0 0 4 4",
   // 银杏叶（leaf=项目/主题）
   leaf: "M12 22v-8.5 M12 13.5C6.5 13 3.5 8.5 4.5 3.5 8 7 10.5 8 12 8.5c1.5-.5 4-1.5 7.5-5 1 5-2 9.5-7.5 10z",
   // 交换

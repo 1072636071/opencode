@@ -22,6 +22,80 @@ export type ServerReadyData = {
   password: string | null
 }
 
+export type OpencodeStatus = "idle" | "starting" | "running" | "stopping" | "failed"
+
+export type LauncherSnapshotMeta = {
+  id: string
+  timestamp: number
+  type: "auto" | "manual"
+  tag: string | null
+  projectHash: string | null
+  pluginCount: number
+  configFiles: string[]
+}
+
+export type RollbackPhase = "idle" | "stopping" | "restoring" | "reinstalling" | "restarting" | "done" | "failed"
+
+export type RollbackProgress = {
+  phase: RollbackPhase
+  failedPlugins?: string[]
+  error?: string
+}
+
+export type LauncherSettings = {
+  autoStart: boolean
+}
+
+export type LauncherStartOptions = {
+  safeMode?: boolean
+  disabledPlugins?: string[]
+}
+
+export type LauncherPluginInfo = {
+  spec: string
+  source: "npm" | "file" | "unknown"
+  version?: string
+}
+
+export type LauncherPluginLogEntry = {
+  line: string
+  level: "log" | "warn" | "error"
+  ts: number
+}
+
+export type LauncherPluginStageName = "install" | "entry" | "compatibility" | "load"
+
+export type LauncherPluginStageState = {
+  spec: string
+  stage: LauncherPluginStageName
+  startedAt: number
+  durationMs?: number
+  error?: string
+}
+
+export type LauncherPluginLoadEntry = {
+  spec: string
+  status: "pending" | "loading" | "loaded" | "failed"
+  stages: LauncherPluginStageState[]
+  order: number
+  error?: string
+}
+
+export type LauncherDiagnosticsMeta = {
+  launcherVersion: string
+  opencodeVersion: string
+  generatedAt: string
+}
+
+export type LauncherErrorSnippet = {
+  path: string | null
+  line: number | null
+  message: string
+  spec?: string
+  stage?: string
+  ts: number
+}
+
 export type WslServersAPI = WslServersPlatform
 export type UpdaterAPI = {
   subscribe: (cb: (state: UpdaterState) => void) => Promise<() => void>
@@ -70,6 +144,39 @@ export type ElectronAPI = {
   draftBlobPut: (data: ArrayBuffer) => Promise<string>
   draftBlobGet: (id: string) => Promise<ArrayBuffer | null>
   omoConfigWrite: (name: string, model: string | null) => Promise<{ ok: boolean; error?: string }>
+  openLauncher: () => Promise<boolean>
+  launcherMinimize: () => Promise<void>
+  launcherClose: () => Promise<void>
+  launcherStart: (opts?: LauncherStartOptions) => Promise<void>
+  launcherStop: () => Promise<void>
+  launcherGetStatus: () => Promise<{ status: OpencodeStatus; error?: string }>
+  onLauncherStatusChange: (cb: (status: OpencodeStatus, error?: string) => void) => () => void
+  launcherManualSnapshot: () => Promise<LauncherSnapshotMeta>
+  launcherListSnapshots: () => Promise<LauncherSnapshotMeta[]>
+  launcherTagSnapshot: (id: string, tag: string) => Promise<void>
+  launcherUntagSnapshot: (id: string) => Promise<void>
+  launcherRollbackSnapshot: (id: string) => Promise<{ failedPlugins: string[] }>
+  onLauncherRollbackProgress: (cb: (p: RollbackProgress) => void) => () => void
+  launcherGetSettings: () => Promise<LauncherSettings>
+  launcherSetSettings: (s: Partial<LauncherSettings>) => Promise<LauncherSettings>
+  launcherListPlugins: () => Promise<LauncherPluginInfo[]>
+  launcherGetPluginLogs: () => Promise<LauncherPluginLogEntry[]>
+  onLauncherPluginLogs: (cb: (logs: LauncherPluginLogEntry[]) => void) => () => void
+  launcherGetPluginLoads: () => Promise<LauncherPluginLoadEntry[]>
+  onLauncherPluginLoads: (cb: (entries: LauncherPluginLoadEntry[]) => void) => () => void
+  launcherGetDiagnosticsMeta: () => Promise<LauncherDiagnosticsMeta>
+  launcherGetErrorSnippets: () => Promise<LauncherErrorSnippet[]>
+  launcherInstallUpdate: () => Promise<void>
+  launcherExportLogs: (path: string, content: string) => Promise<void>
+  launcherGetConfigPath: () => Promise<string | null>
+  launcherReadConfig: () => Promise<Record<string, unknown> | null>
+  launcherSaveConfig: (config: Record<string, unknown>) => Promise<string>
+  launcherInstallPlugin: (spec: string) => Promise<void>
+  launcherUninstallPlugin: (spec: string) => Promise<void>
+  launcherTogglePlugin: (spec: string, enabled: boolean) => Promise<void>
+  launcherExportBundle: (id: string) => Promise<string>
+  launcherImportBundle: (content: string) => Promise<{ failedPlugins: string[] }>
+  onLauncherImportProgress: (cb: (phase: string) => void) => () => void
 
   getWindowID: () => Promise<string>
   onMenuCommand: (cb: (id: string) => void) => () => void

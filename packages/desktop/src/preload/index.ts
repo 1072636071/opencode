@@ -1,5 +1,10 @@
 import { contextBridge, ipcRenderer, webUtils } from "electron"
-import type { ElectronAPI, WslServersEvent } from "./types"
+import type {
+  ElectronAPI,
+  WslServersEvent,
+  LauncherPluginLogEntry,
+  LauncherPluginLoadEntry,
+} from "./types"
 import type { UpdaterState } from "@opencode-ai/app/updater"
 
 const updaterCallbacks = new Set<(state: UpdaterState) => void>()
@@ -79,6 +84,61 @@ const api: ElectronAPI = {
   draftBlobPut: (data) => ipcRenderer.invoke("draft-blob-put", data),
   draftBlobGet: (id) => ipcRenderer.invoke("draft-blob-get", id),
   omoConfigWrite: (name, model) => ipcRenderer.invoke("omo-config-write", name, model),
+  openLauncher: () => ipcRenderer.invoke("launcher:open-window"),
+  launcherMinimize: () => ipcRenderer.invoke("launcher:minimize"),
+  launcherClose: () => ipcRenderer.invoke("launcher:close"),
+  launcherStart: (opts) => ipcRenderer.invoke("launcher:start-opencode", opts),
+  launcherStop: () => ipcRenderer.invoke("launcher:stop-opencode"),
+  launcherGetStatus: () => ipcRenderer.invoke("launcher:get-status"),
+  onLauncherStatusChange: (cb) => {
+    const handler = (_: unknown, payload: { status: string; error?: string }) =>
+      cb(payload.status as never, payload.error)
+    ipcRenderer.on("launcher:status-changed", handler)
+    return () => ipcRenderer.removeListener("launcher:status-changed", handler)
+  },
+  launcherManualSnapshot: () => ipcRenderer.invoke("launcher:manual-snapshot"),
+  launcherListSnapshots: () => ipcRenderer.invoke("launcher:list-snapshots"),
+  launcherTagSnapshot: (id, tag) => ipcRenderer.invoke("launcher:tag-snapshot", id, tag),
+  launcherUntagSnapshot: (id) => ipcRenderer.invoke("launcher:untag-snapshot", id),
+  launcherRollbackSnapshot: (id) => ipcRenderer.invoke("launcher:rollback-snapshot", id),
+  onLauncherRollbackProgress: (cb) => {
+    const handler = (_: unknown, payload: { phase: string; failedPlugins?: string[]; error?: string }) =>
+      cb(payload as never)
+    ipcRenderer.on("launcher:rollback-progress", handler)
+    return () => ipcRenderer.removeListener("launcher:rollback-progress", handler)
+  },
+  launcherGetSettings: () => ipcRenderer.invoke("launcher:get-settings"),
+  launcherSetSettings: (s) => ipcRenderer.invoke("launcher:set-settings", s),
+  launcherListPlugins: () => ipcRenderer.invoke("launcher:list-plugins"),
+  launcherGetPluginLogs: () => ipcRenderer.invoke("launcher:get-plugin-logs"),
+  onLauncherPluginLogs: (cb) => {
+    const handler = (_: unknown, payload: LauncherPluginLogEntry[]) => cb(payload)
+    ipcRenderer.on("launcher:plugin-logs", handler)
+    return () => ipcRenderer.removeListener("launcher:plugin-logs", handler)
+  },
+  launcherGetPluginLoads: () => ipcRenderer.invoke("launcher:get-plugin-loads"),
+  onLauncherPluginLoads: (cb) => {
+    const handler = (_: unknown, payload: LauncherPluginLoadEntry[]) => cb(payload)
+    ipcRenderer.on("launcher:plugin-loads", handler)
+    return () => ipcRenderer.removeListener("launcher:plugin-loads", handler)
+  },
+  launcherGetDiagnosticsMeta: () => ipcRenderer.invoke("launcher:get-diagnostics-meta"),
+  launcherGetErrorSnippets: () => ipcRenderer.invoke("launcher:get-error-snippets"),
+  launcherInstallUpdate: () => ipcRenderer.invoke("launcher:install-update"),
+  launcherExportLogs: (path, content) => ipcRenderer.invoke("launcher:export-logs", path, content),
+  launcherGetConfigPath: () => ipcRenderer.invoke("launcher:get-config-path"),
+  launcherReadConfig: () => ipcRenderer.invoke("launcher:read-config"),
+  launcherSaveConfig: (config) => ipcRenderer.invoke("launcher:save-config", config),
+  launcherInstallPlugin: (spec) => ipcRenderer.invoke("launcher:install-plugin", spec),
+  launcherUninstallPlugin: (spec) => ipcRenderer.invoke("launcher:uninstall-plugin", spec),
+  launcherTogglePlugin: (spec, enabled) => ipcRenderer.invoke("launcher:toggle-plugin", spec, enabled),
+  launcherExportBundle: (id) => ipcRenderer.invoke("launcher:export-bundle", id),
+  launcherImportBundle: (content) => ipcRenderer.invoke("launcher:import-bundle", content),
+  onLauncherImportProgress: (cb) => {
+    const handler = (_: unknown, phase: string) => cb(phase)
+    ipcRenderer.on("launcher:import-progress", handler)
+    return () => ipcRenderer.removeListener("launcher:import-progress", handler)
+  },
 
   getWindowID: () => ipcRenderer.invoke("get-window-id"),
   onMenuCommand: (cb) => {

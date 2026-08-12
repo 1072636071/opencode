@@ -2063,3 +2063,54 @@ it.effect("opencode loader keeps paid models when auth exists", () =>
     expect(keyedCount).toBeGreaterThan(0)
   }).pipe(provideMultiInstance),
 )
+
+it.effect(
+  "plugin models returning a malformed model without capabilities are filtered without crashing",
+  () =>
+    Effect.gen(function* () {
+      const dir = yield* tmpdirScoped({
+        config: { provider: { openai: { models: { "broken-model": { name: "Fixed Broken Model" } } } } },
+      })
+      const configDir = path.join(dir, ".opencode")
+      const root = path.join(configDir, "plugin")
+      yield* Effect.promise(() => mkdir(root, { recursive: true }))
+      yield* Effect.promise(() => markPluginDependenciesReady(configDir))
+      yield* Effect.promise(() => markPluginDependenciesReady(Global.Path.config))
+      yield* Effect.promise(() =>
+        Bun.write(
+          path.join(root, "malformed-provider.ts"),
+          [
+            "export default {",
+            '  id: "demo.malformed-provider",',
+            "  server: async () => ({",
+            "    provider: {",
+            '      id: "openai",',
+            "      async models() {",
+            "        return {",
+            '          "broken-model": {',
+            '            id: "broken-model",',
+            '            name: "Broken Model",',
+            "            // intentionally missing capabilities/limit/cost fields",
+            "          },",
+            "        }",
+            "      },",
+            "    },",
+            "  }),",
+            "}",
+            "",
+          ].join("\n"),
+        ),
+      )
+
+      const providers = yield* Provider.use.list().pipe(
+        provideInstanceEffect(dir),
+        Effect.provide(instanceStoreLayer),
+        Effect.provide(AppNodeBuilder.build(CrossSpawnSpawner.node)),
+      )
+      const openai = providers[ProviderV2.ID.openai]
+      expect(openai).toBeDefined()
+      // config override of the malformed plugin model still yields a usable model
+      // (regression: previously crashed with `Cannot read properties of undefined (reading 'temperature')`)
+      expect(openai.models[ModelV2.ID.make("broken-model")].name).toBe("Fixed Broken Model")
+    }).pipe(provideMultiInstance),
+)

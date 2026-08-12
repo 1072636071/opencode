@@ -110,6 +110,7 @@ function writeLS(key: string, value: number | boolean) {
 
 const LS_OPACITY = "jiangxiao.character.opacity"
 const LS_COLLAPSED = "jiangxiao.character.collapsed"
+const LS_VISIBLE = "jiangxiao.character.visible"
 
 // 透明度 clamp 到 [0.2, 1]（无完全隐藏）
 const clampOpacity = (v: number) => Math.max(0.2, Math.min(1, v))
@@ -129,6 +130,28 @@ export function setCharacterOpacity(v: number) {
   const clamped = clampOpacity(v)
   writeLS(LS_OPACITY, clamped)
   setCharacterOpacityInternal(clamped)
+}
+
+// ---------- 工单 09：角色完全显隐（标题栏入口） ----------
+// 与 collapsed（折叠态留角落小按钮）不同：visible=false 时整个 aside 不渲染，
+// 连折叠按钮都不留——完全隐藏，唯一唤出入口是标题栏的「显示/隐藏姜晓」按钮。
+// 默认 true（显示），偏好持久化到 localStorage。
+const [characterVisible, setCharacterVisibleInternal] = createSignal(readLS(LS_VISIBLE, true))
+
+/** 读取角色是否可见（完全显示/完全隐藏，区别于折叠态 collapsed） */
+export function getCharacterVisible() {
+  return characterVisible()
+}
+
+/** 设置角色可见性：持久化到 localStorage，更新 signal */
+export function setCharacterVisible(v: boolean) {
+  writeLS(LS_VISIBLE, v)
+  setCharacterVisibleInternal(v)
+}
+
+/** 切换角色可见性：标题栏按钮的 onClick 入口 */
+export function toggleCharacterVisible() {
+  setCharacterVisible(!characterVisible())
 }
 
 // 右键菜单常用档位
@@ -309,7 +332,8 @@ export function JiangxiaoCharacterSidebar() {
           break
         }
         case "session.status":
-          if ((evt.properties as { status: { type: string } }).status.type === "idle") dispatch({ type: "session_idle" })
+          if ((evt.properties as { status: { type: string } }).status.type === "idle")
+            dispatch({ type: "session_idle" })
           break
         case "session.idle":
           dispatch({ type: "session_idle" })
@@ -582,7 +606,7 @@ export function JiangxiaoCharacterSidebar() {
   })
 
   return (
-    <Show when={theme.themeId() === "jiangxiao"}>
+    <Show when={theme.themeId() === "jiangxiao" && characterVisible()}>
       <aside
         ref={asideEl}
         data-component="jiangxiao-character"
@@ -591,240 +615,236 @@ export function JiangxiaoCharacterSidebar() {
         style={{
           opacity: characterOpacity(),
           // offset 为 0 时不输出 transform：避免恒建 containing block 使 fixed 菜单定位错乱（ADR-010 审查修复）
-          transform: dragOffset().x === 0 && dragOffset().y === 0 ? undefined : `translate(${dragOffset().x}px, ${dragOffset().y}px)`,
+          transform:
+            dragOffset().x === 0 && dragOffset().y === 0
+              ? undefined
+              : `translate(${dragOffset().x}px, ${dragOffset().y}px)`,
         }}
-      onContextMenu={handleContextMenu}
-    >
-      {/* 拖拽手柄（ADR-010）：角色头顶上方，线描四向移动图标，默认半透 hover 变亮，pointerdown 发起拖动 */}
-      <div
-        data-slot="character-drag-handle"
-        onPointerDown={handleDragStart}
-        role="button"
-        aria-label="拖动移动姜晓"
-        title="拖动移动姜晓"
+        onContextMenu={handleContextMenu}
       >
-        <JiangxiaoIcon name="move" size={16} />
-      </div>
-      <div data-slot="character-video" onClick={handleClick}>
-        <For each={VIDEO_STATES}>
-          {(v) => (
+        {/* 拖拽手柄（ADR-010）：角色头顶上方，线描四向移动图标，默认半透 hover 变亮，pointerdown 发起拖动 */}
+        <div
+          data-slot="character-drag-handle"
+          onPointerDown={handleDragStart}
+          role="button"
+          aria-label="拖动移动姜晓"
+          title="拖动移动姜晓"
+        >
+          <JiangxiaoIcon name="move" size={16} />
+        </div>
+        <div data-slot="character-video" onClick={handleClick}>
+          <For each={VIDEO_STATES}>
+            {(v) => (
+              <img
+                draggable={false}
+                src={`/character/${v}.webp`}
+                loading={v === "idle" ? "eager" : "lazy"}
+                data-state={v}
+                data-active={currentState() === v ? true : undefined}
+                data-prev={state.prevDisplay === v && state.transitioning ? true : undefined}
+                onError={(e) => {
+                  // 素材缺失时静默隐藏，不报错；仅当前显示态（data-active）标记 404（打破静默隐藏黑箱），
+                  // 非活动态懒加载的缺失素材不污染牌子，但仍记日志便于排查
+                  ;(e.currentTarget as HTMLImageElement).style.display = "none"
+                  const file = `${v}.webp`
+                  if (v === currentState()) setState("failedFile", file)
+                  logPlayback({ kind: "missing", file, at: Date.now() })
+                }}
+              />
+            )}
+          </For>
+          {/* 过渡 img（ADR-013 §4）：播放时叠加于循环 img 之上；loop=1 播一遍，定时器主切态后移除 */}
+          <Show when={state.transitionIdx >= 0 && state.transitionSegs.length > 0}>
             <img
               draggable={false}
-              src={`/character/${v}.webp`}
-              loading={v === "idle" ? "eager" : "lazy"}
-              data-state={v}
-              data-active={currentState() === v ? true : undefined}
-              data-prev={state.prevDisplay === v && state.transitioning ? true : undefined}
+              src={state.transitionSegs[state.transitionIdx].webp}
+              loading="eager"
+              data-transition-active
+              data-transition-key={state.transitionSegs[state.transitionIdx].key}
               onError={(e) => {
-                // 素材缺失时静默隐藏，不报错；仅当前显示态（data-active）标记 404（打破静默隐藏黑箱），
-                // 非活动态懒加载的缺失素材不污染牌子，但仍记日志便于排查
+                // 过渡素材缺失/未就绪：直接淡化到目标循环（crossfade 兜底，ADR-013 §9）。
+                // 必须先取失败文件名（cancelTransition 会清空段序列），再触发兜底与日志。
                 ;(e.currentTarget as HTMLImageElement).style.display = "none"
-                const file = `${v}.webp`
-                if (v === currentState()) setState("failedFile", file)
+                const file = webpBasename(state.transitionSegs[state.transitionIdx].webp)
+                setState("failedFile", file)
+                const from = state.prevDisplay
+                const to = currentState()
+                cancelTransition()
+                runCrossfade(from, to, tickDrivenRef ? "tick" : "event")
                 logPlayback({ kind: "missing", file, at: Date.now() })
               }}
             />
-          )}
-        </For>
-        {/* 过渡 img（ADR-013 §4）：播放时叠加于循环 img 之上；loop=1 播一遍，定时器主切态后移除 */}
-        <Show when={state.transitionIdx >= 0 && state.transitionSegs.length > 0}>
-          <img
-            draggable={false}
-            src={state.transitionSegs[state.transitionIdx].webp}
-            loading="eager"
-            data-transition-active
-            data-transition-key={state.transitionSegs[state.transitionIdx].key}
-            onError={(e) => {
-              // 过渡素材缺失/未就绪：直接淡化到目标循环（crossfade 兜底，ADR-013 §9）。
-              // 必须先取失败文件名（cancelTransition 会清空段序列），再触发兜底与日志。
-              ;(e.currentTarget as HTMLImageElement).style.display = "none"
-              const file = webpBasename(state.transitionSegs[state.transitionIdx].webp)
-              setState("failedFile", file)
-              const from = state.prevDisplay
-              const to = currentState()
-              cancelTransition()
-              runCrossfade(from, to, tickDrivenRef ? "tick" : "event")
-              logPlayback({ kind: "missing", file, at: Date.now() })
-            }}
-          />
-        </Show>
-      </div>
-
-      {/* 点击气泡：漫画对白气泡，浮于角色头部上方，带小箭头指向角色，纯装饰穿透 */}
-      <Show when={state.bubble}>
-        <div
-          data-slot="character-bubble"
-          style={{
-            position: "absolute",
-            "inset-block-start": "6px",
-            "inset-inline-start": "50%",
-            transform: "translateX(-50%)",
-            "max-width": "200px",
-            padding: "8px 12px",
-            background: "var(--jx-ink-950)",
-            border: "1px solid var(--jx-gold-deep)",
-            "border-radius": "10px",
-            color: "var(--jx-cream)",
-            "font-size": "var(--jx-fs-small)",
-            "text-align": "center",
-            "box-shadow": "0 4px 16px rgba(0,0,0,0.6)",
-            "pointer-events": "none",
-            "user-select": "none",
-            "z-index": 3,
-          }}
-        >
-          {state.bubble}
-          {/* 向下小箭头，指向角色头部 */}
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              top: "100%",
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: 0,
-              height: 0,
-              "border-left": "6px solid transparent",
-              "border-right": "6px solid transparent",
-              "border-top": "8px solid var(--jx-gold-deep)",
-              "pointer-events": "none",
-            }}
-          />
-        </div>
-      </Show>
-
-      <div data-slot="character-status">{STATUS_TEXT[currentState()]}</div>
-
-      {/* 折叠钮（chevron 图标，无单字中文；ADR-007） */}
-      <button
-        type="button"
-        data-slot="character-toggle"
-        onClick={toggleCollapsed}
-        aria-label={state.collapsed ? "展开姜晓" : "收起姜晓"}
-        title={state.collapsed ? "展开姜晓" : "收起姜晓"}
-      >
-        {/* chevron 图标：折叠时显示向下（展开方向），展开时显示向上（收起方向） */}
-        <JiangxiaoIcon name={state.collapsed ? "chev-d" : "chev-u"} size={16} />
-      </button>
-
-      {/* 右键菜单（工单 05：透明度 100%/60%/30%；工单 03：重置位置；工单 07：状态演示入口）。
-          Portal 到 body：角色拖动后 aside 带 transform（创建 containing block），fixed 菜单若留在
-          aside 内会相对 aside 定位而错位（ADR-010 审查修复）。 */}
-      <Show when={state.menu}>
-        {(m) => (
-          <Portal>
-            <div data-slot="character-opacity-menu" style={{ left: `${m().x}px`, top: `${m().y}px` }}>
-              <For each={OPACITY_PRESETS}>
-                {(preset) => (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCharacterOpacity(preset.value)
-                      setState("menu", undefined)
-                    }}
-                  >
-                    {preset.label}
-                  </button>
-                )}
-              </For>
-              <span data-slot="opacity-menu-sep" aria-hidden="true" />
-              <button type="button" onClick={resetPosition}>
-                重置位置
-              </button>
-              <span data-slot="opacity-menu-sep" aria-hidden="true" />
-              <button
-                type="button"
-                class={state.demoOpen ? "on" : undefined}
-                onClick={toggleDemo}
-                aria-pressed={state.demoOpen}
-              >
-                {state.demoOpen ? "关闭演示" : "状态演示"}
-              </button>
-            </div>
-          </Portal>
-        )}
-      </Show>
-
-      {/* 工单 07：状态演示面板（默认收起；竖排 10 态按钮 + 分隔线 + 「回到自动」+ 折叠钮，样式同 preview #char-tools）。
-          角色折叠（collapsed）时隐藏——演示态看不到动画无意义，展开角色后可从右键菜单重新唤起。
-          调试叠加层（工单 02/03）：面板内渲染调试牌子 + 日志按钮。 */}
-      <Show when={state.demoOpen && !state.collapsed}>
-        <div data-slot="character-demo-tools" role="group" aria-label="角色状态演示">
-          {/* 日志按钮（工单 03）：线描图标 + aria-label，不用单字中文 */}
-          <button
-            type="button"
-            class={state.logOpen ? "on" : undefined}
-            onClick={toggleLog}
-            title="播放日志"
-            aria-label="播放日志"
-            aria-pressed={state.logOpen}
-          >
-            <JiangxiaoIcon name="msg" size={13} />
-          </button>
-          <span data-slot="char-demo-sep" aria-hidden="true" />
-          <For each={DEMO_STATES}>
-            {(d) => (
-              <button
-                type="button"
-                data-state={d.id}
-                title={d.label}
-                aria-label={d.label}
-                aria-pressed={currentState() === d.id}
-                class={currentState() === d.id ? "on" : undefined}
-                onClick={() => forceState(d.id)}
-              >
-                <JiangxiaoIcon name={d.icon} size={13} />
-              </button>
-            )}
-          </For>
-          <span data-slot="char-demo-sep" aria-hidden="true" />
-          <button
-            type="button"
-            class="char-demo-auto"
-            onClick={returnToAuto}
-            title="回到自动"
-            aria-label="回到自动，恢复事件驱动"
-          >
-            <JiangxiaoIcon name="spark" size={13} />
-            <span>回到自动</span>
-          </button>
-          <button
-            type="button"
-            onClick={toggleCollapsed}
-            title="收起姜晓"
-            aria-label="收起姜晓"
-          >
-            <JiangxiaoIcon name="chev-u" size={13} />
-          </button>
-          {/* 调试牌子（工单 02 / D3/D4/D12）：两行显示当前播放信息，pointer-events 穿透。
-              作为面板子元素、absolute 相对面板右侧定位，随 demoOpen 显隐 */}
-          <div data-slot="character-debug-badge" aria-hidden="true">
-            <div data-slot="debug-badge-line">{badgeLines().line1}</div>
-            <div data-slot="debug-badge-line">{badgeLines().line2}</div>
-          </div>
-          {/* 播放日志窗（工单 03 / D5/D6/D13）：浮动小窗，渲染在角色 aside 内随拖动移动，
-              演示面板关闭或折叠时随面板一并隐藏 */}
-          <Show when={state.logOpen}>
-            <div data-slot="character-playback-log" role="dialog" aria-label="播放日志">
-              <div data-slot="playback-log-head">
-                <span>播放日志</span>
-                <button type="button" onClick={handleClearLog} title="清空" aria-label="清空日志">
-                  <JiangxiaoIcon name="brush" size={13} />
-                </button>
-                <button type="button" onClick={toggleLog} title="关闭" aria-label="关闭播放日志">
-                  <JiangxiaoIcon name="x" size={13} />
-                </button>
-              </div>
-              <div data-slot="playback-log-body" ref={logBodyEl}>
-                <For each={logBuffer()}>
-                  {(line) => <div data-slot="playback-log-line">{line}</div>}
-                </For>
-              </div>
-            </div>
           </Show>
         </div>
-      </Show>
-    </aside>
+
+        {/* 点击气泡：漫画对白气泡，浮于角色头部上方，带小箭头指向角色，纯装饰穿透 */}
+        <Show when={state.bubble}>
+          <div
+            data-slot="character-bubble"
+            style={{
+              position: "absolute",
+              "inset-block-start": "6px",
+              "inset-inline-start": "50%",
+              transform: "translateX(-50%)",
+              "max-width": "200px",
+              padding: "8px 12px",
+              background: "var(--jx-ink-950)",
+              border: "1px solid var(--jx-gold-deep)",
+              "border-radius": "10px",
+              color: "var(--jx-cream)",
+              "font-size": "var(--jx-fs-small)",
+              "text-align": "center",
+              "box-shadow": "0 4px 16px rgba(0,0,0,0.6)",
+              "pointer-events": "none",
+              "user-select": "none",
+              "z-index": 3,
+            }}
+          >
+            {state.bubble}
+            {/* 向下小箭头，指向角色头部 */}
+            <span
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                top: "100%",
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: 0,
+                height: 0,
+                "border-left": "6px solid transparent",
+                "border-right": "6px solid transparent",
+                "border-top": "8px solid var(--jx-gold-deep)",
+                "pointer-events": "none",
+              }}
+            />
+          </div>
+        </Show>
+
+        <div data-slot="character-status">{STATUS_TEXT[currentState()]}</div>
+
+        {/* 折叠钮（chevron 图标，无单字中文；ADR-007） */}
+        <button
+          type="button"
+          data-slot="character-toggle"
+          onClick={toggleCollapsed}
+          aria-label={state.collapsed ? "展开姜晓" : "收起姜晓"}
+          title={state.collapsed ? "展开姜晓" : "收起姜晓"}
+        >
+          {/* chevron 图标：折叠时显示向下（展开方向），展开时显示向上（收起方向） */}
+          <JiangxiaoIcon name={state.collapsed ? "chev-d" : "chev-u"} size={16} />
+        </button>
+
+        {/* 右键菜单（工单 05：透明度 100%/60%/30%；工单 03：重置位置；工单 07：状态演示入口）。
+          Portal 到 body：角色拖动后 aside 带 transform（创建 containing block），fixed 菜单若留在
+          aside 内会相对 aside 定位而错位（ADR-010 审查修复）。 */}
+        <Show when={state.menu}>
+          {(m) => (
+            <Portal>
+              <div data-slot="character-opacity-menu" style={{ left: `${m().x}px`, top: `${m().y}px` }}>
+                <For each={OPACITY_PRESETS}>
+                  {(preset) => (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCharacterOpacity(preset.value)
+                        setState("menu", undefined)
+                      }}
+                    >
+                      {preset.label}
+                    </button>
+                  )}
+                </For>
+                <span data-slot="opacity-menu-sep" aria-hidden="true" />
+                <button type="button" onClick={resetPosition}>
+                  重置位置
+                </button>
+                <span data-slot="opacity-menu-sep" aria-hidden="true" />
+                <button
+                  type="button"
+                  class={state.demoOpen ? "on" : undefined}
+                  onClick={toggleDemo}
+                  aria-pressed={state.demoOpen}
+                >
+                  {state.demoOpen ? "关闭演示" : "状态演示"}
+                </button>
+              </div>
+            </Portal>
+          )}
+        </Show>
+
+        {/* 工单 07：状态演示面板（默认收起；竖排 10 态按钮 + 分隔线 + 「回到自动」+ 折叠钮，样式同 preview #char-tools）。
+          角色折叠（collapsed）时隐藏——演示态看不到动画无意义，展开角色后可从右键菜单重新唤起。
+          调试叠加层（工单 02/03）：面板内渲染调试牌子 + 日志按钮。 */}
+        <Show when={state.demoOpen && !state.collapsed}>
+          <div data-slot="character-demo-tools" role="group" aria-label="角色状态演示">
+            {/* 日志按钮（工单 03）：线描图标 + aria-label，不用单字中文 */}
+            <button
+              type="button"
+              class={state.logOpen ? "on" : undefined}
+              onClick={toggleLog}
+              title="播放日志"
+              aria-label="播放日志"
+              aria-pressed={state.logOpen}
+            >
+              <JiangxiaoIcon name="msg" size={13} />
+            </button>
+            <span data-slot="char-demo-sep" aria-hidden="true" />
+            <For each={DEMO_STATES}>
+              {(d) => (
+                <button
+                  type="button"
+                  data-state={d.id}
+                  title={d.label}
+                  aria-label={d.label}
+                  aria-pressed={currentState() === d.id}
+                  class={currentState() === d.id ? "on" : undefined}
+                  onClick={() => forceState(d.id)}
+                >
+                  <JiangxiaoIcon name={d.icon} size={13} />
+                </button>
+              )}
+            </For>
+            <span data-slot="char-demo-sep" aria-hidden="true" />
+            <button
+              type="button"
+              class="char-demo-auto"
+              onClick={returnToAuto}
+              title="回到自动"
+              aria-label="回到自动，恢复事件驱动"
+            >
+              <JiangxiaoIcon name="spark" size={13} />
+              <span>回到自动</span>
+            </button>
+            <button type="button" onClick={toggleCollapsed} title="收起姜晓" aria-label="收起姜晓">
+              <JiangxiaoIcon name="chev-u" size={13} />
+            </button>
+            {/* 调试牌子（工单 02 / D3/D4/D12）：两行显示当前播放信息，pointer-events 穿透。
+              作为面板子元素、absolute 相对面板右侧定位，随 demoOpen 显隐 */}
+            <div data-slot="character-debug-badge" aria-hidden="true">
+              <div data-slot="debug-badge-line">{badgeLines().line1}</div>
+              <div data-slot="debug-badge-line">{badgeLines().line2}</div>
+            </div>
+            {/* 播放日志窗（工单 03 / D5/D6/D13）：浮动小窗，渲染在角色 aside 内随拖动移动，
+              演示面板关闭或折叠时随面板一并隐藏 */}
+            <Show when={state.logOpen}>
+              <div data-slot="character-playback-log" role="dialog" aria-label="播放日志">
+                <div data-slot="playback-log-head">
+                  <span>播放日志</span>
+                  <button type="button" onClick={handleClearLog} title="清空" aria-label="清空日志">
+                    <JiangxiaoIcon name="brush" size={13} />
+                  </button>
+                  <button type="button" onClick={toggleLog} title="关闭" aria-label="关闭播放日志">
+                    <JiangxiaoIcon name="x" size={13} />
+                  </button>
+                </div>
+                <div data-slot="playback-log-body" ref={logBodyEl}>
+                  <For each={logBuffer()}>{(line) => <div data-slot="playback-log-line">{line}</div>}</For>
+                </div>
+              </div>
+            </Show>
+          </div>
+        </Show>
+      </aside>
     </Show>
   )
 }
