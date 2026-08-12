@@ -7,7 +7,7 @@ export type LauncherSettings = {
   autoStart: boolean
 }
 
-const DEFAULT: LauncherSettings = { autoStart: true }
+const DEFAULT: LauncherSettings = { autoStart: false }
 
 function settingsFile(): string {
   return join(opencodeConfigDir(), "launcher", "settings.json")
