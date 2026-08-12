@@ -109,7 +109,10 @@ export const loadGlobalConfigQuery = (scope: ServerScope, sdk: OpencodeClient, p
   queryOptions({
     queryKey: [scope, "config"],
     queryFn: async () => {
-      if ((await protocol) !== "v1") return {}
+      // fork server (v1.18.14 dual-compat) is detected as v2 but still serves
+      // `GET /global/config`. Without this call `isConfigCustom` would always
+      // return false and saved custom providers would not appear in the list.
+      void protocol
       return retry(() => sdk.global.config.get().then((x) => x.data!))
     },
   })

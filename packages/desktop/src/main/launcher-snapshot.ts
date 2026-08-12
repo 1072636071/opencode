@@ -47,6 +47,25 @@ function opencodeConfigDir(): string {
 
 export { opencodeConfigDir }
 
+/**
+ * Resolve the opencode data directory (where `auth.json` lives).
+ * Mirrors `Global.Path.data` from `@opencode-ai/core`: `xdgData/opencode`.
+ * On Windows xdg-data is `LOCALAPPDATA` (not `APPDATA`, which is config/roaming).
+ */
+function opencodeDataDir(): string {
+  if (process.env.OPENCODE_DATA_DIR) return process.env.OPENCODE_DATA_DIR
+  const xdgData =
+    process.env.XDG_DATA_HOME ||
+    (process.platform === "win32"
+      ? process.env.LOCALAPPDATA || join(homedir(), "AppData", "Local")
+      : process.platform === "darwin"
+        ? join(homedir(), "Library", "Application Support")
+        : join(homedir(), ".local", "share"))
+  return join(xdgData, "opencode")
+}
+
+export { opencodeDataDir }
+
 function snapshotsRoot(): string {
   return join(opencodeConfigDir(), "launcher", "snapshots")
 }
@@ -252,6 +271,32 @@ export async function saveConfigObject(config: Record<string, unknown>, projectP
   const path = getConfigFilePath(projectPath) ?? join(opencodeConfigDir(), "opencode.json")
   await mkdir(dirname(path), { recursive: true })
   await writeFile(path, JSON.stringify(config, null, 2), "utf8")
+  return path
+}
+
+// auth.json 路径（与 opencode 核心包 `Global.Path.data/auth.json` 一致）。
+export function getAuthFilePath(): string {
+  return join(opencodeDataDir(), "auth.json")
+}
+
+// 写 API key 到 auth.json 的 `<providerID>: { type: "api", key }`。
+// 若 key 为 null 则删除该条目。文件不存在时自动创建。
+export async function writeAuthKey(providerID: string, key: string | null): Promise<string> {
+  const path = getAuthFilePath()
+  await mkdir(dirname(path), { recursive: true })
+  let auth: Record<string, unknown> = {}
+  try {
+    const text = await readFile(path, "utf8")
+    auth = JSON.parse(text) as Record<string, unknown>
+  } catch {
+    // file doesn't exist or is invalid — start fresh
+  }
+  if (key === null) {
+    delete auth[providerID]
+  } else {
+    auth[providerID] = { type: "api", key }
+  }
+  await writeFile(path, JSON.stringify(auth, null, 2), "utf8")
   return path
 }
 

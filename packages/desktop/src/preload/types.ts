@@ -171,6 +171,7 @@ export type ElectronAPI = {
   launcherGetConfigPath: () => Promise<string | null>
   launcherReadConfig: () => Promise<Record<string, unknown> | null>
   launcherSaveConfig: (config: Record<string, unknown>) => Promise<string>
+  launcherSaveAuthKey: (providerID: string, key: string | null) => Promise<string>
   launcherInstallPlugin: (spec: string) => Promise<void>
   launcherUninstallPlugin: (spec: string) => Promise<void>
   launcherTogglePlugin: (spec: string, enabled: boolean) => Promise<void>

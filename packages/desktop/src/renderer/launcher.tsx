@@ -10,6 +10,7 @@ import type {
   LauncherErrorSnippet,
   LauncherDiagnosticsMeta,
 } from "../preload/types"
+import { mergeProviderConfig, validateLlmApiForm, type LlmApiFormState } from "./llm-api-form"
 import "./launcher.css"
 
 const [sidecarStatus, setSidecarStatus] = createSignal<OpencodeStatus>("idle")
@@ -770,6 +771,115 @@ function ConfigEditPanel() {
   )
 }
 
+function LlmApiPanel() {
+  const [form, setForm] = createSignal<LlmApiFormState>({
+    providerID: "",
+    baseURL: "",
+    apiKey: "",
+    modelName: "",
+  })
+  const [saving, setSaving] = createSignal(false)
+  const [message, setMessage] = createSignal<{ kind: "ok" | "err"; text: string } | null>(null)
+
+  const setField = (key: keyof LlmApiFormState, value: string) => {
+    setForm({ ...form(), [key]: value })
+    setMessage(null)
+  }
+
+  const save = async () => {
+    const { errors, result } = validateLlmApiForm(form())
+    if (!result) {
+      const first = Object.values(errors).find(Boolean)
+      setMessage({ kind: "err", text: first ?? "表单填写有误" })
+      return
+    }
+    setSaving(true)
+    setMessage(null)
+    try {
+      const cfg = await window.api.launcherReadConfig()
+      const merged = mergeProviderConfig(cfg, result.providerID, result.providerConfig)
+      // Write auth.json BEFORE config so the post-save snapshot (triggered by
+      // launcherSaveConfig) captures a consistent state — both the provider
+      // entry in opencode.json and the key in auth.json. If config save failed
+      // after auth write, the orphaned key is harmless; the reverse order would
+      // snapshot a config whose auth.json hasn't been updated yet.
+      if (result.authKey) {
+        await window.api.launcherSaveAuthKey(result.providerID, result.authKey)
+      }
+      await window.api.launcherSaveConfig(merged)
+      setMessage({ kind: "ok", text: `已保存 ${result.providerID}，重启 OpenCode 后生效` })
+      setForm({ providerID: "", baseURL: "", apiKey: "", modelName: "" })
+    } catch (err) {
+      setMessage({ kind: "err", text: err instanceof Error ? err.message : String(err) })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div class="launcher-configedit">
+      <div class="launcher-configedit__head">
+        <h2 class="launcher-configedit__title">LLM API 快捷配置</h2>
+      </div>
+      <div class="launcher-configedit__form">
+        <p class="launcher-configedit__empty" style={{ "margin-bottom": "var(--jx-space-2)" }}>
+          填写 OpenAI 兼容厂商信息，保存后写入 opencode.json + auth.json。
+        </p>
+        <label class="launcher-configedit__field">
+          <span class="launcher-configedit__label">厂商标识</span>
+          <input
+            class="launcher-configedit__input"
+            value={form().providerID}
+            onInput={(e) => setField("providerID", e.currentTarget.value)}
+            placeholder="如: deepseek"
+          />
+        </label>
+        <label class="launcher-configedit__field">
+          <span class="launcher-configedit__label">Base URL</span>
+          <input
+            class="launcher-configedit__input"
+            value={form().baseURL}
+            onInput={(e) => setField("baseURL", e.currentTarget.value)}
+            placeholder="https://api.example.com/v1"
+          />
+        </label>
+        <label class="launcher-configedit__field">
+          <span class="launcher-configedit__label">API Key</span>
+          <input
+            class="launcher-configedit__input"
+            type="password"
+            value={form().apiKey}
+            onInput={(e) => setField("apiKey", e.currentTarget.value)}
+            placeholder="sk-..."
+          />
+        </label>
+        <label class="launcher-configedit__field">
+          <span class="launcher-configedit__label">模型名</span>
+          <input
+            class="launcher-configedit__input"
+            value={form().modelName}
+            onInput={(e) => setField("modelName", e.currentTarget.value)}
+            placeholder="如: deepseek-chat"
+          />
+        </label>
+        <Show when={message()}>
+          {(msg) => (
+            <p
+              class="launcher-configedit__empty"
+              style={{ color: msg().kind === "ok" ? "var(--jx-success)" : "var(--jx-error)" }}
+            >
+              {msg().text}
+            </p>
+          )}
+        </Show>
+        <button class="launcher-btn launcher-btn--primary" disabled={saving()} onClick={save}>
+          {saving() ? "保存中…" : "保存"}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function PluginManagementPanel() {
   const [pluginInfos, setPluginInfos] = createSignal<LauncherPluginInfo[]>([])
   const [newSpec, setNewSpec] = createSignal("")
@@ -953,6 +1063,7 @@ function LauncherShell() {
         <SnapshotPanel />
         <ResourcePanel />
         <ConfigEditPanel />
+        <LlmApiPanel />
         <PluginManagementPanel />
         <UpdatePanel />
         <SettingsPanel />

@@ -1,6 +1,17 @@
 import type { ServerApi } from "./server"
 import type { ServerProtocol } from "./server-protocol"
-import type { AgentPartInput, FilePartInput, OpencodeClient, Session, TextPartInput } from "@opencode-ai/sdk/v2/client"
+import type {
+  AgentPartInput,
+  FilePartInput,
+  FilePartSource,
+  OpencodeClient,
+  PromptAgentAttachment,
+  PromptInput,
+  PromptInputFileAttachment,
+  PromptSource,
+  Session,
+  TextPartInput,
+} from "@opencode-ai/sdk/v2/client"
 import type {
   Project,
   ProjectCurrent,
@@ -85,10 +96,127 @@ function sessionInfo(session: Session): SessionInfo {
 
 export function createCompatibleApi(input: CompatibleInput): CompatibleApi {
   const v1 = createV1Api(input)
+  const v2 = createV2Api(input)
   return lazyApi(
-    input.protocol.then((protocol) => (protocol === "v1" ? v1 : input.current)),
+    input.protocol.then((protocol) => (protocol === "v1" ? v1 : v2)),
     input.current,
   )
+}
+
+/**
+ * Convert app-level prompt call args (SessionPromptInput & LegacyPrompt) into the
+ * v2 SDK's `v2.session.prompt` call shape. Pure, synchronous, no network access.
+ *
+ * Mirrors the v1 branch's `parts` conversion: when `legacyParts` is provided it
+ * is the source of truth (mapped back to v2 `text/files/agents`); otherwise the
+ * app's `text/files/agents` fields are mapped directly.
+ */
+export function toV2PromptInput(value: SessionPromptInput & LegacyPrompt): {
+  sessionID: string
+  id?: string
+  prompt: PromptInput
+  delivery?: "steer" | "queue"
+  resume?: boolean
+} {
+  const prompt = value.legacyParts
+    ? legacyPartsToPromptInput(value.legacyParts)
+    : appFieldsToPromptInput(value)
+  const result: {
+    sessionID: string
+    id?: string
+    prompt: PromptInput
+    delivery?: "steer" | "queue"
+    resume?: boolean
+  } = {
+    sessionID: value.sessionID,
+    prompt,
+  }
+  if (value.id) result.id = value.id
+  if (value.delivery) result.delivery = value.delivery
+  if (value.resume !== undefined && value.resume !== null) result.resume = value.resume
+  return result
+}
+
+function appFieldsToPromptInput(value: SessionPromptInput & LegacyPrompt): PromptInput {
+  const files: PromptInputFileAttachment[] = (value.files ?? []).map((file) => {
+    const out: PromptInputFileAttachment = { uri: file.uri }
+    if (file.name) out.name = file.name
+    if (file.description) out.description = file.description
+    if (file.mention) out.source = mentionToPromptSource(file.mention)
+    return out
+  })
+  const agents: PromptAgentAttachment[] = (value.agents ?? []).map((agent) => {
+    const out: PromptAgentAttachment = { name: agent.name }
+    if (agent.mention) out.source = mentionToPromptSource(agent.mention)
+    return out
+  })
+  const prompt: PromptInput = { text: value.text }
+  if (files.length > 0) prompt.files = files
+  if (agents.length > 0) prompt.agents = agents
+  return prompt
+}
+
+function legacyPartsToPromptInput(parts: (TextPartInput | FilePartInput | AgentPartInput)[]): PromptInput {
+  const text = parts
+    .filter((part): part is TextPartInput => part.type === "text")
+    .map((part) => part.text)
+    .join("\n")
+  const files: PromptInputFileAttachment[] = parts
+    .filter((part): part is FilePartInput => part.type === "file")
+    .map((part) => {
+      const out: PromptInputFileAttachment = { uri: part.url }
+      if (part.filename) out.name = part.filename
+      if (part.source) out.source = fileSourceToPromptSource(part.source)
+      return out
+    })
+  const agents: PromptAgentAttachment[] = parts
+    .filter((part): part is AgentPartInput => part.type === "agent")
+    .map((part) => {
+      const out: PromptAgentAttachment = { name: part.name }
+      if (part.source) out.source = agentSourceToPromptSource(part.source)
+      return out
+    })
+  const prompt: PromptInput = { text }
+  if (files.length > 0) prompt.files = files
+  if (agents.length > 0) prompt.agents = agents
+  return prompt
+}
+
+function mentionToPromptSource(mention: { start: number; end: number; text: string }): PromptSource {
+  return { start: mention.start, end: mention.end, text: mention.text }
+}
+
+function fileSourceToPromptSource(source: FilePartSource): PromptSource {
+  return { start: source.text.start, end: source.text.end, text: source.text.value }
+}
+
+function agentSourceToPromptSource(source: { value: string; start: number; end: number }): PromptSource {
+  return { start: source.start, end: source.end, text: source.value }
+}
+
+function createV2Api(input: CompatibleInput): CompatibleApi {
+  return {
+    ...input.current,
+    session: {
+      ...input.current.session,
+      async prompt(value: SessionPromptInput & LegacyPrompt) {
+        const call = toV2PromptInput(value)
+        const result = await input.legacy(input.directory).v2.session.prompt(call)
+        // v2 prompt route wraps the body in `{ data: SessionInputAdmitted }`;
+        // the SDK then wraps that in its own `{ data, request, response }` envelope.
+        const admitted = result.data!.data
+        return {
+          admittedSeq: admitted.admittedSeq,
+          id: admitted.id,
+          sessionID: value.sessionID,
+          timeCreated: admitted.timeCreated,
+          type: "user" as const,
+          data: { text: call.prompt.text },
+          delivery: admitted.delivery,
+        } satisfies SessionPromptOutput
+      },
+    },
+  }
 }
 
 function lazyApi<T extends object>(implementation: Promise<T>, shape: T): T {

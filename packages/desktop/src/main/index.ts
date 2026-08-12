@@ -83,6 +83,7 @@ import {
   getConfigFilePath,
   readConfigObject,
   saveConfigObject,
+  writeAuthKey,
   installPlugin,
   uninstallPlugin,
   togglePlugin,
@@ -414,6 +415,9 @@ const main = Effect.gen(function* () {
     await createSnapshot({ type: "auto" }).catch((err) => console.warn("post-save snapshot failed", err))
     return path
   })
+  ipcMain.handle("launcher:save-auth-key", (_event, providerID: string, key: string | null) =>
+    writeAuthKey(providerID, key),
+  )
   ipcMain.handle("launcher:install-plugin", (_event, spec: string) => installPlugin(spec))
   ipcMain.handle("launcher:uninstall-plugin", (_event, spec: string) => uninstallPlugin(spec))
   ipcMain.handle("launcher:toggle-plugin", (_event, spec: string, enabled: boolean) => togglePlugin(spec, enabled))

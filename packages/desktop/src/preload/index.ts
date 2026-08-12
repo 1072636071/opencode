@@ -129,6 +129,7 @@ const api: ElectronAPI = {
   launcherGetConfigPath: () => ipcRenderer.invoke("launcher:get-config-path"),
   launcherReadConfig: () => ipcRenderer.invoke("launcher:read-config"),
   launcherSaveConfig: (config) => ipcRenderer.invoke("launcher:save-config", config),
+  launcherSaveAuthKey: (providerID, key) => ipcRenderer.invoke("launcher:save-auth-key", providerID, key),
   launcherInstallPlugin: (spec) => ipcRenderer.invoke("launcher:install-plugin", spec),
   launcherUninstallPlugin: (spec) => ipcRenderer.invoke("launcher:uninstall-plugin", spec),
   launcherTogglePlugin: (spec, enabled) => ipcRenderer.invoke("launcher:toggle-plugin", spec, enabled),

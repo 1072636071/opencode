@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { createApiForServer, createSdkForServer } from "./server"
-import { createCompatibleApi } from "./server-compat"
+import { createCompatibleApi, toV2PromptInput } from "./server-compat"
 
 function setup(
   protocol: "v1" | "v2" | Promise<"v1" | "v2">,
@@ -24,6 +24,23 @@ function setup(
       }
       if (request.method === "POST" && request.url.endsWith("/prompt_async"))
         return new Response(undefined, { status: 204 })
+      if (
+        request.method === "POST" &&
+        new URL(request.url).pathname.startsWith("/api/session/") &&
+        request.url.endsWith("/prompt")
+      ) {
+        // v2 prompt route — response body is { data: SessionInputAdmitted }
+        return Response.json({
+          data: {
+            admittedSeq: 1,
+            id: "msg_1",
+            sessionID: "ses_1",
+            prompt: { text: "hello" },
+            delivery: "steer",
+            timeCreated: 1,
+          },
+        })
+      }
       if (request.method === "POST" && request.url.endsWith("/prompt")) {
         return Response.json({
           admittedSeq: 1,
@@ -232,5 +249,212 @@ describe("createCompatibleApi", () => {
     ])
     expect(requests[1]!.headers.get("x-opencode-directory")).toBe("%2Frepo")
     expect(requests[2]!.headers.get("x-opencode-directory")).toBeNull()
+  })
+
+  test("converts current prompts to the V2 prompt contract", async () => {
+    const { api, requests } = setup("v2")
+    const result = await api.session.prompt({
+      sessionID: "ses_1",
+      id: "msg_1",
+      text: "hello @src/index.ts",
+      agent: "build",
+      model: { providerID: "provider", modelID: "model" },
+      files: [
+        { uri: "file:///repo/src/index.ts", name: "index.ts", mention: { text: "@src/index.ts", start: 6, end: 19 } },
+        { uri: "data:text/plain;base64,aGVsbG8=", name: "notes.txt" },
+      ],
+      agents: [{ name: "reviewer", mention: { text: "@reviewer", start: 0, end: 9 } }],
+      delivery: "steer",
+    })
+
+    expect(new URL(requests[0]!.url).pathname).toBe("/api/session/ses_1/prompt")
+    const body = await requests[0]!.json()
+    expect(body).toMatchObject({
+      id: "msg_1",
+      prompt: {
+        text: "hello @src/index.ts",
+        files: [
+          {
+            uri: "file:///repo/src/index.ts",
+            name: "index.ts",
+            source: { start: 6, end: 19, text: "@src/index.ts" },
+          },
+          { uri: "data:text/plain;base64,aGVsbG8=", name: "notes.txt" },
+        ],
+        agents: [{ name: "reviewer", source: { start: 0, end: 9, text: "@reviewer" } }],
+      },
+      delivery: "steer",
+    })
+    // v2 prompt body must NOT carry v1-style `parts` or top-level `text/files/agents`
+    expect(body).not.toHaveProperty("parts")
+    expect(body).not.toHaveProperty("text")
+    expect(body).not.toHaveProperty("files")
+    expect(body).not.toHaveProperty("agents")
+    // response is mapped back to SessionPromptOutput shape
+    expect(result).toMatchObject({
+      admittedSeq: 1,
+      id: "msg_1",
+      sessionID: "ses_1",
+      timeCreated: 1,
+      type: "user",
+      data: { text: "hello @src/index.ts" },
+      delivery: "steer",
+    })
+  })
+
+  test("maps legacyParts back to V2 prompt fields when provided", async () => {
+    const { api, requests } = setup("v2")
+    const result = await api.session.prompt({
+      sessionID: "ses_1",
+      id: "msg_1",
+      text: "look",
+      legacyParts: [
+        { id: "prt_text", type: "text", text: "look at this" },
+        {
+          id: "prt_file",
+          type: "file",
+          mime: "image/png",
+          url: "data:image/png;base64,AAAA",
+          filename: "image.png",
+          source: { type: "file", text: { value: "@image.png", start: 5, end: 14 }, path: "data:image/png;base64,AAAA" },
+        },
+        {
+          id: "prt_agent",
+          type: "agent",
+          name: "coder",
+          source: { value: "@coder", start: 0, end: 6 },
+        },
+      ],
+    })
+
+    expect(new URL(requests[0]!.url).pathname).toBe("/api/session/ses_1/prompt")
+    const body = await requests[0]!.json()
+    expect(body.prompt).toEqual({
+      text: "look at this",
+      files: [
+        {
+          uri: "data:image/png;base64,AAAA",
+          name: "image.png",
+          source: { start: 5, end: 14, text: "@image.png" },
+        },
+      ],
+      agents: [{ name: "coder", source: { start: 0, end: 6, text: "@coder" } }],
+    })
+    // legacyParts must NOT be passed through
+    expect(body).not.toHaveProperty("parts")
+    expect(body).not.toHaveProperty("legacyParts")
+    // returned data.text must reflect the actual prompt text (from legacyParts), not value.text
+    expect(result.data.text).toBe("look at this")
+  })
+})
+
+describe("toV2PromptInput", () => {
+  test("maps plain text to prompt.text", () => {
+    const result = toV2PromptInput({
+      sessionID: "ses_1",
+      text: "hello world",
+    })
+    expect(result).toEqual({
+      sessionID: "ses_1",
+      prompt: { text: "hello world" },
+    })
+    expect(result).not.toHaveProperty("id")
+    expect(result).not.toHaveProperty("delivery")
+    expect(result).not.toHaveProperty("resume")
+  })
+
+  test("maps files with mention to prompt.files[].source", () => {
+    const result = toV2PromptInput({
+      sessionID: "ses_1",
+      text: "hello",
+      files: [
+        { uri: "file:///repo/src/index.ts", name: "index.ts", mention: { text: "@src/index.ts", start: 6, end: 19 } },
+        { uri: "data:text/plain;base64,aGVsbG8=", name: "notes.txt" },
+      ],
+    })
+    expect(result.prompt.files).toEqual([
+      { uri: "file:///repo/src/index.ts", name: "index.ts", source: { start: 6, end: 19, text: "@src/index.ts" } },
+      { uri: "data:text/plain;base64,aGVsbG8=", name: "notes.txt" },
+    ])
+  })
+
+  test("maps agents with mention to prompt.agents[].source", () => {
+    const result = toV2PromptInput({
+      sessionID: "ses_1",
+      text: "hello",
+      agents: [{ name: "reviewer" }, { name: "coder", mention: { text: "@coder", start: 0, end: 6 } }],
+    })
+    expect(result.prompt.agents).toEqual([
+      { name: "reviewer" },
+      { name: "coder", source: { start: 0, end: 6, text: "@coder" } },
+    ])
+  })
+
+  test("maps legacyParts back to v2 fields, ignoring top-level text/files/agents", () => {
+    const result = toV2PromptInput({
+      sessionID: "ses_1",
+      id: "msg_1",
+      text: "ignored-when-legacyParts-present",
+      delivery: "queue",
+      resume: true,
+      legacyParts: [
+        { type: "text", text: "first" },
+        { type: "text", text: "second" },
+        {
+          type: "file",
+          mime: "image/png",
+          url: "data:image/png;base64,AAAA",
+          filename: "image.png",
+          source: { type: "file", text: { value: "@img", start: 0, end: 4 }, path: "data:image/png;base64,AAAA" },
+        },
+        { type: "agent", name: "coder", source: { value: "@coder", start: 0, end: 6 } },
+      ],
+      // these should be ignored because legacyParts takes precedence
+      files: [{ uri: "file:///should-be-ignored", name: "ignored.ts" }],
+      agents: [{ name: "ignored-agent" }],
+    })
+    expect(result.prompt).toEqual({
+      text: "first\nsecond",
+      files: [{ uri: "data:image/png;base64,AAAA", name: "image.png", source: { start: 0, end: 4, text: "@img" } }],
+      agents: [{ name: "coder", source: { start: 0, end: 6, text: "@coder" } }],
+    })
+    expect(result.id).toBe("msg_1")
+    expect(result.delivery).toBe("queue")
+    expect(result.resume).toBe(true)
+  })
+
+  test("handles empty values without crashing", () => {
+    const result = toV2PromptInput({
+      sessionID: "ses_1",
+      text: "",
+    })
+    expect(result.prompt).toEqual({ text: "" })
+    expect(result.prompt).not.toHaveProperty("files")
+    expect(result.prompt).not.toHaveProperty("agents")
+  })
+
+  test("omits optional fields when not provided", () => {
+    const result = toV2PromptInput({
+      sessionID: "ses_1",
+      text: "hello",
+    })
+    expect(result).not.toHaveProperty("id")
+    expect(result).not.toHaveProperty("delivery")
+    expect(result).not.toHaveProperty("resume")
+    expect(result.prompt).not.toHaveProperty("files")
+    expect(result.prompt).not.toHaveProperty("agents")
+  })
+
+  test("passes through id, delivery, resume when provided", () => {
+    const result = toV2PromptInput({
+      sessionID: "ses_1",
+      id: "msg_42",
+      text: "hello",
+      delivery: "queue",
+      resume: false,
+    })
+    expect(result.id).toBe("msg_42")
+    expect(result.delivery).toBe("queue")
+    expect(result.resume).toBe(false)
   })
 })
