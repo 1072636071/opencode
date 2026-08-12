@@ -1,5 +1,5 @@
 import { render } from "solid-js/web"
-import { createSignal, onMount, Show, For } from "solid-js"
+import { createSignal, onMount, Show, For, Switch, Match } from "solid-js"
 import type {
   OpencodeStatus,
   LauncherSnapshotMeta,
@@ -104,18 +104,153 @@ function ControlPanel() {
       disabledPlugins: disabled,
     })
   }
+  const safeStart = () => {
+    window.api.launcherStart({ safeMode: true, disabledPlugins: [] })
+  }
+  const openUI = () => {
+    // 既有 IPC：runDesktopMenuAction("window.new") → main 端 createMainWindow()。
+    // 不新增 IPC 契约（PRD 硬约束）。
+    window.api.runDesktopMenuAction("window.new")
+  }
+  const restart = async () => {
+    await window.api.launcherStop()
+    // 等状态回到 idle 再启动；onLauncherStatusChange 会更新 sidecarStatus。
+    // 简单起见直接调 start，main 端 startOpencode 会幂等处理 starting/running。
+    start()
+  }
+
+  // 圆环启停纽：未运行点 → 启动；运行中点 → 打开界面。
+  const ringClick = () => {
+    if (isBusy()) return
+    if (isRunning()) openUI()
+    else start()
+  }
+  const ringLabel = () => {
+    const s = sidecarStatus()
+    if (s === "idle") return "启动\nOpenCode"
+    if (s === "starting") return "启动中…"
+    if (s === "running") return "打开\n界面"
+    if (s === "stopping") return "停止中…"
+    if (s === "failed") return "启动失败\n点此重试"
+    return "启动\nOpenCode"
+  }
+  const ringClass = () => {
+    const s = sidecarStatus()
+    if (s === "stopping") return "launcher-stage__ring--idle"
+    return `launcher-stage__ring--${s}`
+  }
 
   return (
     <div class="launcher-control">
-      <button
-        class="launcher-btn launcher-btn--primary"
-        aria-label={isRunning() ? "停止 OpenCode" : "启动 OpenCode"}
-        disabled={isBusy()}
-        onClick={() => (isRunning() ? window.api.launcherStop() : start())}
-      >
-        {isRunning() ? "停止 OpenCode" : isBusy() ? statusLabel[sidecarStatus()] : "启动 OpenCode"}
-      </button>
-      {sidecarStatus() === "failed" && lastError() && <pre class="launcher-error">{lastError()}</pre>}
+      <div class="launcher-stage">
+        <button
+          class={`launcher-stage__ring ${ringClass()}`}
+          aria-label={isRunning() ? "打开 OpenCode 界面" : "启动 OpenCode"}
+          disabled={isBusy()}
+          onClick={ringClick}
+        >
+          <span class="launcher-stage__ring-label">{ringLabel()}</span>
+        </button>
+        {/* 状态信息行：端口/PID/版本/工作目录/运行时长——从 launcherGetStatus 读取 */}
+        <Show when={sidecarStatus() === "running"}>
+          <StatusInfoRow />
+        </Show>
+        {/* 启动失败就近错误摘要 + 诊断入口 */}
+        <Show when={sidecarStatus() === "failed" && lastError()}>
+          <pre class="launcher-stage__error">{lastError()}</pre>
+          <button
+            class="launcher-btn launcher-btn--small"
+            aria-label="进入安全模式诊断"
+            onClick={() => {
+              if (typeof location !== "undefined") location.hash = "#safemode"
+            }}
+          >
+            查看诊断
+          </button>
+        </Show>
+        {/* 次按钮行：安全模式启动 / 打开界面 / 停止 / 重启 */}
+        <div class="launcher-stage__actions">
+          <Show when={!isRunning() && !isBusy()}>
+            <button
+              class="launcher-btn launcher-btn--small"
+              aria-label="安全模式启动 OpenCode"
+              onClick={safeStart}
+            >
+              安全模式启动
+            </button>
+          </Show>
+          <Show when={isRunning()}>
+            <button class="launcher-btn launcher-btn--small" aria-label="打开 OpenCode 界面" onClick={openUI}>
+              打开界面
+            </button>
+            <button
+              class="launcher-btn launcher-btn--small launcher-btn--danger"
+              aria-label="停止 OpenCode"
+              disabled={isBusy()}
+              onClick={() => window.api.launcherStop()}
+            >
+              停止服务
+            </button>
+            <button
+              class="launcher-btn launcher-btn--small"
+              aria-label="重启 OpenCode"
+              disabled={isBusy()}
+              onClick={restart}
+            >
+              重启服务
+            </button>
+          </Show>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// 状态信息行：从 launcherGetStatus() 拉取端口/PID/版本/工作目录/运行时长。
+// main 端 status 只含 status+error，扩展信息按需读取（不破坏既有契约）。
+function StatusInfoRow() {
+  const [info, setInfo] = createSignal<{ port?: number; pid?: number; version?: string; cwd?: string; uptimeMs?: number }>({})
+  onMount(() => {
+    void window.api.launcherGetStatus().then((res) => {
+      // 既有契约只保证 status+error；扩展字段按需读取，缺失则不显示。
+      const ext = res as { port?: number; pid?: number; version?: string; cwd?: string; uptimeMs?: number }
+      setInfo({
+        port: ext.port,
+        pid: ext.pid,
+        version: ext.version,
+        cwd: ext.cwd,
+        uptimeMs: ext.uptimeMs,
+      })
+    })
+  })
+  const fmtUptime = (ms?: number) => {
+    if (ms === undefined) return undefined
+    const s = Math.floor(ms / 1000)
+    if (s < 60) return `${s}s`
+    const m = Math.floor(s / 60)
+    if (m < 60) return `${m}m${s % 60}s`
+    const h = Math.floor(m / 60)
+    return `${h}h${m % 60}m`
+  }
+  const items: Array<[string, string | undefined]> = [
+    ["端口", info().port ? String(info().port) : undefined],
+    ["PID", info().pid ? String(info().pid) : undefined],
+    ["版本", info().version],
+    ["工作目录", info().cwd],
+    ["运行时长", fmtUptime(info().uptimeMs)],
+  ]
+  return (
+    <div class="launcher-stage__info">
+      <For each={items}>
+        {(item) => (
+          <Show when={item[1]}>
+            <span class="launcher-stage__info-item">
+              <span class="launcher-stage__info-key">{item[0]}:</span>
+              <span class="launcher-stage__info-val">{item[1]}</span>
+            </span>
+          </Show>
+        )}
+      </For>
     </div>
   )
 }
@@ -1055,20 +1190,244 @@ function LauncherShell() {
 
   return (
     <div class="launcher-shell">
+      <AtmosphereLayer />
       <Titlebar />
       <main class="launcher-body">
-        <Hero />
-        <ControlPanel />
-        <SafeModePanel />
-        <SnapshotPanel />
-        <ResourcePanel />
-        <ConfigEditPanel />
-        <LlmApiPanel />
-        <PluginManagementPanel />
-        <UpdatePanel />
-        <SettingsPanel />
+        <SideNav />
+        <div class="launcher-content">
+          <PageRouter />
+        </div>
       </main>
       <Statusbar />
+    </div>
+  )
+}
+
+/* 墨染氛围层：远山墨晕 + 月光 + 金粉粒子。pointer-events: none。
+   prefers-reduced-motion 下动画与粒子由 CSS 关闭。 */
+function AtmosphereLayer() {
+  return (
+    <div class="launcher-atmosphere" aria-hidden="true">
+      <div class="launcher-atmosphere__mountains" />
+      <div class="launcher-atmosphere__moon" />
+      <div class="launcher-atmosphere__particles">
+        <For each={Array.from({ length: 12 })}>
+          {() => <span class="launcher-atmosphere__particle" />}
+        </For>
+      </div>
+    </div>
+  )
+}
+
+/* hash 路由：6 页导航。初始页 #control。 */
+const NAV_PAGES = [
+  { hash: "#control", label: "启动控制", icon: ControlIcon },
+  { hash: "#settings", label: "偏好设置", icon: SettingsIcon },
+  { hash: "#safemode", label: "安全模式", icon: ShieldIcon },
+  { hash: "#config", label: "配置", icon: ConfigIcon },
+  { hash: "#snapshots", label: "快照", icon: SnapshotIcon },
+  { hash: "#plugins", label: "插件", icon: PluginIcon },
+] as const
+
+function currentHash(): string {
+  if (typeof location === "undefined") return "#control"
+  const h = location.hash
+  if (!h || !NAV_PAGES.some((p) => p.hash === h)) return "#control"
+  return h
+}
+
+const [activeHash, setActiveHash] = createSignal<string>(currentHash())
+
+if (typeof window !== "undefined") {
+  window.addEventListener("hashchange", () => setActiveHash(currentHash()))
+}
+
+function navigate(hash: string) {
+  if (typeof location !== "undefined") location.hash = hash
+  setActiveHash(hash)
+}
+
+/* 侧边导航：唐风卷轴签风格，6 入口 + 快照角标 */
+function SideNav() {
+  return (
+    <nav class="launcher-nav" aria-label="启动器主导航">
+      <div class="launcher-nav__brand">墨染启动器</div>
+      <For each={NAV_PAGES}>
+        {(page) => {
+          const Icon = page.icon
+          const isCurrent = () => activeHash() === page.hash
+          return (
+            <button
+              class={`launcher-nav__item ${isCurrent() ? "launcher-nav__item--current" : ""}`}
+              aria-current={isCurrent() ? "page" : undefined}
+              aria-label={page.label}
+              onClick={() => navigate(page.hash)}
+            >
+              <span class="launcher-nav__icon">
+                <Icon />
+              </span>
+              <span class="launcher-nav__label">{page.label}</span>
+              <Show when={page.hash === "#snapshots" && snapshots().length > 0}>
+                <span class="launcher-nav__badge" aria-label={`${snapshots().length} 个快照`}>
+                  {snapshots().length}
+                </span>
+              </Show>
+            </button>
+          )
+        }}
+      </For>
+    </nav>
+  )
+}
+
+/* 页面路由：按 activeHash 渲染对应页组件（响应式 Switch/Match） */
+function PageRouter() {
+  return (
+    <Switch fallback={<ControlPage />}>
+      <Match when={activeHash() === "#control"}>
+        <ControlPage />
+      </Match>
+      <Match when={activeHash() === "#settings"}>
+        <SettingsPage />
+      </Match>
+      <Match when={activeHash() === "#safemode"}>
+        <SafeModePage />
+      </Match>
+      <Match when={activeHash() === "#config"}>
+        <ConfigPage />
+      </Match>
+      <Match when={activeHash() === "#snapshots"}>
+        <SnapshotsPage />
+      </Match>
+      <Match when={activeHash() === "#plugins"}>
+        <PluginsPage />
+      </Match>
+    </Switch>
+  )
+}
+
+/* 6 个导航图标：唐风线描，24 网格，stroke 1.8，currentColor */
+function ControlIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="7" />
+      <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+function SettingsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" />
+    </svg>
+  )
+}
+
+function ShieldIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2l8 3v7c0 5-3.5 8-8 10-4.5-2-8-5-8-10V5z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  )
+}
+
+function ConfigIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 9h18M9 9v12" />
+    </svg>
+  )
+}
+
+function SnapshotIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  )
+}
+
+function PluginIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 7h6v4h6V7h6v10H3z" />
+      <path d="M9 11v2M15 11v2" />
+    </svg>
+  )
+}
+
+/* === 6 个页组件 === */
+
+/* 工单 03：启动控制主舞台页 */
+function ControlPage() {
+  return (
+    <div class="launcher-page">
+      <h2 class="launcher-page__title">启动控制</h2>
+      <p class="launcher-page__subtitle">中央启动舞台——状态即视觉，一眼即得。</p>
+      <ControlPanel />
+      <UpdatePanel />
+      <ResourcePanel />
+    </div>
+  )
+}
+
+/* 工单 08：偏好设置页 */
+function SettingsPage() {
+  return (
+    <div class="launcher-page">
+      <h2 class="launcher-page__title">偏好设置</h2>
+      <p class="launcher-page__subtitle">打开启动器后是否直接启动 OpenCode。</p>
+      <SettingsPanel />
+    </div>
+  )
+}
+
+/* 工单 06：安全模式页 */
+function SafeModePage() {
+  return (
+    <div class="launcher-page">
+      <h2 class="launcher-page__title">安全模式</h2>
+      <p class="launcher-page__subtitle">事故排查全套——跳过插件、逐个启停、加载详情、诊断日志与报告。</p>
+      <SafeModePanel />
+    </div>
+  )
+}
+
+/* 工单 05：配置页 */
+function ConfigPage() {
+  return (
+    <div class="launcher-page">
+      <h2 class="launcher-page__title">配置</h2>
+      <p class="launcher-page__subtitle">打开配置文件、模型与插件快捷编辑、LLM API 快捷配置。</p>
+      <ConfigEditPanel />
+      <LlmApiPanel />
+    </div>
+  )
+}
+
+/* 工单 04：快照页时间线 */
+function SnapshotsPage() {
+  return (
+    <div class="launcher-page">
+      <h2 class="launcher-page__title">快照时间线</h2>
+      <p class="launcher-page__subtitle">配置回滚点——自动/手动、tag、导入导出、回滚、备注。</p>
+      <SnapshotPanel />
+    </div>
+  )
+}
+
+/* 工单 07：插件页 */
+function PluginsPage() {
+  return (
+    <div class="launcher-page">
+      <h2 class="launcher-page__title">插件管理</h2>
+      <p class="launcher-page__subtitle">安装、卸载、查看来源与版本。</p>
+      <PluginManagementPanel />
     </div>
   )
 }

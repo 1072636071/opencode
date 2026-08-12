@@ -1,26 +1,46 @@
-/* 姜晓视觉主题令牌（深色）——与 DESIGN.md §10 同值。
+/* 姜晓视觉主题令牌（深色）——DESIGN.md §10 定稿令牌块唯一落地。
    launcher 是独立 renderer 入口，不依赖 app 主题系统，故自洽内联令牌块。
-   令牌名遵循 AGENTS.md 规范（--jx-*），禁止裸值。 */
+   与 app 侧 html[data-theme="jiangxiao"] 同值，消灭漂移；禁止裸值字面量。 */
 :root,
 html[data-theme="jiangxiao"] {
+  /* Surface 表面色阶（0 最深/底、3 最浅/raised；深色=黑檀深色系） */
   --jx-surface-0: #0b090d;
   --jx-surface-1: #121016;
   --jx-surface-2: #1a1620;
   --jx-surface-3: #2d242f;
+  /* Text 文字色阶（strong 最强调、faint 最弱；深色=浅色字） */
   --jx-text-strong: #f2ead8;
   --jx-text-base: #f2ead8;
   --jx-text-weak: #a99c8a;
   --jx-text-faint: #a99c8a;
+  /* Gold 金族（品牌金色，强调/装饰，与 text-* 文字语用区分） */
   --jx-gold-bright: #f6d365;
   --jx-gold: #d6b34a;
   --jx-gold-deep: #b8860b;
   --jx-gold-dim: #996515;
   --jx-ginkgo: #dfb793;
+  --jx-gold-foil: linear-gradient(
+    135deg,
+    #f6d365 0%,
+    #fda085 50%,
+    #b8860b 100%
+  );
+  /* Seal 印章族（朱红印章按钮） */
   --jx-seal: #c7493a;
   --jx-seal-deep: #a8382b;
   --jx-seal-bright: #d85444;
   --jx-seal-ink: #fff8ef;
+  /* Atmosphere 氛围族（仅渐变/特效/插画层） */
+  --jx-mist: #b5a8b2;
+  --jx-mountain: #827686;
+  --jx-water: #767687;
+  --jx-cloud: #e7d3d2;
+  --jx-moon: #ecd8d8;
+  --jx-hair: #d1beca;
+  --jx-wisteria: #997694;
+  /* 朱红强调色（印章/窗口按钮） */
   --jx-cinnabar: #c3272b;
+  /* 深底高亮提亮变体（ADR-004：深底容器上 file/agent 高亮须提亮） */
   --jx-hl-file: #7fd8e8;
   --jx-hl-agent: #e5c07b;
   --jx-success: #86b08a;
@@ -30,9 +50,11 @@ html[data-theme="jiangxiao"] {
   --jx-selection: rgba(184, 134, 11, 0.3);
   --jx-scroll-track: #2a2210;
   --jx-scroll-thumb: #b8860b;
+  /* Typography */
   --jx-font-display: "Ma Shan Zheng", "Kaiti SC", "STKaiti", "KaiTi", serif;
   --jx-font-ui: "Noto Serif SC", "Songti SC", "SimSun", serif;
-  --jx-font-code: ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --jx-font-code:
+    ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
   --jx-fs-display: clamp(44px, 4.5vw, 64px);
   --jx-fs-h1: 32px;
   --jx-fs-h2: 24px;
@@ -42,6 +64,7 @@ html[data-theme="jiangxiao"] {
   --jx-fs-caption: 11px;
   --jx-lh-body: 1.8;
   --jx-ls-caps: 0.18em;
+  /* Spacing（4px 基准）/ Radius */
   --jx-space-1: 4px;
   --jx-space-2: 8px;
   --jx-space-3: 12px;
@@ -53,12 +76,35 @@ html[data-theme="jiangxiao"] {
   --jx-radius-md: 6px;
   --jx-radius-lg: 8px;
   --jx-radius-xl: 12px;
+  --jx-radius-seal: 50%;
+  /* Depth */
   --jx-shadow-1: 0 2px 8px rgba(5, 3, 8, 0.5);
   --jx-shadow-2: 0 8px 24px rgba(5, 3, 8, 0.55);
   --jx-gold-rim: 0 0 0 1px #3d3218, 0 0 14px rgba(246, 211, 101, 0.12);
+  --jx-moon-glow: 0 0 40px rgba(236, 216, 216, 0.25);
+  /* Z 层级 */
+  --jx-z-fx: 1;
+  --jx-z-content: 10;
+  --jx-z-character: 40;
+  --jx-z-demo: 43;
+  --jx-z-bubble: 45;
+  --jx-z-titlebar: 50;
+  --jx-z-toast: 80;
+  --jx-z-dialog: 100;
+  --jx-z-splash: 200;
+  /* Motion */
   --jx-dur-fast: 0.15s;
   --jx-dur: 0.35s;
+  --jx-breathe: 6s;
   --jx-ease: ease;
+  --jx-opacity-on: 1;
+  --jx-opacity-off: 0;
+  --jx-transition-none: none;
+  /* Icons（唐风线描 sprite） */
+  --jx-icon-stroke: 1.8;
+  --jx-icon-s: 13px;
+  --jx-icon-m: 16px;
+  --jx-icon-l: 20px;
 }
 
 * {
@@ -83,13 +129,98 @@ body {
   overflow: hidden;
 }
 
-/* launcher 外壳布局 */
+/* launcher 外壳布局：标题栏 + (侧边导航 + 内容区) + 状态栏 */
 .launcher-shell {
   display: flex;
   flex-direction: column;
   height: 100vh;
   background-color: var(--jx-surface-0);
-  background-image: radial-gradient(ellipse at top, rgba(184, 134, 11, 0.08) 0%, transparent 60%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 墨染氛围层：远山墨晕 + 月光 + 金粉粒子。pointer-events: none，不拦截交互。
+   z-index: --jx-z-fx（1），位于内容（--jx-z-content=10）之下。 */
+.launcher-atmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--jx-z-fx);
+  overflow: hidden;
+}
+
+/* 远山墨晕：底部双侧 radial-gradient，模拟远山雾气 */
+.launcher-atmosphere__mountains {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 95%, rgba(130, 118, 134, 0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 45% at 85% 98%, rgba(118, 118, 135, 0.15) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 30% at 50% 100%, rgba(181, 168, 178, 0.10) 0%, transparent 60%);
+}
+
+/* 月光：右上角柔和光晕，box-shadow glow（--jx-moon-glow） */
+.launcher-atmosphere__moon {
+  position: absolute;
+  top: 8%;
+  right: 6%;
+  width: 120px;
+  height: 120px;
+  border-radius: var(--jx-radius-seal);
+  background: radial-gradient(circle, rgba(236, 216, 216, 0.22) 0%, transparent 65%);
+  box-shadow: var(--jx-moon-glow);
+  animation: launcher-moon-breathe var(--jx-breathe) var(--jx-ease) infinite;
+}
+
+@keyframes launcher-moon-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.06); }
+}
+
+/* 金粉粒子：12 颗小圆点，CSS 动画错时漂移 */
+.launcher-atmosphere__particles {
+  position: absolute;
+  inset: 0;
+}
+
+.launcher-atmosphere__particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: var(--jx-radius-seal);
+  background-color: var(--jx-gold-bright);
+  opacity: 0.6;
+  animation: launcher-particle-drift var(--jx-breathe) var(--jx-ease) infinite;
+}
+
+.launcher-atmosphere__particle:nth-child(1) { top: 12%; left: 22%; animation-delay: 0s; }
+.launcher-atmosphere__particle:nth-child(2) { top: 28%; left: 78%; animation-delay: 0.5s; }
+.launcher-atmosphere__particle:nth-child(3) { top: 45%; left: 15%; animation-delay: 1s; }
+.launcher-atmosphere__particle:nth-child(4) { top: 62%; left: 88%; animation-delay: 1.5s; }
+.launcher-atmosphere__particle:nth-child(5) { top: 75%; left: 30%; animation-delay: 2s; }
+.launcher-atmosphere__particle:nth-child(6) { top: 85%; left: 65%; animation-delay: 2.5s; }
+.launcher-atmosphere__particle:nth-child(7) { top: 18%; left: 55%; animation-delay: 3s; }
+.launcher-atmosphere__particle:nth-child(8) { top: 38%; left: 42%; animation-delay: 3.5s; }
+.launcher-atmosphere__particle:nth-child(9) { top: 55%; left: 70%; animation-delay: 4s; }
+.launcher-atmosphere__particle:nth-child(10) { top: 70%; left: 10%; animation-delay: 4.5s; }
+.launcher-atmosphere__particle:nth-child(11) { top: 92%; left: 50%; animation-delay: 5s; }
+.launcher-atmosphere__particle:nth-child(12) { top: 8%; left: 88%; animation-delay: 5.5s; }
+
+@keyframes launcher-particle-drift {
+  0% { transform: translate(0, 0); opacity: 0.2; }
+  50% { transform: translate(8px, -12px); opacity: 0.7; }
+  100% { transform: translate(-6px, 6px); opacity: 0.2; }
+}
+
+/* prefers-reduced-motion：关闭动画与粒子漂移 */
+@media (prefers-reduced-motion: reduce) {
+  .launcher-atmosphere__moon,
+  .launcher-atmosphere__particle {
+    animation: none;
+  }
+  .launcher-atmosphere__particle {
+    opacity: 0.3;
+  }
 }
 
 /* 标题栏（自绘，Win11 frame:false / macOS titleBarStyle:hidden） */
@@ -148,16 +279,153 @@ body {
   fill: none;
 }
 
-/* 主体内容区 */
+/* 应用主体：左侧竖向唐风卷轴签导航 + 右侧内容区分页 */
 .launcher-body {
   flex: 1;
   display: flex;
+  min-height: 0;
+  z-index: var(--jx-z-content);
+}
+
+/* 侧边导航：唐风卷轴签风格，固定左侧不隐藏 */
+.launcher-nav {
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
   flex-direction: column;
+  padding: var(--jx-space-4) var(--jx-space-2);
+  gap: var(--jx-space-1);
+  background-color: var(--jx-surface-1);
+  border-right: 1px solid var(--jx-border-deco);
+  overflow-y: auto;
+}
+
+.launcher-nav__brand {
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h3);
+  color: var(--jx-gold-bright);
+  letter-spacing: var(--jx-ls-caps);
+  padding: var(--jx-space-2) var(--jx-space-3);
+  margin-bottom: var(--jx-space-3);
+  border-bottom: 1px solid var(--jx-border-deco);
+}
+
+/* 导航项：卷轴签形态，图标 + 多字中文标签 */
+.launcher-nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  padding: var(--jx-space-3) var(--jx-space-3);
+  border: 1px solid transparent;
+  border-radius: var(--jx-radius-md);
+  background: transparent;
+  color: var(--jx-text-weak);
+  font-family: var(--jx-font-ui);
+  font-size: var(--jx-fs-body);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition:
+    color var(--jx-dur-fast) var(--jx-ease),
+    background-color var(--jx-dur-fast) var(--jx-ease),
+    border-color var(--jx-dur-fast) var(--jx-ease);
+}
+
+.launcher-nav__item:hover {
+  color: var(--jx-gold-bright);
+  background-color: var(--jx-surface-2);
+}
+
+/* 当前页高亮：金线左缘 + 亮金底 */
+.launcher-nav__item--current {
+  color: var(--jx-gold-bright);
+  background-color: var(--jx-surface-2);
+  border-left: 2px solid var(--jx-gold-bright);
+  font-weight: 600;
+}
+
+.launcher-nav__icon {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--jx-space-12);
+  width: var(--jx-icon-l);
+  height: var(--jx-icon-l);
+  flex-shrink: 0;
+}
+
+.launcher-nav__icon svg {
+  width: var(--jx-icon-m);
+  height: var(--jx-icon-m);
+  stroke: currentColor;
+  stroke-width: var(--jx-icon-stroke);
+  fill: none;
+}
+
+.launcher-nav__label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 快照数量角标 */
+.launcher-nav__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--jx-space-1);
+  border-radius: var(--jx-radius-seal);
+  background-color: var(--jx-gold-deep);
+  color: var(--jx-surface-0);
+  font-size: var(--jx-fs-caption);
+  font-family: var(--jx-font-code);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* 内容区：按 hash 路由切换分页 */
+.launcher-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: var(--jx-space-6);
+  background-color: var(--jx-surface-0);
+}
+
+.launcher-page {
+  display: flex;
+  flex-direction: column;
   gap: var(--jx-space-6);
-  overflow: auto;
+  max-width: 720px;
+  margin: 0 auto;
+  animation: launcher-page-fade var(--jx-dur) var(--jx-ease);
+}
+
+@keyframes launcher-page-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .launcher-page {
+    animation: none;
+  }
+}
+
+.launcher-page__title {
+  margin: 0;
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h2);
+  color: var(--jx-gold-bright);
+  letter-spacing: var(--jx-ls-caps);
+}
+
+.launcher-page__subtitle {
+  margin: 0;
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-weak);
 }
 
 .launcher-hero__title {
@@ -218,13 +486,150 @@ body {
   background-color: var(--jx-error);
 }
 
-/* 控制面板（启动/停止按钮） */
+/* 启动控制主舞台：大型金色圆环启停纽 + 状态光环 */
 .launcher-control {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: var(--jx-space-4);
+  padding: var(--jx-space-6) 0;
+}
+
+.launcher-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--jx-space-4);
+}
+
+/* 圆环启停纽：直径按高度缩放，最小 720×480 下仍完整可用 */
+.launcher-stage__ring {
+  width: clamp(120px, 22vh, 180px);
+  height: clamp(120px, 22vh, 180px);
+  border-radius: var(--jx-radius-seal);
+  border: 2px solid var(--jx-gold-deep);
+  background: var(--jx-surface-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h3);
+  color: var(--jx-gold-bright);
+  letter-spacing: var(--jx-ls-caps);
+  transition:
+    border-color var(--jx-dur) var(--jx-ease),
+    box-shadow var(--jx-dur) var(--jx-ease),
+    background var(--jx-dur) var(--jx-ease);
+  outline: none;
+}
+
+.launcher-stage__ring:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* 四态可区分：idle/starting/running/failed */
+.launcher-stage__ring--idle {
+  border-color: var(--jx-gold-deep);
+  box-shadow: 0 0 0 1px var(--jx-border-deco), 0 0 24px rgba(184, 134, 11, 0.18);
+}
+
+.launcher-stage__ring--idle:hover:not(:disabled) {
+  border-color: var(--jx-gold-bright);
+  box-shadow: 0 0 0 1px var(--jx-gold-deep), 0 0 36px rgba(246, 211, 101, 0.35);
+}
+
+.launcher-stage__ring--starting {
+  border-color: var(--jx-warn);
+  box-shadow: 0 0 0 1px var(--jx-warn), 0 0 32px rgba(217, 160, 91, 0.4);
+  animation: launcher-stage-pulse var(--jx-breathe) var(--jx-ease) infinite;
+}
+
+.launcher-stage__ring--running {
+  border-color: var(--jx-success);
+  box-shadow: 0 0 0 1px var(--jx-success), 0 0 32px rgba(134, 176, 138, 0.35);
+  animation: launcher-stage-breathe var(--jx-breathe) var(--jx-ease) infinite;
+}
+
+.launcher-stage__ring--failed {
+  border-color: var(--jx-error);
+  box-shadow: 0 0 0 1px var(--jx-seal-deep), 0 0 32px rgba(208, 101, 82, 0.4);
+}
+
+@keyframes launcher-stage-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+@keyframes launcher-stage-breathe {
+  0%, 100% { box-shadow: 0 0 0 1px var(--jx-success), 0 0 24px rgba(134, 176, 138, 0.25); }
+  50% { box-shadow: 0 0 0 1px var(--jx-success), 0 0 40px rgba(134, 176, 138, 0.5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .launcher-stage__ring--starting,
+  .launcher-stage__ring--running {
+    animation: none;
+  }
+}
+
+.launcher-stage__ring-label {
+  text-align: center;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+/* 状态信息行：端口/PID/版本/工作目录/运行时长 */
+.launcher-stage__info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--jx-space-3) var(--jx-space-6);
+  justify-content: center;
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-weak);
+  font-family: var(--jx-font-code);
+  max-width: 480px;
+}
+
+.launcher-stage__info-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jx-space-1);
+}
+
+.launcher-stage__info-key {
+  color: var(--jx-text-faint);
+}
+
+.launcher-stage__info-val {
+  color: var(--jx-gold);
+}
+
+/* 主舞台次按钮行：安全模式启动 / 打开界面 / 停止 / 重启 */
+.launcher-stage__actions {
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--jx-space-3);
-  margin-top: var(--jx-space-6);
+  justify-content: center;
+}
+
+/* 启动失败就近错误摘要 + 诊断入口 */
+.launcher-stage__error {
+  max-width: 520px;
+  margin: 0;
+  padding: var(--jx-space-3) var(--jx-space-4);
+  background-color: var(--jx-surface-2);
+  border: 1px solid var(--jx-error);
+  border-radius: var(--jx-radius-md);
+  color: var(--jx-error);
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 120px;
+  overflow: auto;
 }
 
 .launcher-btn {
