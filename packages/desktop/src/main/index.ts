@@ -6,7 +6,7 @@ import { homedir, tmpdir } from "node:os"
 import { join } from "node:path"
 import { getCACertificates, setDefaultCACertificates } from "node:tls"
 import type { Event } from "electron"
-import { app, BrowserWindow } from "electron"
+import { app, BrowserWindow, globalShortcut, ipcMain } from "electron"
 
 // 必须在 app ready 之前（模块顶层同步执行）。
 // 默认保留硬件加速；仅在已知崩溃环境（无 GPU / 虚拟化）按需降级：
