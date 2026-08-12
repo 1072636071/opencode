@@ -191,8 +191,6 @@ export const dict = {
   "command.session.share.description": "Поделиться сессией и скопировать URL в буфер обмена",
   "command.session.unshare": "Отменить публикацию",
   "command.session.unshare.description": "Прекратить публикацию сессии",
-  "command.session.export": "Экспортировать сеанс",
-  "command.session.export.description": "Экспортировать полную стенограмму сеанса в формате JSON",
 
   "command.session.export": "Экспортировать сессию",
   "command.session.export.description": "Экспортировать полную историю сессии в формате JSON",
@@ -583,7 +581,6 @@ export const dict = {
 
   "context.systemPrompt.title": "Системный промпт",
   "context.rawMessages.title": "Исходные сообщения",
-  "context.export.session": "Экспортировать сеанс",
 
   "context.export.session": "Экспортировать сессию",
 
@@ -957,10 +954,10 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Нижняя навигация",
   "settings.general.row.mobileTitlebarBottom.description":
     "На мобильных устройствах размещать строку заголовка и вкладки сессии внизу экрана",
-  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Выбор агента",
   "settings.general.row.showCustomAgents.description":
     "Показывать переключатель агентов в редакторе запросов. Если он скрыт, по умолчанию используется агент Build.",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.backgroundDeco.title": "Фоновое украшение",
   "settings.general.row.backgroundDeco.description":
     "Показывать декоративные эффекты на фоне. Уважает системную настройку уменьшения движения.",
@@ -1098,9 +1095,9 @@ export const dict = {
   "settings.models.description": "Настройки моделей будут доступны здесь.",
   "settings.agents.title": "Агенты",
   "settings.skills.title": "Навыки",
-  "settings.agents.description": "Настройки агентов будут доступны здесь.",
   "settings.agents.model.placeholder": "Авто",
   "settings.agents.toast.saved.title": "Привязка модели сохранена для {name}",
+  "settings.agents.description": "Настройки агентов будут доступны здесь.",
   "settings.commands.title": "Команды",
   "settings.commands.description": "Настройки команд будут доступны здесь.",
   "settings.mcp.title": "MCP",

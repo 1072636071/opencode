@@ -190,8 +190,6 @@ export const dict = {
   "command.session.share.description": "Del denne sesjonen og kopier URL-en til utklippstavlen",
   "command.session.unshare": "Slutt å dele sesjon",
   "command.session.unshare.description": "Slutt å dele denne sesjonen",
-  "command.session.export": "Eksporter økt",
-  "command.session.export.description": "Eksporter hele økttranskriptet som JSON",
 
   "command.session.export": "Eksporter sesjon",
   "command.session.export.description": "Eksporter hele sesjonsutskriften som JSON",
@@ -489,7 +487,6 @@ export const dict = {
 
   "context.systemPrompt.title": "Systemprompt",
   "context.rawMessages.title": "Rå meldinger",
-  "context.export.session": "Eksporter økt",
 
   "context.export.session": "Eksporter sesjon",
 
@@ -911,9 +908,9 @@ export const dict = {
   "settings.models.description": "Modellinnstillinger vil kunne konfigureres her.",
   "settings.agents.title": "Agenter",
   "settings.skills.title": "Ferdigheter",
-  "settings.agents.description": "Agentinnstillinger vil kunne konfigureres her.",
   "settings.agents.model.placeholder": "Automatisk",
   "settings.agents.toast.saved.title": "Modellbinding lagret for {name}",
+  "settings.agents.description": "Agentinnstillinger vil kunne konfigureres her.",
   "settings.commands.title": "Kommandoer",
   "settings.commands.description": "Kommandoinnstillinger vil kunne konfigureres her.",
   "settings.mcp.title": "MCP",
@@ -1260,10 +1257,10 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Navigasjon nederst",
   "settings.general.row.mobileTitlebarBottom.description":
     "Plasser tittellinjen og sesjonsfanene nederst på mobilskjermen",
-  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Vis agent",
   "settings.general.row.showCustomAgents.description":
     "Bytt mellom agenter i skrivefeltet. Når velgeren er skjult, brukes Build-agenten som standard.",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.backgroundDeco.title": "Bakgrunnsdekorasjon",
   "settings.general.row.backgroundDeco.description":
     "Vis dekorative effekter på bakgrunnen. Respekterer systemets reduserte bevegelse-preferanse.",

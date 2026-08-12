@@ -91,8 +91,6 @@ export const dict = {
   "command.session.share.description": "Del denne session og kopier URL'en til udklipsholderen",
   "command.session.unshare": "Stop deling af session",
   "command.session.unshare.description": "Stop med at dele denne session",
-  "command.session.export": "Eksportér session",
-  "command.session.export.description": "Eksportér hele sessionstranskriptet som JSON",
 
   "command.session.export": "Eksportér session",
   "command.session.export.description": "Eksportér hele sessionsudskriften som JSON",
@@ -465,7 +463,6 @@ export const dict = {
 
   "context.systemPrompt.title": "Systemprompt",
   "context.rawMessages.title": "Rå beskeder",
-  "context.export.session": "Eksportér session",
 
   "context.export.session": "Eksportér session",
 
@@ -830,10 +827,10 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Navigation nederst",
   "settings.general.row.mobileTitlebarBottom.description":
     "Placer titellinjen og sessionsfanerne nederst på skærmen på mobilenheder",
-  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Vis agent",
   "settings.general.row.showCustomAgents.description":
     "Skift mellem agenter i promptfeltet. Når vælgeren er skjult, bruges Build-agenten som standard.",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.backgroundDeco.title": "Baggrundsdekoration",
   "settings.general.row.backgroundDeco.description":
     "Vis dekorative effekter på baggrunden. Respekterer systemets reducerede bevægelse-præference.",
@@ -968,9 +965,9 @@ export const dict = {
   "settings.models.description": "Modelindstillinger vil kunne konfigureres her.",
   "settings.agents.title": "Agenter",
   "settings.skills.title": "Færdigheder",
-  "settings.agents.description": "Agentindstillinger vil kunne konfigureres her.",
   "settings.agents.model.placeholder": "Automatisk",
   "settings.agents.toast.saved.title": "Modelbinding gemt for {name}",
+  "settings.agents.description": "Agentindstillinger vil kunne konfigureres her.",
   "settings.commands.title": "Kommandoer",
   "settings.commands.description": "Kommandoindstillinger vil kunne konfigureres her.",
   "settings.mcp.title": "MCP",

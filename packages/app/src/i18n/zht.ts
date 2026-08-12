@@ -194,8 +194,6 @@ export const dict = {
   "command.session.share.description": "分享此工作階段並將連結複製到剪貼簿",
   "command.session.unshare": "取消分享工作階段",
   "command.session.unshare.description": "停止分享此工作階段",
-  "command.session.export": "匯出工作階段",
-  "command.session.export.description": "將工作階段的完整記錄匯出為 JSON",
 
   "command.session.export": "匯出工作階段",
   "command.session.export.description": "將完整的工作階段記錄匯出為 JSON",
@@ -576,7 +574,6 @@ export const dict = {
 
   "context.systemPrompt.title": "系統提示詞",
   "context.rawMessages.title": "原始訊息",
-  "context.export.session": "匯出工作階段",
 
   "context.export.session": "匯出工作階段",
 
@@ -930,9 +927,9 @@ export const dict = {
   "settings.general.row.showStatus.description": "在標題列中顯示伺服器狀態按鈕",
   "settings.general.row.mobileTitlebarBottom.title": "底部導覽",
   "settings.general.row.mobileTitlebarBottom.description": "在行動裝置上將標題列和工作階段分頁置於畫面底部",
-  "settings.general.row.skillCommands.title": "技能命令",
   "settings.general.row.showCustomAgents.title": "自訂代理程式",
   "settings.general.row.showCustomAgents.description": "在輸入區顯示代理程式選擇器",
+  "settings.general.row.skillCommands.title": "技能命令",
   "settings.general.row.backgroundDeco.title": "背景裝飾",
   "settings.general.row.backgroundDeco.description": "在背景顯示裝飾特效。將遵循系統的減少動效偏好。",
   "settings.general.row.backgroundDeco.off": "關閉",
@@ -1062,9 +1059,9 @@ export const dict = {
   "settings.models.description": "模型設定將在此處可設定。",
   "settings.agents.title": "代理程式",
   "settings.skills.title": "技能命令",
-  "settings.agents.description": "代理程式設定將在此處可設定。",
   "settings.agents.model.placeholder": "自動",
   "settings.agents.toast.saved.title": "已儲存 {name} 的模型綁定",
+  "settings.agents.description": "代理程式設定將在此處可設定。",
   "settings.commands.title": "命令",
   "settings.commands.description": "命令設定將在此處可設定。",
   "settings.mcp.title": "MCP",

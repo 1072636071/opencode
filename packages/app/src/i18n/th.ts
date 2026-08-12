@@ -190,8 +190,6 @@ export const dict = {
   "command.session.share.description": "แชร์เซสชันนี้และคัดลอก URL ไปยังคลิปบอร์ด",
   "command.session.unshare": "ยกเลิกการแชร์เซสชัน",
   "command.session.unshare.description": "หยุดการแชร์เซสชันนี้",
-  "command.session.export": "ส่งออกเซสชัน",
-  "command.session.export.description": "ส่งออกบันทึกเซสชันทั้งหมดเป็น JSON",
 
   "command.session.export": "ส่งออกเซสชัน",
   "command.session.export.description": "ส่งออกบันทึกทั้งหมดของเซสชันเป็น JSON",
@@ -579,7 +577,6 @@ export const dict = {
 
   "context.systemPrompt.title": "พรอมต์ระบบ",
   "context.rawMessages.title": "ข้อความดิบ",
-  "context.export.session": "ส่งออกเซสชัน",
 
   "context.export.session": "ส่งออกเซสชัน",
 
@@ -762,6 +759,7 @@ export const dict = {
   "session.review.noChanges": "ไม่มีการเปลี่ยนแปลง",
   "session.review.noUncommittedChanges": "ยังไม่มีการเปลี่ยนแปลงที่รอคอมมิต",
   "session.review.noBranchChanges": "ยังไม่มีการเปลี่ยนแปลงในสาขา",
+
   "time.yesterday": "เมื่อวาน",
   "session.review.collapse": "ย่อ",
   "session.review.collapse.ariaLabel": "ย่อพานอลตรวจสอบ",
@@ -940,10 +938,10 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "การนำทางด้านล่าง",
   "settings.general.row.mobileTitlebarBottom.description":
     "วางแถบชื่อเรื่องและแท็บเซสชันไว้ด้านล่างของหน้าจอบนอุปกรณ์เคลื่อนที่",
-  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "แสดงเอเจนต์",
   "settings.general.row.showCustomAgents.description":
     "สลับระหว่างเอเจนต์ในช่องเขียนข้อความ เมื่อซ่อน ระบบจะใช้เอเจนต์ Build เป็นค่าเริ่มต้น",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.backgroundDeco.title": "การตกแต่งพื้นหลัง",
   "settings.general.row.backgroundDeco.description":
     "แสดงเอฟเฟกต์ตกแต่งบนพื้นหลัง เคาร่อการตั้งค่าลดการเคลื่อนไหวของระบบ",
@@ -1076,9 +1074,9 @@ export const dict = {
   "settings.models.description": "การตั้งค่าโมเดลจะสามารถกำหนดค่าได้ที่นี่",
   "settings.agents.title": "เอเจนต์",
   "settings.skills.title": "ทักษะ",
-  "settings.agents.description": "การตั้งค่าเอเจนต์จะสามารถกำหนดค่าได้ที่นี่",
   "settings.agents.model.placeholder": "อัตโนมัติ",
   "settings.agents.toast.saved.title": "บันทึกการผูกโมเดลสำหรับ {name} แล้ว",
+  "settings.agents.description": "การตั้งค่าเอเจนต์จะสามารถกำหนดค่าได้ที่นี่",
   "settings.commands.title": "คำสั่ง",
   "settings.commands.description": "การตั้งค่าคำสั่งจะสามารถกำหนดค่าได้ที่นี่",
   "settings.mcp.title": "MCP",

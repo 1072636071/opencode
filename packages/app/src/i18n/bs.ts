@@ -192,8 +192,6 @@ export const dict = {
   "command.session.share.description": "Podijeli ovu sesiju i kopiraj URL u međuspremnik",
   "command.session.unshare": "Ukini dijeljenje sesije",
   "command.session.unshare.description": "Zaustavi dijeljenje ove sesije",
-  "command.session.export": "Izvezi sesiju",
-  "command.session.export.description": "Izvezi kompletan transkript sesije kao JSON",
 
   "command.session.export": "Izvezi sesiju",
   "command.session.export.description": "Izvezi cijeli zapis sesije u JSON formatu",
@@ -584,7 +582,6 @@ export const dict = {
 
   "context.systemPrompt.title": "Sistemski prompt",
   "context.rawMessages.title": "Sirove poruke",
-  "context.export.session": "Izvezi sesiju",
 
   "context.export.session": "Izvezi sesiju",
 
@@ -771,6 +768,7 @@ export const dict = {
   "session.review.noChanges": "Nema izmjena",
   "session.review.noUncommittedChanges": "Još nema promjena koje nisu commitovane",
   "session.review.noBranchChanges": "Još nema promjena na grani",
+
   "time.yesterday": "Juče",
   "session.review.collapse": "Skupi",
   "session.review.collapse.ariaLabel": "Skupi panel za pregled",
@@ -954,9 +952,9 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Donja navigacija",
   "settings.general.row.mobileTitlebarBottom.description":
     "Postavi naslovnu traku i kartice sesije na dno ekrana na mobilnim uređajima",
-  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Prilagođeni agenti",
   "settings.general.row.showCustomAgents.description": "Prikaži izbor agenta u uređivaču poruke",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.backgroundDeco.title": "Dekoracija pozadine",
   "settings.general.row.backgroundDeco.description":
     "Prikaz dekorativnih efekata na pozadini. Poštuje sistemsku preferenciju smanjenog kretanja.",
@@ -1094,9 +1092,9 @@ export const dict = {
   "settings.models.description": "Postavke modela će se ovdje moći podešavati.",
   "settings.agents.title": "Agenti",
   "settings.skills.title": "Vještine",
-  "settings.agents.description": "Postavke agenata će se ovdje moći podešavati.",
   "settings.agents.model.placeholder": "Automatski",
   "settings.agents.toast.saved.title": "Povezivanje modela sačuvano za {name}",
+  "settings.agents.description": "Postavke agenata će se ovdje moći podešavati.",
   "settings.commands.title": "Komande",
   "settings.commands.description": "Postavke komandi će se ovdje moći podešavati.",
   "settings.mcp.title": "MCP",

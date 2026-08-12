@@ -196,8 +196,6 @@ export const dict = {
   "command.session.share.description": "Bu oturumu paylaş ve URL'yi panoya kopyala",
   "command.session.unshare": "Paylaşımı kaldır",
   "command.session.unshare.description": "Bu oturumun paylaşımını durdur",
-  "command.session.export": "Oturumu dışa aktar",
-  "command.session.export.description": "Oturum dökümünün tamamını JSON olarak dışa aktar",
 
   "command.session.export": "Oturumu dışa aktar",
   "command.session.export.description": "Oturumun tam dökümünü JSON olarak dışa aktar",
@@ -587,7 +585,6 @@ export const dict = {
 
   "context.systemPrompt.title": "Sistem İstemi",
   "context.rawMessages.title": "Ham mesajlar",
-  "context.export.session": "Oturumu dışa aktar",
 
   "context.export.session": "Oturumu dışa aktar",
 
@@ -775,6 +772,7 @@ export const dict = {
   "session.review.noChanges": "Değişiklik yok",
   "session.review.noUncommittedChanges": "Henüz işlenmemiş değişiklik yok",
   "session.review.noBranchChanges": "Henüz dal değişikliği yok",
+
   "time.yesterday": "Dün",
   "session.review.collapse": "Daralt",
   "session.review.collapse.ariaLabel": "İnceleme panelini daralt",
@@ -960,10 +958,10 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Alt gezinme",
   "settings.general.row.mobileTitlebarBottom.description":
     "Mobil cihazlarda başlık çubuğunu ve oturum sekmelerini ekranın altına yerleştir",
-  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Ajanı göster",
   "settings.general.row.showCustomAgents.description":
     "Düzenleyicide ajanlar arasında geçiş yapın. Gizlendiğinde varsayılan olarak Build ajanı kullanılır.",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.backgroundDeco.title": "Arka plan dekorasyonu",
   "settings.general.row.backgroundDeco.description":
     "Arka planda dekoratif efektler göster. Sistemin azaltılmış hareket tercihine saygı duyar.",
@@ -1102,9 +1100,9 @@ export const dict = {
   "settings.models.description": "Model ayarları burada yapılandırılabilecek.",
   "settings.agents.title": "Ajanlar",
   "settings.skills.title": "Beceriler",
-  "settings.agents.description": "Ajan ayarları burada yapılandırılabilecek.",
   "settings.agents.model.placeholder": "Otomatik",
   "settings.agents.toast.saved.title": "{name} için model bağlama kaydedildi",
+  "settings.agents.description": "Ajan ayarları burada yapılandırılabilecek.",
   "settings.commands.title": "Komutlar",
   "settings.commands.description": "Komut ayarları burada yapılandırılabilecek.",
   "settings.mcp.title": "MCP",

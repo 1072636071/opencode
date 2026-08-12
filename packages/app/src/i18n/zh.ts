@@ -217,8 +217,6 @@ export const dict = {
   "command.session.share.description": "分享此会话并将链接复制到剪贴板",
   "command.session.unshare": "取消分享会话",
   "command.session.unshare.description": "停止分享此会话",
-  "command.session.export": "导出会话",
-  "command.session.export.description": "将会话完整记录导出为 JSON",
 
   "command.session.export": "导出会话",
   "command.session.export.description": "将完整会话记录导出为 JSON",
@@ -934,9 +932,9 @@ export const dict = {
   "settings.general.row.showStatus.description": "在标题栏中显示服务器状态按钮",
   "settings.general.row.mobileTitlebarBottom.title": "底部导航",
   "settings.general.row.mobileTitlebarBottom.description": "在移动设备上将标题栏和会话标签页置于屏幕底部",
-  "settings.general.row.skillCommands.title": "技能命令",
   "settings.general.row.showCustomAgents.title": "显示智能体",
   "settings.general.row.showCustomAgents.description": "在输入框中切换智能体。隐藏时默认使用 Build 智能体。",
+  "settings.general.row.skillCommands.title": "技能命令",
   "settings.general.row.backgroundDeco.title": "背景装饰",
   "settings.general.row.backgroundDeco.description": "在背景显示装饰特效。将遵循系统的减少动效偏好。",
   "settings.general.row.backgroundDeco.off": "关闭",
@@ -1065,9 +1063,10 @@ export const dict = {
 
   "settings.agents.title": "智能体",
   "settings.skills.title": "技能命令",
-  "settings.agents.description": "可在此处配置智能体设置。",
   "settings.agents.model.placeholder": "自动",
   "settings.agents.toast.saved.title": "已保存 {name} 的模型绑定",
+
+  "settings.agents.description": "可在此处配置智能体设置。",
 
   "settings.commands.title": "命令",
   "settings.commands.description": "可在此处配置命令设置。",

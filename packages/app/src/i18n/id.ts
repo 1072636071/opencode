@@ -192,8 +192,6 @@ export const dict = {
   "command.session.share.description": "Bagikan sesi ini dan salin URL ke papan klip",
   "command.session.unshare": "Hentikan berbagi",
   "command.session.unshare.description": "Hentikan berbagi sesi ini",
-  "command.session.export": "Ekspor sesi",
-  "command.session.export.description": "Ekspor transkrip lengkap sesi sebagai JSON",
 
   "command.session.export": "Ekspor sesi",
   "command.session.export.description": "Ekspor transkrip sesi lengkap sebagai JSON",
@@ -594,7 +592,6 @@ export const dict = {
 
   "context.systemPrompt.title": "Prompt Sistem",
   "context.rawMessages.title": "Pesan mentah",
-  "context.export.session": "Ekspor sesi",
 
   "context.export.session": "Ekspor sesi",
 
@@ -793,6 +790,7 @@ export const dict = {
   "session.review.noChanges": "Tidak ada perubahan",
   "session.review.noUncommittedChanges": "Belum ada perubahan yang belum dikomit",
   "session.review.noBranchChanges": "Belum ada perubahan cabang",
+
   "time.yesterday": "Kemarin",
   "session.review.collapse": "Lipat",
   "session.review.collapse.ariaLabel": "Lipat panel tinjauan",
@@ -1046,10 +1044,10 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Navigasi bawah",
   "settings.general.row.mobileTitlebarBottom.description":
     "Tempatkan bilah judul dan tab sesi di bagian bawah layar pada perangkat seluler",
-  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Tampilkan agen",
   "settings.general.row.showCustomAgents.description":
     "Beralih antaragen di penyusun. Saat disembunyikan, Agen Build digunakan sebagai bawaan.",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.backgroundDeco.title": "Dekorasi latar belakang",
   "settings.general.row.backgroundDeco.description":
     "Tampilkan efek dekoratif di latar belakang. Menghormati preferensi gerakan yang dikurangi sistem.",
@@ -1188,9 +1186,9 @@ export const dict = {
   "settings.models.description": "Pengaturan model akan dapat dikonfigurasi di sini.",
   "settings.agents.title": "Agen",
   "settings.skills.title": "Keterampilan",
-  "settings.agents.description": "Pengaturan agen akan dapat dikonfigurasi di sini.",
   "settings.agents.model.placeholder": "Otomatis",
   "settings.agents.toast.saved.title": "Ikatan model disimpan untuk {name}",
+  "settings.agents.description": "Pengaturan agen akan dapat dikonfigurasi di sini.",
   "settings.commands.title": "Perintah",
   "settings.commands.description": "Pengaturan perintah akan dapat dikonfigurasi di sini.",
   "settings.mcp.title": "MCP",

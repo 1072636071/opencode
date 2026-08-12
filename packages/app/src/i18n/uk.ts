@@ -192,8 +192,6 @@ export const dict = {
   "command.session.share.description": "Поділитися цією сесією та скопіювати URL у буфер обміну",
   "command.session.unshare": "Припинити поширення сесії",
   "command.session.unshare.description": "Припинити поширення цієї сесії",
-  "command.session.export": "Експортувати сеанс",
-  "command.session.export.description": "Експортувати повний транскрипт сеансу у форматі JSON",
 
   "command.session.export": "Експортувати сесію",
   "command.session.export.description": "Експортувати повну історію сесії у форматі JSON",
@@ -597,7 +595,6 @@ export const dict = {
 
   "context.systemPrompt.title": "Системний запит",
   "context.rawMessages.title": "Необроблені повідомлення",
-  "context.export.session": "Експортувати сеанс",
 
   "context.export.session": "Експортувати сесію",
 
@@ -797,6 +794,7 @@ export const dict = {
   "session.review.noChanges": "Немає змін",
   "session.review.noUncommittedChanges": "Ще немає незафіксованих змін",
   "session.review.noBranchChanges": "Ще немає змін у гілці",
+
   "time.yesterday": "Вчора",
   "session.review.collapse": "Згорнути",
   "session.review.collapse.ariaLabel": "Згорнути панель перевірки",
@@ -1062,10 +1060,10 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Нижня навігація",
   "settings.general.row.mobileTitlebarBottom.description":
     "Розмістити панель заголовка та вкладки сесії внизу екрана на мобільних пристроях",
-  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Показувати агента",
   "settings.general.row.showCustomAgents.description":
     "Перемикатися між агентами в редакторі запиту. Якщо приховано, типовим є агент Build.",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.backgroundDeco.title": "Фонове прикраса",
   "settings.general.row.backgroundDeco.description":
     "Показувати декоративні ефекти на фоні. Поважає системну настройку зменшення руху.",
@@ -1204,9 +1202,9 @@ export const dict = {
   "settings.models.description": "Налаштування моделей будуть доступні тут.",
   "settings.agents.title": "Агенти",
   "settings.skills.title": "Навички",
-  "settings.agents.description": "Налаштування агентів будуть доступні тут.",
   "settings.agents.model.placeholder": "Авто",
   "settings.agents.toast.saved.title": "Прив'язку моделі збережено для {name}",
+  "settings.agents.description": "Налаштування агентів будуть доступні тут.",
   "settings.commands.title": "Команди",
   "settings.commands.description": "Налаштування команд будуть доступні тут.",
   "settings.mcp.title": "MCP",

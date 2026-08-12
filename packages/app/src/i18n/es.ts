@@ -192,8 +192,6 @@ export const dict = {
   "command.session.share.description": "Compartir esta sesión y copiar la URL al portapapeles",
   "command.session.unshare": "Dejar de compartir sesión",
   "command.session.unshare.description": "Dejar de compartir esta sesión",
-  "command.session.export": "Exportar sesión",
-  "command.session.export.description": "Exportar la transcripción completa de la sesión como JSON",
 
   "command.session.export": "Exportar sesión",
   "command.session.export.description": "Exportar la transcripción completa de la sesión como JSON",
@@ -586,7 +584,6 @@ export const dict = {
 
   "context.systemPrompt.title": "Prompt del sistema",
   "context.rawMessages.title": "Mensajes en bruto",
-  "context.export.session": "Exportar sesión",
 
   "context.export.session": "Exportar sesión",
 
@@ -774,6 +771,7 @@ export const dict = {
   "session.review.noChanges": "Sin cambios",
   "session.review.noUncommittedChanges": "Aún no hay cambios sin confirmar",
   "session.review.noBranchChanges": "Aún no hay cambios en la rama",
+
   "time.yesterday": "Ayer",
   "session.review.collapse": "Contraer",
   "session.review.collapse.ariaLabel": "Contraer panel de revisión",
@@ -960,10 +958,10 @@ export const dict = {
   "settings.general.row.mobileTitlebarBottom.title": "Navegación inferior",
   "settings.general.row.mobileTitlebarBottom.description":
     "Colocar la barra de título y las pestañas de sesión en la parte inferior de la pantalla en dispositivos móviles",
-  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.showCustomAgents.title": "Mostrar agente",
   "settings.general.row.showCustomAgents.description":
     "Cambiar de agente en el editor. Si se oculta, se usa el agente Build de forma predeterminada.",
+  "settings.general.row.skillCommands.title": "Skill commands",
   "settings.general.row.backgroundDeco.title": "Decoración de fondo",
   "settings.general.row.backgroundDeco.description":
     "Mostrar efectos decorativos en el fondo. Respeta la preferencia de movimiento reducido del sistema.",
@@ -1103,9 +1101,9 @@ export const dict = {
   "settings.models.description": "La configuración de modelos estará disponible aquí.",
   "settings.agents.title": "Agentes",
   "settings.skills.title": "Habilidades",
-  "settings.agents.description": "La configuración de agentes estará disponible aquí.",
   "settings.agents.model.placeholder": "Automático",
   "settings.agents.toast.saved.title": "Vinculación de modelo guardada para {name}",
+  "settings.agents.description": "La configuración de agentes estará disponible aquí.",
   "settings.commands.title": "Comandos",
   "settings.commands.description": "La configuración de comandos estará disponible aquí.",
   "settings.mcp.title": "MCP",
