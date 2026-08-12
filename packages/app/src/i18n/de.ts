@@ -90,7 +90,8 @@ export const dict = {
   "command.session.unshare": "Teilen der Sitzung aufheben",
   "command.session.unshare.description": "Teilen dieser Sitzung beenden",
   "command.session.export": "Sitzung exportieren",
-  "command.session.export.description": "Das vollständige Sitzungsprotokoll als JSON exportieren",
+  "command.session.export.description": "Das vollständige Transkript der Sitzung als JSON exportieren",
+
   "palette.search.placeholder": "Dateien, Befehle und Sitzungen durchsuchen",
   "palette.search.placeholder.home": "Befehle und Sitzungen durchsuchen",
   "palette.empty": "Keine Ergebnisse gefunden",
@@ -428,6 +429,8 @@ export const dict = {
   "dialog.project.edit.worktree.startup.description":
     "Wird nach dem Erstellen eines neuen Arbeitsbereichs (Worktree) ausgeführt.",
   "dialog.project.edit.worktree.startup.placeholder": "z. B. bun install",
+  "dialog.usageExceeded.dontShowAgain": "Nicht mehr anzeigen",
+
   "context.breakdown.title": "Kontext-Aufschlüsselung",
   "context.breakdown.note":
     'Ungefähre Aufschlüsselung der Eingabe-Token. "Andere" beinhaltet Werkzeugdefinitionen und Overhead.',
@@ -439,6 +442,7 @@ export const dict = {
   "context.systemPrompt.title": "System-Prompt",
   "context.rawMessages.title": "Rohdaten der Nachrichten",
   "context.export.session": "Sitzung exportieren",
+
   "context.stats.session": "Sitzung",
   "context.stats.messages": "Nachrichten",
   "context.stats.provider": "Anbieter",
@@ -505,11 +509,11 @@ export const dict = {
   "toast.session.unshare.success.description": "Teilen der Sitzung erfolgreich aufgehoben!",
   "toast.session.unshare.failed.title": "Aufheben des Teilens fehlgeschlagen",
   "toast.session.unshare.failed.description": "Beim Aufheben des Teilens ist ein Fehler aufgetreten",
-
   "toast.session.export.success.title": "Sitzung exportiert",
   "toast.session.export.success.description": "Sitzung unter {{filename}} gespeichert",
-  "toast.session.export.failed.title": "Export der Sitzung fehlgeschlagen",
+  "toast.session.export.failed.title": "Sitzung konnte nicht exportiert werden",
   "toast.session.export.failed.description": "Beim Exportieren der Sitzung ist ein Fehler aufgetreten",
+
   "toast.session.listFailed.title": "Sitzungen für {{project}} konnten nicht geladen werden",
   "toast.update.title": "Update verfügbar",
   "toast.update.description": "Eine neue Version von OpenCode ({{version}}) ist zur Installation verfügbar.",

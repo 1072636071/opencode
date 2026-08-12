@@ -195,6 +195,9 @@ export const dict = {
   "command.session.export": "Izvezi sesiju",
   "command.session.export.description": "Izvezi kompletan transkript sesije kao JSON",
 
+  "command.session.export": "Izvezi sesiju",
+  "command.session.export.description": "Izvezi cijeli zapis sesije u JSON formatu",
+
   "palette.search.placeholder": "Pretraži datoteke, komande i sesije",
   "palette.search.placeholder.home": "Pretraži komande i sesije",
   "palette.empty": "Nema rezultata",
@@ -568,6 +571,8 @@ export const dict = {
   "dialog.project.edit.worktree.startup.description": "Pokreće se nakon kreiranja novog radnog prostora (worktree).",
   "dialog.project.edit.worktree.startup.placeholder": "npr. bun install",
 
+  "dialog.usageExceeded.dontShowAgain": "Nemoj više prikazivati",
+
   "context.breakdown.title": "Razlaganje konteksta",
   "context.breakdown.note":
     'Približna raspodjela ulaznih tokena. "Ostalo" uključuje definicije alata i dodatno opterećenje.',
@@ -579,6 +584,8 @@ export const dict = {
 
   "context.systemPrompt.title": "Sistemski prompt",
   "context.rawMessages.title": "Sirove poruke",
+  "context.export.session": "Izvezi sesiju",
+
   "context.export.session": "Izvezi sesiju",
 
   "context.stats.session": "Sesija",
@@ -660,8 +667,8 @@ export const dict = {
   "toast.session.unshare.failed.description": "Došlo je do greške prilikom ukidanja dijeljenja",
 
   "toast.session.export.success.title": "Sesija izvezena",
-  "toast.session.export.success.description": "Sesija sačuvana u {{filename}}",
-  "toast.session.export.failed.title": "Neuspješno izvođenje sesije",
+  "toast.session.export.success.description": "Sesija je sačuvana kao {{filename}}",
+  "toast.session.export.failed.title": "Izvoz sesije nije uspio",
   "toast.session.export.failed.description": "Došlo je do greške prilikom izvoza sesije",
 
   "toast.session.listFailed.title": "Neuspjelo učitavanje sesija za {{project}}",

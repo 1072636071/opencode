@@ -187,7 +187,8 @@ export const dict = {
   "command.session.unshare": "Ne plus partager la session",
   "command.session.unshare.description": "Arrêter de partager cette session",
   "command.session.export": "Exporter la session",
-  "command.session.export.description": "Exporter la transcription complète de la session en JSON",
+  "command.session.export.description": "Exporter la transcription intégrale de la session au format JSON",
+
   "palette.search.placeholder": "Rechercher des fichiers, des commandes et des sessions",
   "palette.search.placeholder.home": "Rechercher des commandes et des sessions",
   "palette.empty": "Aucun résultat trouvé",
@@ -543,6 +544,8 @@ export const dict = {
   "dialog.project.edit.worktree.startup.description":
     "S'exécute après la création d'un nouvel espace de travail (arbre de travail).",
   "dialog.project.edit.worktree.startup.placeholder": "p. ex. bun install",
+  "dialog.usageExceeded.dontShowAgain": "Ne plus afficher",
+
   "context.breakdown.title": "Répartition du contexte",
   "context.breakdown.note":
     "Répartition approximative des jetons d'entrée. \"Autre\" inclut les définitions d'outils et les données annexes.",
@@ -554,6 +557,7 @@ export const dict = {
   "context.systemPrompt.title": "Invite système",
   "context.rawMessages.title": "Messages bruts",
   "context.export.session": "Exporter la session",
+
   "context.stats.session": "Session",
   "context.stats.messages": "Messages",
   "context.stats.provider": "Fournisseur",
@@ -621,11 +625,11 @@ export const dict = {
   "toast.session.unshare.failed.title": "Échec de la désactivation du partage",
   "toast.session.unshare.failed.description":
     "Une erreur s'est produite lors de la désactivation du partage de la session",
-
   "toast.session.export.success.title": "Session exportée",
   "toast.session.export.success.description": "Session enregistrée dans {{filename}}",
-  "toast.session.export.failed.title": "Échec de l'exportation de la session",
-  "toast.session.export.failed.description": "Une erreur est survenue lors de l'exportation de la session",
+  "toast.session.export.failed.title": "Échec de l’exportation de la session",
+  "toast.session.export.failed.description": "Une erreur s’est produite lors de l’exportation de la session",
+
   "toast.session.listFailed.title": "Échec du chargement des sessions pour {{project}}",
   "toast.update.title": "Mise à jour disponible",
   "toast.update.description":

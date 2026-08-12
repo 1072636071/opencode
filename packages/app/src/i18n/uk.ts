@@ -195,6 +195,9 @@ export const dict = {
   "command.session.export": "Експортувати сеанс",
   "command.session.export.description": "Експортувати повний транскрипт сеансу у форматі JSON",
 
+  "command.session.export": "Експортувати сесію",
+  "command.session.export.description": "Експортувати повну історію сесії у форматі JSON",
+
   "palette.search.placeholder": "Пошук файлів, команд і сесій",
   "palette.search.placeholder.home": "Пошук команд і сесій",
   "palette.empty": "Результатів не знайдено",
@@ -581,6 +584,8 @@ export const dict = {
   "dialog.releaseNotes.action.hideFuture": "Не показувати це в майбутньому",
   "dialog.releaseNotes.media.alt": "Попередній перегляд релізу",
 
+  "dialog.usageExceeded.dontShowAgain": "Більше не показувати",
+
   "context.breakdown.title": "Розподіл контексту",
   "context.breakdown.note":
     'Приблизний розподіл вхідних токенів. "Інше" включає визначення інструментів і накладні витрати.',
@@ -593,6 +598,8 @@ export const dict = {
   "context.systemPrompt.title": "Системний запит",
   "context.rawMessages.title": "Необроблені повідомлення",
   "context.export.session": "Експортувати сеанс",
+
+  "context.export.session": "Експортувати сесію",
 
   "context.stats.session": "Сесія",
   "context.stats.messages": "Повідомлення",
@@ -672,10 +679,10 @@ export const dict = {
   "toast.session.unshare.failed.title": "Не вдалося припинити поширення сесії",
   "toast.session.unshare.failed.description": "Під час припинення поширення сесії сталася помилка",
 
-  "toast.session.export.success.title": "Сеанс експортовано",
-  "toast.session.export.success.description": "Сеанс збережено у {{filename}}",
-  "toast.session.export.failed.title": "Не вдалося експортувати сеанс",
-  "toast.session.export.failed.description": "Під час експорту сеансу сталася помилка",
+  "toast.session.export.success.title": "Сесію експортовано",
+  "toast.session.export.success.description": "Сесію збережено у файл {{filename}}",
+  "toast.session.export.failed.title": "Не вдалося експортувати сесію",
+  "toast.session.export.failed.description": "Під час експортування сесії сталася помилка",
 
   "toast.session.listFailed.title": "Не вдалося завантажити сесії для {{project}}",
   "toast.project.reloadFailed.title": "Не вдалося перезавантажити {{project}}",
@@ -922,7 +929,7 @@ export const dict = {
   "common.moreOptions": "Більше параметрів",
   "common.learnMore": "Дізнатися більше",
   "common.rename": "Перейменувати",
-  "common.export": "Експорт",
+  "common.export": "Експортувати",
   "common.reset": "Скинути",
   "common.archive": "Архівувати",
   "common.delete": "Видалити",

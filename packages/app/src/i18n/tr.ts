@@ -199,6 +199,9 @@ export const dict = {
   "command.session.export": "Oturumu dışa aktar",
   "command.session.export.description": "Oturum dökümünün tamamını JSON olarak dışa aktar",
 
+  "command.session.export": "Oturumu dışa aktar",
+  "command.session.export.description": "Oturumun tam dökümünü JSON olarak dışa aktar",
+
   "palette.search.placeholder": "Dosya, komut ve oturum ara",
   "palette.search.placeholder.home": "Komut ve oturum ara",
   "palette.empty": "Sonuç bulunamadı",
@@ -572,6 +575,8 @@ export const dict = {
   "dialog.project.edit.worktree.startup.description": "Yeni bir çalışma alanı (worktree) oluşturduktan sonra çalışır.",
   "dialog.project.edit.worktree.startup.placeholder": "örneğin bun install",
 
+  "dialog.usageExceeded.dontShowAgain": "Bir daha gösterme",
+
   "context.breakdown.title": "Bağlam Dökümü",
   "context.breakdown.note": 'Girdi tokenlerinin yaklaşık dökümü. "Diğer" araç tanımları ve ek yükleri içerir.',
   "context.breakdown.system": "Sistem",
@@ -582,6 +587,8 @@ export const dict = {
 
   "context.systemPrompt.title": "Sistem İstemi",
   "context.rawMessages.title": "Ham mesajlar",
+  "context.export.session": "Oturumu dışa aktar",
+
   "context.export.session": "Oturumu dışa aktar",
 
   "context.stats.session": "Oturum",

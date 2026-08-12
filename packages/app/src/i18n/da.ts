@@ -94,6 +94,9 @@ export const dict = {
   "command.session.export": "Eksportér session",
   "command.session.export.description": "Eksportér hele sessionstranskriptet som JSON",
 
+  "command.session.export": "Eksportér session",
+  "command.session.export.description": "Eksportér hele sessionsudskriften som JSON",
+
   "palette.search.placeholder": "Søg i filer, kommandoer og sessioner",
   "palette.search.placeholder.home": "Søg i kommandoer og sessioner",
   "palette.empty": "Ingen resultater fundet",
@@ -449,6 +452,8 @@ export const dict = {
   "dialog.project.edit.worktree.startup": "Opstartsscript for arbejdsområde",
   "dialog.project.edit.worktree.startup.description": "Køres efter oprettelse af et nyt arbejdsområde (worktree).",
   "dialog.project.edit.worktree.startup.placeholder": "f.eks. bun install",
+  "dialog.usageExceeded.dontShowAgain": "Vis ikke igen",
+
   "context.breakdown.title": "Kontekstfordeling",
   "context.breakdown.note":
     'Omtrentlig fordeling af input-tokens. "Andre" inkluderer værktøjsdefinitioner og overhead.',
@@ -460,6 +465,8 @@ export const dict = {
 
   "context.systemPrompt.title": "Systemprompt",
   "context.rawMessages.title": "Rå beskeder",
+  "context.export.session": "Eksportér session",
+
   "context.export.session": "Eksportér session",
 
   "context.stats.session": "Session",
@@ -540,7 +547,7 @@ export const dict = {
   "toast.session.unshare.failed.description": "Der opstod en fejl under stop af sessionsdeling",
 
   "toast.session.export.success.title": "Session eksporteret",
-  "toast.session.export.success.description": "Session gemt til {{filename}}",
+  "toast.session.export.success.description": "Sessionen blev gemt i {{filename}}",
   "toast.session.export.failed.title": "Kunne ikke eksportere session",
   "toast.session.export.failed.description": "Der opstod en fejl under eksport af sessionen",
 

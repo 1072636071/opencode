@@ -197,6 +197,9 @@ export const dict = {
   "command.session.export": "匯出工作階段",
   "command.session.export.description": "將工作階段的完整記錄匯出為 JSON",
 
+  "command.session.export": "匯出工作階段",
+  "command.session.export.description": "將完整的工作階段記錄匯出為 JSON",
+
   "palette.search.placeholder": "搜尋檔案、命令和工作階段",
   "palette.search.placeholder.home": "搜尋命令和工作階段",
   "palette.empty": "找不到結果",
@@ -561,6 +564,8 @@ export const dict = {
   "dialog.project.edit.worktree.startup": "工作區啟動腳本",
   "dialog.project.edit.worktree.startup.description": "在建立新的工作區 (worktree) 後執行。",
   "dialog.project.edit.worktree.startup.placeholder": "例如 bun install",
+  "dialog.usageExceeded.dontShowAgain": "不再顯示",
+
   "context.breakdown.title": "上下文細分",
   "context.breakdown.note": "輸入 token 的概略細分。「其他」包含工具定義和額外負擔。",
   "context.breakdown.system": "系統",
@@ -571,6 +576,8 @@ export const dict = {
 
   "context.systemPrompt.title": "系統提示詞",
   "context.rawMessages.title": "原始訊息",
+  "context.export.session": "匯出工作階段",
+
   "context.export.session": "匯出工作階段",
 
   "context.stats.session": "工作階段",
@@ -651,7 +658,7 @@ export const dict = {
   "toast.session.unshare.failed.description": "取消分享工作階段時發生錯誤",
 
   "toast.session.export.success.title": "工作階段已匯出",
-  "toast.session.export.success.description": "工作階段已儲存至 {{filename}}",
+  "toast.session.export.success.description": "已將工作階段儲存至 {{filename}}",
   "toast.session.export.failed.title": "匯出工作階段失敗",
   "toast.session.export.failed.description": "匯出工作階段時發生錯誤",
 

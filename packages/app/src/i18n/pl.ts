@@ -186,7 +186,8 @@ export const dict = {
   "command.session.unshare": "Przestań udostępniać sesję",
   "command.session.unshare.description": "Zatrzymaj udostępnianie tej sesji",
   "command.session.export": "Eksportuj sesję",
-  "command.session.export.description": "Eksportuj pełny zapis sesji jako JSON",
+  "command.session.export.description": "Eksportuj pełny zapis sesji w formacie JSON",
+
   "palette.search.placeholder": "Szukaj plików, poleceń i sesji",
   "palette.search.placeholder.home": "Szukaj poleceń i sesji",
   "palette.empty": "Brak wyników",
@@ -538,6 +539,8 @@ export const dict = {
   "dialog.project.edit.worktree.startup.description":
     "Uruchamiany po utworzeniu nowej przestrzeni roboczej (worktree).",
   "dialog.project.edit.worktree.startup.placeholder": "np. bun install",
+  "dialog.usageExceeded.dontShowAgain": "Nie pokazuj ponownie",
+
   "context.breakdown.title": "Podział kontekstu",
   "context.breakdown.note": 'Przybliżony podział tokenów wejściowych. "Inne" obejmuje definicje narzędzi i narzut.',
   "context.breakdown.system": "System",
@@ -548,6 +551,7 @@ export const dict = {
   "context.systemPrompt.title": "Prompt systemowy",
   "context.rawMessages.title": "Surowe wiadomości",
   "context.export.session": "Eksportuj sesję",
+
   "context.stats.session": "Sesja",
   "context.stats.messages": "Wiadomości",
   "context.stats.provider": "Dostawca",
@@ -614,11 +618,11 @@ export const dict = {
   "toast.session.unshare.success.description": "Udostępnianie sesji zostało pomyślnie zatrzymane!",
   "toast.session.unshare.failed.title": "Nie udało się zatrzymać udostępniania sesji",
   "toast.session.unshare.failed.description": "Wystąpił błąd podczas zatrzymywania udostępniania sesji",
-
   "toast.session.export.success.title": "Sesja wyeksportowana",
-  "toast.session.export.success.description": "Sesja zapisana do {{filename}}",
+  "toast.session.export.success.description": "Sesję zapisano jako {{filename}}",
   "toast.session.export.failed.title": "Nie udało się wyeksportować sesji",
   "toast.session.export.failed.description": "Wystąpił błąd podczas eksportowania sesji",
+
   "toast.session.listFailed.title": "Nie udało się załadować sesji dla {{project}}",
   "toast.update.title": "Dostępna aktualizacja",
   "toast.update.description": "Nowa wersja OpenCode ({{version}}) jest teraz dostępna do instalacji.",

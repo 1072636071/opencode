@@ -87,7 +87,8 @@ export const dict = {
   "command.session.unshare": "Annulla condivisione sessione",
   "command.session.unshare.description": "Interrompi la condivisione di questa sessione",
   "command.session.export": "Esporta sessione",
-  "command.session.export.description": "Esporta la trascrizione completa della sessione come JSON",
+  "command.session.export.description": "Esporta la trascrizione completa della sessione in formato JSON",
+
   "palette.search.placeholder": "Cerca file, comandi e sessioni",
   "palette.search.placeholder.home": "Cerca comandi e sessioni",
   "palette.empty": "Nessun risultato trovato",
@@ -450,6 +451,8 @@ export const dict = {
   "dialog.releaseNotes.action.next": "Avanti",
   "dialog.releaseNotes.action.hideFuture": "Non mostrarli in futuro",
   "dialog.releaseNotes.media.alt": "Anteprima delle novità",
+  "dialog.usageExceeded.dontShowAgain": "Non mostrare più",
+
   "context.breakdown.title": "Ripartizione del contesto",
   "context.breakdown.note":
     'Ripartizione approssimativa dei token di input. "Altro" include le definizioni degli strumenti e i dati aggiuntivi.',
@@ -461,6 +464,7 @@ export const dict = {
   "context.systemPrompt.title": "Prompt di sistema",
   "context.rawMessages.title": "Messaggi non elaborati",
   "context.export.session": "Esporta sessione",
+
   "context.stats.session": "Sessione",
   "context.stats.messages": "Messaggi",
   "context.stats.provider": "Provider",
@@ -528,11 +532,11 @@ export const dict = {
   "toast.session.unshare.failed.title": "Impossibile annullare la condivisione della sessione",
   "toast.session.unshare.failed.description":
     "Si è verificato un errore durante l'annullamento della condivisione della sessione",
-
   "toast.session.export.success.title": "Sessione esportata",
   "toast.session.export.success.description": "Sessione salvata in {{filename}}",
-  "toast.session.export.failed.title": "Esportazione della sessione non riuscita",
-  "toast.session.export.failed.description": "Si è verificato un errore durante l'esportazione della sessione",
+  "toast.session.export.failed.title": "Impossibile esportare la sessione",
+  "toast.session.export.failed.description": "Si è verificato un errore durante l’esportazione della sessione",
+
   "toast.session.listFailed.title": "Impossibile caricare le sessioni per {{project}}",
   "toast.project.reloadFailed.title": "Impossibile ricaricare {{project}}",
   "toast.update.title": "Aggiornamento disponibile",

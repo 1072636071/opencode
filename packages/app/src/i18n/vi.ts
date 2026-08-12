@@ -187,6 +187,7 @@ export const dict = {
   "command.session.unshare.description": "Dừng chia sẻ phiên này",
   "command.session.export": "Xuất phiên",
   "command.session.export.description": "Xuất toàn bộ bản ghi phiên dưới dạng JSON",
+
   "palette.search.placeholder": "Tìm kiếm tệp, lệnh và phiên",
   "palette.search.placeholder.home": "Tìm kiếm lệnh và phiên",
   "palette.empty": "Không tìm thấy kết quả nào",
@@ -546,6 +547,8 @@ export const dict = {
   "dialog.releaseNotes.action.next": "Tiếp theo",
   "dialog.releaseNotes.action.hideFuture": "Không hiển thị lại",
   "dialog.releaseNotes.media.alt": "Xem trước bản phát hành",
+  "dialog.usageExceeded.dontShowAgain": "Không hiển thị lại",
+
   "context.breakdown.title": "Phân tích ngữ cảnh",
   "context.breakdown.note":
     'Phân tích gần đúng của token đầu vào. "Khác" bao gồm các định nghĩa công cụ và chi phí chung.',
@@ -557,6 +560,7 @@ export const dict = {
   "context.systemPrompt.title": "Lời nhắc hệ thống",
   "context.rawMessages.title": "Tin nhắn thô",
   "context.export.session": "Xuất phiên",
+
   "context.stats.session": "Phiên",
   "context.stats.messages": "Tin nhắn",
   "context.stats.provider": "Nhà cung cấp",
@@ -623,11 +627,11 @@ export const dict = {
   "toast.session.unshare.success.description": "Đã hủy chia sẻ phiên thành công!",
   "toast.session.unshare.failed.title": "Không hủy chia sẻ được phiên",
   "toast.session.unshare.failed.description": "Đã xảy ra lỗi khi hủy chia sẻ phiên",
-
   "toast.session.export.success.title": "Đã xuất phiên",
   "toast.session.export.success.description": "Đã lưu phiên vào {{filename}}",
   "toast.session.export.failed.title": "Không thể xuất phiên",
   "toast.session.export.failed.description": "Đã xảy ra lỗi khi xuất phiên",
+
   "toast.session.listFailed.title": "Không thể tải phiên cho {{project}}",
   "toast.project.reloadFailed.title": "Không thể tải lại {{project}}",
   "toast.update.title": "Đã có bản cập nhật",
