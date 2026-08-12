@@ -8,6 +8,12 @@ import { promisify } from "node:util"
 
 const execFileAsync = promisify(execFile)
 
+/** Strip UTF-8 BOM — PowerShell Set-Content -Encoding UTF8 and some editors
+ * prepend \uFEFF, which causes JSON.parse to throw SyntaxError silently. */
+export function stripBom(raw: string): string {
+  return raw.replace(/^\uFEFF/, "")
+}
+
 export type SnapshotType = "auto" | "manual"
 
 export type PluginSpec = {
@@ -109,7 +115,7 @@ function extractPluginSpecs(configContents: Record<string, string>): PluginSpec[
   for (const text of Object.values(configContents)) {
     let parsed: unknown
     try {
-      parsed = JSON.parse(text)
+      parsed = JSON.parse(stripBom(text))
     } catch {
       continue
     }
@@ -168,7 +174,7 @@ export async function listSnapshots(projectPath?: string): Promise<SnapshotMeta[
     if (!entry.endsWith(".json")) continue
     try {
       const raw = await readFile(join(dir, entry), "utf8")
-      const snap = JSON.parse(raw) as Snapshot
+      const snap = JSON.parse(stripBom(raw)) as Snapshot
       metas.push(toMeta(snap))
     } catch {
       continue
@@ -182,7 +188,7 @@ export async function getSnapshot(id: string, projectPath?: string): Promise<Sna
   const file = snapshotPath(id, projectPath)
   if (!existsSync(file)) return null
   const raw = await readFile(file, "utf8")
-  return JSON.parse(raw) as Snapshot
+  return JSON.parse(stripBom(raw)) as Snapshot
 }
 
 export async function deleteSnapshot(id: string, projectPath?: string): Promise<void> {
@@ -260,7 +266,7 @@ export async function readConfigObject(projectPath?: string): Promise<Record<str
   if (!path) return null
   try {
     const text = await readFile(path, "utf8")
-    return JSON.parse(text) as Record<string, unknown>
+    return JSON.parse(stripBom(text)) as Record<string, unknown>
   } catch {
     return null
   }
@@ -287,7 +293,7 @@ export async function writeAuthKey(providerID: string, key: string | null): Prom
   let auth: Record<string, unknown> = {}
   try {
     const text = await readFile(path, "utf8")
-    auth = JSON.parse(text) as Record<string, unknown>
+    auth = JSON.parse(stripBom(text)) as Record<string, unknown>
   } catch {
     // file doesn't exist or is invalid — start fresh
   }
@@ -366,7 +372,7 @@ export async function importBundle(
   content: string,
   onProgress?: (phase: string) => void,
 ): Promise<{ failedPlugins: string[] }> {
-  const bundle = JSON.parse(content) as {
+  const bundle = JSON.parse(stripBom(content)) as {
     configContents: Record<string, string>
     plugins: PluginSpec[]
   }

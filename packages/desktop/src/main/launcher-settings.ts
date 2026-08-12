@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname, join } from "node:path"
-import { opencodeConfigDir } from "./launcher-snapshot"
+import { opencodeConfigDir, stripBom } from "./launcher-snapshot"
 
 export type LauncherSettings = {
   autoStart: boolean
@@ -17,7 +17,9 @@ export async function getLauncherSettings(): Promise<LauncherSettings> {
   try {
     if (!existsSync(settingsFile())) return DEFAULT
     const raw = await readFile(settingsFile(), "utf8")
-    return { ...DEFAULT, ...JSON.parse(raw) }
+    // Strip UTF-8 BOM — PowerShell Set-Content -Encoding UTF8 and some editors
+    // prepend \uFEFF, which causes JSON.parse to throw SyntaxError silently.
+    return { ...DEFAULT, ...JSON.parse(stripBom(raw)) }
   } catch {
     return DEFAULT
   }
