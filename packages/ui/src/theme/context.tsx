@@ -85,8 +85,9 @@ const names: Record<string, string> = {
 }
 const oc2Theme = oc2ThemeJson as DesktopTheme
 
-function normalize(id: string | null | undefined) {
+export function normalize(id: string | null | undefined) {
   if (id === "oc-1") return "oc-2"
+  if (id === "meihua") return "jiangxiao"
   return id
 }
 
