@@ -95,6 +95,7 @@ const api: ElectronAPI = {
   launcherListSnapshots: () => ipcRenderer.invoke("launcher:list-snapshots"),
   launcherTagSnapshot: (id, tag) => ipcRenderer.invoke("launcher:tag-snapshot", id, tag),
   launcherUntagSnapshot: (id) => ipcRenderer.invoke("launcher:untag-snapshot", id),
+  launcherSetSnapshotNote: (id, note) => ipcRenderer.invoke("launcher:set-snapshot-note", id, note),
   launcherRollbackSnapshot: (id) => ipcRenderer.invoke("launcher:rollback-snapshot", id),
   onLauncherRollbackProgress: (cb) => {
     const handler = (_: unknown, payload: { phase: string; failedPlugins?: string[]; error?: string }) =>

@@ -18,6 +18,10 @@ import {
   restoreSnapshotConfig,
   importBundle,
   migrateRedactOldSnapshots,
+  setSnapshotNote,
+  listSnapshots,
+  tagSnapshot,
+  getSnapshot,
   REDACTED_PLACEHOLDER,
 } from "./launcher-snapshot"
 
@@ -1169,5 +1173,122 @@ describe("migrateRedactOldSnapshots（M2 旧快照迁移脱敏 + 收紧 0600）"
     }
     expect(after1.configContents[authPath]).toBe(REDACTED_PLACEHOLDER)
     expect(after2.configContents[authPath]).toBe(REDACTED_PLACEHOLDER)
+  })
+})
+
+describe("setSnapshotNote / listSnapshots（工单 05 备注字段）", () => {
+  test("createSnapshot 初始 note 为 null", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await writeFile(join(configDir, "opencode.json"), "{}", "utf8")
+    const snap = await createSnapshot({ type: "manual" })
+    expect(snap.note).toBeNull()
+
+    const metas = await listSnapshots()
+    const meta = metas.find((m) => m.id === snap.id)
+    expect(meta?.note).toBeNull()
+  })
+
+  test("setSnapshotNote 设置备注后可读回", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await writeFile(join(configDir, "opencode.json"), "{}", "utf8")
+    const snap = await createSnapshot({ type: "manual" })
+
+    await setSnapshotNote(snap.id, "发布前回滚点")
+    const after = await getSnapshot(snap.id)
+    expect(after?.note).toBe("发布前回滚点")
+
+    const metas = await listSnapshots()
+    const meta = metas.find((m) => m.id === snap.id)
+    expect(meta?.note).toBe("发布前回滚点")
+  })
+
+  test("setSnapshotNote 传 null 清除备注", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await writeFile(join(configDir, "opencode.json"), "{}", "utf8")
+    const snap = await createSnapshot({ type: "manual" })
+    await setSnapshotNote(snap.id, "临时备注")
+    await setSnapshotNote(snap.id, null)
+
+    const after = await getSnapshot(snap.id)
+    expect(after?.note).toBeNull()
+  })
+
+  test("setSnapshotNote 不存在的快照抛异常", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await expect(setSnapshotNote("snap-nonexistent", "x")).rejects.toThrow("snapshot not found")
+  })
+
+  test("备注与 tag 独立——设置备注不影响 tag", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await writeFile(join(configDir, "opencode.json"), "{}", "utf8")
+    const snap = await createSnapshot({ type: "manual" })
+    await tagSnapshot(snap.id, "v1.0")
+    await setSnapshotNote(snap.id, "发布版本")
+
+    const after = await getSnapshot(snap.id)
+    expect(after?.tag).toBe("v1.0")
+    expect(after?.note).toBe("发布版本")
+  })
+
+  test("旧快照无 note 字段——listSnapshots 向后兼容补 null", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    // 手动构造旧快照（无 note 字段，模拟工单 05 前的格式）
+    const oldSnap = {
+      id: "snap-old-no-note",
+      timestamp: Date.now(),
+      type: "auto",
+      tag: null,
+      projectHash: null,
+      pluginCount: 0,
+      configFiles: [],
+      configContents: {},
+      plugins: [],
+    }
+    const snapshotsDir = join(configDir, "launcher", "snapshots")
+    await mkdir(snapshotsDir, { recursive: true })
+    await writeFile(join(snapshotsDir, `${oldSnap.id}.json`), JSON.stringify(oldSnap, null, 2), "utf8")
+
+    const metas = await listSnapshots()
+    const meta = metas.find((m) => m.id === oldSnap.id)
+    expect(meta?.note).toBeNull()
+  })
+
+  test("备注可含中文/长文本", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await writeFile(join(configDir, "opencode.json"), "{}", "utf8")
+    const snap = await createSnapshot({ type: "manual" })
+    const longNote = "这是一段较长的中文备注，描述此次配置变更的原因与影响范围，供后续回滚时参考。"
+    await setSnapshotNote(snap.id, longNote)
+
+    const after = await getSnapshot(snap.id)
+    expect(after?.note).toBe(longNote)
   })
 })

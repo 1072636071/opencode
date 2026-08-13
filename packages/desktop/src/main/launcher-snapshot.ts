@@ -31,6 +31,8 @@ export type SnapshotMeta = {
   timestamp: number
   type: SnapshotType
   tag: string | null
+  // 工单 05：手动备注（自由文本，与 tag 区分——tag 是短标签，note 是长描述）。
+  note: string | null
   projectHash: string | null
   pluginCount: number
   configFiles: string[]
@@ -241,6 +243,7 @@ export async function createSnapshot(opts: { type: SnapshotType; projectPath?: s
     timestamp,
     type: opts.type,
     tag: null,
+    note: null,
     projectHash: opts.projectPath ? projectHash(opts.projectPath) : null,
     pluginCount: plugins.length,
     configFiles,
@@ -363,12 +366,22 @@ export async function untagSnapshot(id: string, projectPath?: string): Promise<v
   await writeFile(snapshotPath(id, projectPath), JSON.stringify(snap, null, 2), { encoding: "utf8", mode: 0o600 })
 }
 
+// 工单 05：设置快照备注（自由文本）。null 表示清除备注。
+export async function setSnapshotNote(id: string, note: string | null, projectPath?: string): Promise<void> {
+  const snap = await getSnapshot(id, projectPath)
+  if (!snap) throw new Error(`snapshot not found: ${id}`)
+  snap.note = note
+  await writeFile(snapshotPath(id, projectPath), JSON.stringify(snap, null, 2), { encoding: "utf8", mode: 0o600 })
+}
+
 function toMeta(snap: Snapshot): SnapshotMeta {
   return {
     id: snap.id,
     timestamp: snap.timestamp,
     type: snap.type,
     tag: snap.tag,
+    // 工单 05：旧快照可能无 note 字段，向后兼容补 null。
+    note: snap.note ?? null,
     projectHash: snap.projectHash,
     pluginCount: snap.pluginCount,
     configFiles: snap.configFiles,

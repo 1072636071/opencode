@@ -29,6 +29,8 @@ export type LauncherSnapshotMeta = {
   timestamp: number
   type: "auto" | "manual"
   tag: string | null
+  // 工单 05：手动备注（自由文本）。
+  note: string | null
   projectHash: string | null
   pluginCount: number
   configFiles: string[]
@@ -180,6 +182,8 @@ export type ElectronAPI = {
   launcherListSnapshots: () => Promise<LauncherSnapshotMeta[]>
   launcherTagSnapshot: (id: string, tag: string) => Promise<void>
   launcherUntagSnapshot: (id: string) => Promise<void>
+  // 工单 05：设置/清除快照备注。传 null 清除备注。
+  launcherSetSnapshotNote: (id: string, note: string | null) => Promise<void>
   launcherRollbackSnapshot: (id: string) => Promise<{ failedPlugins: string[] }>
   onLauncherRollbackProgress: (cb: (p: RollbackProgress) => void) => () => void
   launcherGetSettings: () => Promise<LauncherSettings>

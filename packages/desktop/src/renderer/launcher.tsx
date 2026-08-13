@@ -299,6 +299,9 @@ async function refreshSnapshots() {
 function SnapshotPanel() {
   const [tagEditingId, setTagEditingId] = createSignal<string | null>(null)
   const [tagInput, setTagInput] = createSignal("")
+  // 工单 05：备注编辑状态。
+  const [noteEditingId, setNoteEditingId] = createSignal<string | null>(null)
+  const [noteInput, setNoteInput] = createSignal("")
   const formatTime = (ts: number) => new Date(ts).toLocaleString()
 
   const startTag = (id: string) => {
@@ -314,6 +317,22 @@ function SnapshotPanel() {
   }
   const removeTag = async (id: string) => {
     await window.api.launcherUntagSnapshot(id)
+    await refreshSnapshots()
+  }
+  // 工单 05：备注编辑——确认/清除。
+  const startNote = (id: string, current: string | null) => {
+    setNoteEditingId(id)
+    setNoteInput(current ?? "")
+  }
+  const confirmNote = async (id: string) => {
+    const text = noteInput().trim()
+    setNoteEditingId(null)
+    await window.api.launcherSetSnapshotNote(id, text || null)
+    await refreshSnapshots()
+  }
+  const clearNote = async (id: string) => {
+    setNoteEditingId(null)
+    await window.api.launcherSetSnapshotNote(id, null)
     await refreshSnapshots()
   }
 
@@ -438,6 +457,61 @@ function SnapshotPanel() {
               >
                 导出
               </button>
+              {/* 工单 05：备注——显示文本 + 编辑/清除按钮，或编辑输入框 */}
+              {noteEditingId() === s.id ? (
+                <>
+                  <input
+                    class="launcher-snapshots__input launcher-snapshots__input--note"
+                    placeholder="备注（自由文本）"
+                    value={noteInput()}
+                    onInput={(e) => setNoteInput(e.currentTarget.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void confirmNote(s.id)
+                      if (e.key === "Escape") setNoteEditingId(null)
+                    }}
+                  />
+                  <button
+                    class="launcher-btn launcher-btn--mini"
+                    aria-label="确认备注"
+                    onClick={() => confirmNote(s.id)}
+                  >
+                    确认
+                  </button>
+                  <button
+                    class="launcher-btn launcher-btn--mini"
+                    aria-label="取消"
+                    onClick={() => setNoteEditingId(null)}
+                  >
+                    取消
+                  </button>
+                </>
+              ) : s.note ? (
+                <>
+                  <span class="launcher-snapshots__note" title={s.note}>{s.note}</span>
+                  <button
+                    class="launcher-btn launcher-btn--mini"
+                    aria-label="编辑备注"
+                    onClick={() => startNote(s.id, s.note)}
+                  >
+                    改备注
+                  </button>
+                  <button
+                    class="launcher-btn launcher-btn--mini"
+                    aria-label="清除备注"
+                    onClick={() => clearNote(s.id)}
+                  >
+                    清备注
+                  </button>
+                </>
+              ) : (
+                <button
+                  class="launcher-btn launcher-btn--mini"
+                  aria-label="加备注"
+                  onClick={() => startNote(s.id, null)}
+                >
+                  加备注
+                </button>
+              )}
             </li>
           ))}
       </ul>

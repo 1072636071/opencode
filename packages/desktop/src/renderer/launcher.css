@@ -821,6 +821,23 @@ body {
   border-color: var(--jx-gold-bright);
 }
 
+/* 工单 05：备注输入框比 tag 输入框宽——容纳自由文本。 */
+.launcher-snapshots__input--note {
+  width: 180px;
+}
+
+/* 工单 05：备注显示——灰字、单行省略、最多 240px 宽。 */
+.launcher-snapshots__note {
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-muted);
+  font-family: var(--jx-font-ui);
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 var(--jx-space-2);
+}
+
 .launcher-snapshots__progress {
   font-size: var(--jx-fs-small);
   color: var(--jx-warn);

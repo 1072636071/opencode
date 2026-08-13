@@ -80,6 +80,7 @@ import {
   listSnapshots,
   tagSnapshot,
   untagSnapshot,
+  setSnapshotNote,
   readCurrentPlugins,
   getConfigFilePath,
   readConfigObject,
@@ -405,6 +406,10 @@ const main = Effect.gen(function* () {
   ipcMain.handle("launcher:list-snapshots", () => listSnapshots())
   ipcMain.handle("launcher:tag-snapshot", (_event, id: string, tag: string) => tagSnapshot(id, tag))
   ipcMain.handle("launcher:untag-snapshot", (_event, id: string) => untagSnapshot(id))
+  // 工单 05：设置/清除快照备注。
+  ipcMain.handle("launcher:set-snapshot-note", (_event, id: string, note: string | null) =>
+    setSnapshotNote(id, note),
+  )
   ipcMain.handle("launcher:rollback-snapshot", (_event, id: string) => rollbackToSnapshot(id))
   onRollbackProgress((p) => {
     getLauncherWindow()?.webContents.send("launcher:rollback-progress", p)
