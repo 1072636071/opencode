@@ -48,9 +48,13 @@ export function togglePath(set: Set<string>, path: string): Set<string> {
 }
 
 // 工单 02：打开源文件按钮的点击 handler 接缝。
-// 供 ConfigEditPanel 和单测共用——单测验证按钮对已列出文件触发 openLocalFile 调用。
-export function openFileHandler(openLocalFile: (path: string) => void, path: string): () => void {
-  return () => openLocalFile(path)
+// 供 ConfigEditPanel 和单测共用——单测验证按钮对已列出文件触发 opener 调用。
+// opener 类型放宽为 `(path) => unknown`：caller 传 `window.api.openPath`（返回 Promise）时兼容，
+// 单测传 `(path) => void` mock 也兼容（void 是 unknown 子类型）。
+// 不用 `window.api.openLocalFile`：它经 `resolveLocalFilePath` 要求 `file://` URL，
+// 普通路径会被静默拒绝（resolveLocalFilePath 返回 undefined），不符合"总能打开"要求。
+export function openFileHandler(opener: (path: string) => unknown, path: string): () => void {
+  return () => opener(path)
 }
 
 // 工单 05：新建配置文件的可选位置与类型。

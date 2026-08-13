@@ -863,7 +863,11 @@ function ConfigEditPanel() {
   onMount(() => void refresh())
 
   const openConfigFile = (path: string) => {
-    openFileHandler(window.api.openLocalFile, path)()
+    // 工单 02：用 openPath（接受普通路径直接 shell.openPath）而非 openLocalFile
+    // （后者要求 file:// URL，普通路径会被 resolveLocalFilePath 静默拒绝）。
+    // catch 吞错防 unhandled rejection；shell.openPath 失败返回 error string 不 reject，
+    // 此处兜底防御未来 IPC 层抛异常。
+    openFileHandler((p) => void window.api.openPath(p).catch(() => {}), path)()
   }
 
   const toggleExpand = (path: string) => {
@@ -1581,7 +1585,9 @@ function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
     }
   }
 
-  const openSource = () => openFileHandler(window.api.openLocalFile, props.file.path)()
+  // 工单 02：用 openPath 而非 openLocalFile（同 ConfigEditPanel.openConfigFile 理由）。
+  const openSource = () =>
+    openFileHandler((p) => void window.api.openPath(p).catch(() => {}), props.file.path)()
 
   return (
     <div class="launcher-configedit__form">

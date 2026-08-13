@@ -135,6 +135,19 @@ describe("openFileHandler（工单 02 打开源文件按钮接缝）", () => {
     handler()
     expect(called).toBe(true)
   })
+
+  // 工单 02：锁定 opener 接缝兼容 Promise 返回（caller 传 window.api.openPath，返回 Promise<void>）。
+  // 防止未来回退到 openLocalFile（要求 file:// URL，普通路径静默失败）。
+  test("opener 返回 Promise 也兼容（openPath 接缝）", async () => {
+    const calls: string[] = []
+    const opener = (path: string) => {
+      calls.push(path)
+      return Promise.resolve()
+    }
+    const handler = openFileHandler(opener, "/config/auth.json")
+    handler()
+    expect(calls).toEqual(["/config/auth.json"])
+  })
 })
 
 describe("togglePath（工单 02 展开/折叠切换）", () => {
