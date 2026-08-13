@@ -522,6 +522,7 @@ function SnapshotPanel() {
   )
 }
 
+// ADR-022：URL 硬编码、插件清单打包在内，启动零网络。
 const RESOURCES = {
   docs: "https://opencode.ai/docs",
   website: "https://opencode.ai",
@@ -530,11 +531,24 @@ const RESOURCES = {
     { name: "Node.js", url: "https://nodejs.org" },
     { name: "Git", url: "https://git-scm.com" },
   ],
+  // 插件文档与社区目录源（ecosystem 页 + awesome-opencode 仓库）。
+  plugins: {
+    docs: "https://opencode.ai/docs/ecosystem#plugins",
+    community: "https://github.com/awesome-opencode/awesome-opencode",
+  },
 }
 
+// 官方推荐插件清单（硬编码 JSON，含 npm spec）。数据源参考：
+// ~/.config/opencode/plugins/opencode社区插件目录.md（人工低频维护）。
 const RECOMMENDED_PLUGINS = [
   { name: "opencode-plugin-git", description: "Git 工作流增强" },
   { name: "opencode-plugin-linter", description: "代码检查集成" },
+  { name: "opencode-gemini-auth", description: "Gemini 订阅 OAuth 认证" },
+  { name: "oh-my-opencode", description: "多 Agent 编排套件" },
+  { name: "opencode-vibeguard", description: "敏感信息占位符保护" },
+  { name: "opencode-type-inject", description: "TypeScript 类型自动注入" },
+  { name: "opencode-worktree", description: "Git Worktree 零配置管理" },
+  { name: "opencode-conductor", description: "Context→Spec→Plan→Implement 流程自动化" },
 ]
 
 async function checkPluginActive(pkg: string): Promise<string | null> {
@@ -572,6 +586,23 @@ function ResourcePanel() {
             {t.name}
           </button>
         ))}
+      </div>
+      <h3 class="launcher-resources__subtitle">插件资源</h3>
+      <div class="launcher-resources__links">
+        <button
+          class="launcher-btn launcher-btn--small"
+          aria-label="插件文档"
+          onClick={() => window.api.openExternal(RESOURCES.plugins.docs)}
+        >
+          插件文档
+        </button>
+        <button
+          class="launcher-btn launcher-btn--small"
+          aria-label="社区插件目录"
+          onClick={() => window.api.openExternal(RESOURCES.plugins.community)}
+        >
+          社区插件目录
+        </button>
       </div>
       <h3 class="launcher-resources__subtitle">推荐插件</h3>
       <ul class="launcher-resources__plugins">
