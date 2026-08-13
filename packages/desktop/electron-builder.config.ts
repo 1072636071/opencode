@@ -149,7 +149,8 @@ function getConfig() {
         appId,
         productName: "OpenCode",
         protocols: { name: "OpenCode", schemes: ["opencode"] },
-        publish: { provider: "github", owner: "anomalyco", repo: "opencode", channel: "latest" },
+        // ADR-023：从 fork `1072636071/opencode` 的 GitHub releases 拉更新（个人自用）。
+        publish: { provider: "github", owner: "1072636071", repo: "opencode", channel: "latest" },
         deb: { fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
         rpm: { packageName: "opencode", fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
       }
