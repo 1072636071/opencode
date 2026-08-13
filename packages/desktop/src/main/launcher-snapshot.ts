@@ -3,7 +3,7 @@ import { execFile } from "node:child_process"
 import { existsSync } from "node:fs"
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
-import { dirname, join } from "node:path"
+import { dirname, isAbsolute, join, relative, resolve } from "node:path"
 import { promisify } from "node:util"
 
 const execFileAsync = promisify(execFile)
@@ -38,7 +38,10 @@ export type Snapshot = SnapshotMeta & {
 }
 
 const DEFAULT_MAX_AUTO = 50
-const CONFIG_CANDIDATES = ["opencode.jsonc", "opencode.json", "config.json"]
+// 配置文件候选名（对齐本体 config/paths.ts + config/tui.ts + auth/index.ts）。
+// 全局配置目录与 OPENCODE_CONFIG_DIR 下查找这些候选名。
+const CONFIG_CANDIDATES = ["opencode.jsonc", "opencode.json", "config.json", "tui.json"]
+// 项目根目录与 findUp `.opencode` 目录下查找这些候选名。
 const PROJECT_CONFIG_CANDIDATES = ["opencode.jsonc", "opencode.json"]
 
 function opencodeConfigDir(): string {
@@ -72,6 +75,41 @@ function opencodeDataDir(): string {
 
 export { opencodeDataDir }
 
+// C1 安全修复：IPC 路径遍历防护。
+// 验证目标路径在允许的配置/数据/项目目录树内，防止 ../../etc/passwd 之类遍历。
+function isPathAllowed(targetPath: string, allowedRoots: string[]): boolean {
+  const resolved = resolve(targetPath)
+  for (const root of allowedRoots) {
+    const rel = relative(resolve(root), resolved)
+    // relative 返回的路径不以 .. 开头、且不是绝对路径，表示在 root 内
+    // 空字符串 rel 表示 targetPath === root 本身
+    if (rel === "" || (!rel.startsWith("..") && !isAbsolute(rel))) return true
+  }
+  return false
+}
+
+// 获取允许的根目录列表（配置目录 + 数据目录 + 当前工作目录及其 .opencode + home/.opencode + 环境变量覆盖）。
+function getAllowedRoots(): string[] {
+  const roots = [opencodeConfigDir(), opencodeDataDir()]
+  const cwd = process.cwd()
+  roots.push(cwd)
+  roots.push(join(cwd, ".opencode"))
+  roots.push(join(homedir(), ".opencode"))
+  if (process.env.OPENCODE_CONFIG_DIR) roots.push(process.env.OPENCODE_CONFIG_DIR)
+  if (process.env.OPENCODE_DATA_DIR) roots.push(process.env.OPENCODE_DATA_DIR)
+  return roots
+}
+
+// 验证文件路径在允许的配置目录树内（供 IPC handler 调用）。
+export function isConfigPathAllowed(filePath: string): boolean {
+  return isPathAllowed(filePath, getAllowedRoots())
+}
+
+// 验证目录路径在允许的配置目录树内（供 IPC handler 调用）。
+export function isDirectoryPathAllowed(dirPath: string): boolean {
+  return isPathAllowed(dirPath, getAllowedRoots())
+}
+
 function snapshotsRoot(): string {
   return join(opencodeConfigDir(), "launcher", "snapshots")
 }
@@ -93,18 +131,75 @@ function snapshotId(): string {
   return `snap-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+// 配置文件来源分组（对齐本体 config/paths.ts 的 directories() 顺序）。
+export type ConfigFileGroup = "global" | "project" | "opencode" | "home" | "env"
+
+export type ConfigFileInfo = {
+  path: string
+  group: ConfigFileGroup
+  name: string
+}
+
+// 发现所有存在的配置文件，按本体 config/paths.ts 的 directories() 顺序遍历：
+//   1. xdg 全局配置目录（Global.Path.config）
+//   2. findUp `.opencode` 目录 from projectPath
+//   3. `~/.opencode` 目录
+//   4. OPENCODE_CONFIG_DIR 环境变量目录
+//   5. auth.json 位于 xdg 数据目录（Global.Path.data）
+// 不查找 `~/.config/opencode`（本体也不读，xdg 全局目录已由 opencodeConfigDir() 处理）。
 function findConfigFiles(projectPath?: string): string[] {
-  const files: string[] = []
-  for (const candidate of CONFIG_CANDIDATES) {
-    const file = join(opencodeConfigDir(), candidate)
-    if (existsSync(file)) files.push(file)
+  return findConfigFilesGrouped(projectPath).map((f) => f.path)
+}
+
+export { findConfigFiles }
+
+// 返回带分组信息的配置文件列表，供面板按来源分组显示。
+export function findConfigFilesGrouped(projectPath?: string): ConfigFileInfo[] {
+  const files: ConfigFileInfo[] = []
+  const seen = new Set<string>()
+  const add = (path: string, group: ConfigFileGroup) => {
+    if (seen.has(path) || !existsSync(path)) return
+    seen.add(path)
+    files.push({ path, group, name: basename(path) })
   }
+
+  // 1. xdg 全局配置目录
+  const configDir = opencodeConfigDir()
+  for (const candidate of CONFIG_CANDIDATES) {
+    add(join(configDir, candidate), "global")
+  }
+
+  // 2. findUp `.opencode` 目录 from projectPath
   if (projectPath) {
+    let current = projectPath
+    while (true) {
+      add(join(current, ".opencode", "opencode.jsonc"), "opencode")
+      add(join(current, ".opencode", "opencode.json"), "opencode")
+      const parent = dirname(current)
+      if (parent === current) break
+      current = parent
+    }
+    // 项目根目录直接放置的配置（向后兼容）
     for (const candidate of PROJECT_CONFIG_CANDIDATES) {
-      const file = join(projectPath, candidate)
-      if (existsSync(file)) files.push(file)
+      add(join(projectPath, candidate), "project")
     }
   }
+
+  // 3. `~/.opencode` 目录
+  const homeOpencode = join(homedir(), ".opencode")
+  add(join(homeOpencode, "opencode.jsonc"), "home")
+  add(join(homeOpencode, "opencode.json"), "home")
+
+  // 4. OPENCODE_CONFIG_DIR 环境变量目录
+  if (process.env.OPENCODE_CONFIG_DIR) {
+    for (const candidate of CONFIG_CANDIDATES) {
+      add(join(process.env.OPENCODE_CONFIG_DIR, candidate), "env")
+    }
+  }
+
+  // 5. auth.json 位于 xdg 数据目录（Global.Path.data）
+  add(join(opencodeDataDir(), "auth.json"), "global")
+
   return files
 }
 
@@ -400,7 +495,115 @@ export async function importBundle(
   return { failedPlugins }
 }
 
+// 新建配置文件的位置类型（工单 05）。
+export type CreateConfigLocation = "global" | "project" | "opencode"
+export type CreateConfigType = "opencode.json" | "tui.json" | "auth.json"
+
+// C2 安全修复：createConfigFile 入口运行时枚举校验白名单。
+// 防止通过 IPC 传入恶意 type/location 构造任意路径写入。
+const ALLOWED_CREATE_TYPES = new Set<CreateConfigType>(["opencode.json", "tui.json", "auth.json"])
+const ALLOWED_CREATE_LOCATIONS = new Set<CreateConfigLocation>(["global", "project", "opencode"])
+
+// 新建配置文件（工单 05）。不覆盖已存在文件，返回文件路径。
+// auth.json 在全局位置时创建于数据目录（与本体 auth 读取位置一致），
+// 这样 findConfigFilesGrouped 能发现它并显示在清单中。
+export async function createConfigFile(opts: {
+  location: CreateConfigLocation
+  type: CreateConfigType
+  projectPath?: string
+}): Promise<string> {
+  // C2 安全修复：运行时枚举校验，拒绝未知的 type/location。
+  if (!ALLOWED_CREATE_TYPES.has(opts.type)) throw new Error(`不支持的配置文件类型: ${opts.type}`)
+  if (!ALLOWED_CREATE_LOCATIONS.has(opts.location)) throw new Error(`不支持的位置: ${opts.location}`)
+  const dir = resolveCreateDir(opts)
+  await mkdir(dir, { recursive: true })
+  const filePath = join(dir, opts.type)
+  if (existsSync(filePath)) return filePath
+  const defaultContent = opts.type === "auth.json" ? "{}" : '{\n  "$schema": "https://opencode.ai/config.json"\n}\n'
+  await writeFile(filePath, defaultContent, "utf8")
+  return filePath
+}
+
+function resolveCreateDir(opts: {
+  location: CreateConfigLocation
+  type: CreateConfigType
+  projectPath?: string
+}): string {
+  if (opts.location === "global") {
+    // auth.json 属于数据目录（与本体 Global.Path.data 一致）
+    if (opts.type === "auth.json") return opencodeDataDir()
+    return opencodeConfigDir()
+  }
+  if (opts.location === "project") {
+    if (!opts.projectPath) throw new Error("project 位置需要 projectPath")
+    return opts.projectPath
+  }
+  // .opencode
+  return join(opts.projectPath ?? process.cwd(), ".opencode")
+}
+
 function basename(path: string): string {
   const parts = path.replace(/\\/g, "/").split("/")
   return parts[parts.length - 1] || path
+}
+
+// 工单 03：读取指定路径的配置文件并解析为对象。
+// 与 readConfigObject 不同——readConfigObject 只读第一个存在的 config 文件，
+// 此函数读取任意指定路径（含 auth.json / tui.json / 项目配置等）。
+// 返回 null 如果文件不存在或解析失败。
+export async function readConfigFileAtPath(filePath: string): Promise<Record<string, unknown> | null> {
+  try {
+    const text = await readFile(filePath, "utf8")
+    return JSON.parse(stripBom(text)) as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
+// 工单 03：保存配置到指定路径（全量写入）。
+// 调用方负责读全量 → 改字段 → 写全量，以保留表单未覆盖的字段（如 instructions/theme）。
+// 不在此处做字段合并——保持单一职责。
+export async function saveConfigFileAtPath(filePath: string, config: Record<string, unknown>): Promise<string> {
+  await mkdir(dirname(filePath), { recursive: true })
+  await writeFile(filePath, JSON.stringify(config, null, 2), "utf8")
+  return filePath
+}
+
+// 工单 04：.opencode/ 下可展开子目录节点。固定列表——agents/skills/plugins/themes/command。
+// 这些目录内容不常改，走「打开源文件」（ADR-026 D3），不铺平到顶层清单。
+const OPENCODE_SUBDIRS = ["agents", "skills", "plugins", "themes", "command"]
+
+export type OpencodeSubdirInfo = {
+  name: string
+  path: string
+  exists: boolean
+}
+
+// 返回 .opencode/ 下固定子目录列表（含是否存在标志）。
+// projectPath 优先用其 `.opencode`，回退到 xdg 全局配置目录。
+export function findOpencodeSubdirs(projectPath?: string): OpencodeSubdirInfo[] {
+  const baseDir = projectPath ? join(projectPath, ".opencode") : opencodeConfigDir()
+  return OPENCODE_SUBDIRS.map((name) => {
+    const path = join(baseDir, name)
+    return { name, path, exists: existsSync(path) }
+  })
+}
+
+// 工单 04：列出目录内容（用于 .opencode/ 子目录节点展开）。
+// 隐藏点文件，目录在前按名称排序。返回空数组如果目录不存在或不可读。
+export async function listDirectoryEntries(
+  dirPath: string,
+): Promise<{ name: string; path: string; isDirectory: boolean }[]> {
+  try {
+    const entries = await readdir(dirPath, { withFileTypes: true })
+    return entries
+      .filter((e) => !e.name.startsWith("."))
+      .map((e) => ({ name: e.name, path: join(dirPath, e.name), isDirectory: e.isDirectory() }))
+      .sort((a, b) => {
+        if (a.isDirectory !== b.isDirectory) return a.isDirectory ? -1 : 1
+        return a.name.localeCompare(b.name)
+      })
+  } catch {
+    return []
+  }
 }

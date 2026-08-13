@@ -1180,6 +1180,195 @@ body {
   flex: 1;
 }
 
+/* 配置文件清单（工单 01/02） */
+.launcher-configedit__files {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jx-space-4);
+}
+
+.launcher-configedit__group-title {
+  margin: 0 0 var(--jx-space-2);
+  font-family: var(--jx-font-ui);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-weak);
+}
+
+.launcher-configedit__file {
+  display: flex;
+  flex-direction: column;
+}
+
+.launcher-configedit__file-row {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  padding: var(--jx-space-2) 0;
+}
+
+.launcher-configedit__expand {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--jx-text-weak);
+  font-size: var(--jx-fs-small);
+  padding: 0 var(--jx-space-1);
+  line-height: 1;
+}
+
+.launcher-configedit__expand:hover {
+  color: var(--jx-gold);
+}
+
+.launcher-configedit__filename {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+  flex: 1;
+}
+
+.launcher-configedit__expand-content {
+  padding: var(--jx-space-3) var(--jx-space-4);
+  margin-left: var(--jx-space-4);
+  background-color: var(--jx-surface-0);
+  border-left: 2px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-sm);
+}
+
+.launcher-configedit__placeholder {
+  margin: 0;
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-faint);
+}
+
+/* 工单 04：.opencode/ 子目录节点展开后的文件列表 */
+.launcher-configedit__subdir-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.launcher-configedit__subdir-entry {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  padding: var(--jx-space-1) 0;
+}
+
+.launcher-configedit__subdir-name {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+  flex: 1;
+}
+
+/* 新建配置文件对话框（工单 05） */
+.launcher-configedit__dialog-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.launcher-configedit__dialog {
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  padding: var(--jx-space-6);
+  min-width: 320px;
+  box-shadow: var(--jx-shadow-2);
+}
+
+.launcher-configedit__dialog-title {
+  margin: 0 0 var(--jx-space-4);
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h3);
+  color: var(--jx-gold);
+}
+
+.launcher-configedit__dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jx-space-2);
+  margin-bottom: var(--jx-space-4);
+}
+
+.launcher-configedit__dialog-label {
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-weak);
+}
+
+.launcher-configedit__dialog-options {
+  display: flex;
+  gap: var(--jx-space-4);
+}
+
+.launcher-configedit__dialog-option {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-2);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+  cursor: pointer;
+}
+
+.launcher-configedit__dialog-error {
+  margin: 0 0 var(--jx-space-3);
+  color: var(--jx-error);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-configedit__dialog-actions {
+  display: flex;
+  gap: var(--jx-space-3);
+  justify-content: flex-end;
+}
+
+/* 工单 06/07/08：agent 模型绑定 / MCP 服务器 / 权限规则子表单 */
+.launcher-configedit__subform {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jx-space-3);
+  padding: var(--jx-space-3);
+  background-color: var(--jx-surface-0);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-sm);
+}
+
+.launcher-configedit__kv-row {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-2);
+  flex-wrap: wrap;
+}
+
+.launcher-configedit__kv-key {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+  min-width: 8em;
+}
+
+.launcher-configedit__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jx-space-3);
+  padding: var(--jx-space-3);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-sm);
+}
+
+.launcher-configedit__card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--jx-space-3);
+}
+
 /* 版本更新面板（工单 11） */
 .launcher-update {
   margin-top: var(--jx-space-6);

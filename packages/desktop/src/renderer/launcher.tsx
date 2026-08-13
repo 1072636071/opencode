@@ -1,5 +1,5 @@
 import { render } from "solid-js/web"
-import { createSignal, onMount, Show, For, Switch, Match } from "solid-js"
+import { createSignal, onMount, Show, For, Switch, Match, createEffect } from "solid-js"
 import type {
   OpencodeStatus,
   LauncherSnapshotMeta,
@@ -9,8 +9,37 @@ import type {
   LauncherPluginLoadEntry,
   LauncherErrorSnippet,
   LauncherDiagnosticsMeta,
+  LauncherConfigFileInfo,
+  LauncherCreateConfigLocation,
+  LauncherCreateConfigType,
+  LauncherOpencodeSubdirInfo,
+  LauncherDirectoryEntry,
 } from "../preload/types"
 import { mergeProviderConfig, validateLlmApiForm, type LlmApiFormState } from "./llm-api-form"
+import {
+  groupConfigFilesByGroup,
+  togglePath,
+  openFileHandler,
+  CREATE_LOCATIONS,
+  CREATE_TYPES,
+  locationLabel,
+  detectConfigFileKind,
+  pickFormFields,
+  mergeConfigField,
+  isAuthKeyForm,
+  isSourceOnlyForm,
+  extractAgentBindings,
+  buildAgentConfig,
+  extractMcpServers,
+  buildMcpConfig,
+  extractPermissionRules,
+  buildPermissionConfig,
+  type ConfigFileKind,
+  type ConfigFormFields,
+  type AgentBinding,
+  type McpServerEntry,
+  type PermissionRule,
+} from "./launcher-config-groups"
 import "./launcher.css"
 
 const [sidecarStatus, setSidecarStatus] = createSignal<OpencodeStatus>("idle")
@@ -28,6 +57,7 @@ const [importPhase, setImportPhase] = createSignal<string>("")
 
 export { setSidecarStatus, sidecarStatus }
 export type { OpencodeStatus }
+
 
 const rollbackPhaseLabel: Record<string, string> = {
   idle: "",
@@ -819,89 +849,957 @@ function DiagnosticPanel() {
 }
 
 function ConfigEditPanel() {
-  const [config, setConfig] = createSignal<Record<string, unknown> | null>(null)
-  const [model, setModel] = createSignal("")
-  const [plugins, setPlugins] = createSignal<string[]>([])
-  const [saving, setSaving] = createSignal(false)
+  const [configFiles, setConfigFiles] = createSignal<LauncherConfigFileInfo[]>([])
+  const [expandedPaths, setExpandedPaths] = createSignal<Set<string>>(new Set())
+  const [showCreateDialog, setShowCreateDialog] = createSignal(false)
+  const [createLocation, setCreateLocation] = createSignal<LauncherCreateConfigLocation>("global")
+  const [createType, setCreateType] = createSignal<LauncherCreateConfigType>("opencode.json")
+  const [createError, setCreateError] = createSignal<string | null>(null)
+  const [creating, setCreating] = createSignal(false)
+  // 工单 04：.opencode/ 下目录节点。
+  const [opencodeSubdirs, setOpencodeSubdirs] = createSignal<LauncherOpencodeSubdirInfo[]>([])
+
   const refresh = async () => {
-    const cfg = await window.api.launcherReadConfig()
-    setConfig(cfg)
-    if (cfg) {
-      setModel(typeof cfg.model === "string" ? cfg.model : "")
-      setPlugins(
-        Array.isArray(cfg.plugins)
-          ? (cfg.plugins as unknown[])
-              .map((p) => (typeof p === "string" ? p : ((p as { id?: string })?.id ?? "")))
-              .filter(Boolean)
-          : [],
-      )
-    }
+    const files = await window.api.launcherListConfigFiles()
+    setConfigFiles(files)
+    const subdirs = await window.api.launcherListOpencodeSubdirs()
+    setOpencodeSubdirs(subdirs)
   }
   onMount(() => void refresh())
-  const openConfigFile = async () => {
-    const path = await window.api.launcherGetConfigPath()
-    if (path) window.api.openLocalFile(path)
+
+  const openConfigFile = (path: string) => {
+    openFileHandler(window.api.openLocalFile, path)()
   }
-  const save = async () => {
-    setSaving(true)
+
+  const toggleExpand = (path: string) => {
+    setExpandedPaths(togglePath(expandedPaths(), path))
+  }
+
+  const openCreateDialog = () => {
+    setCreateError(null)
+    setShowCreateDialog(true)
+  }
+
+  const createConfig = async () => {
+    setCreating(true)
+    setCreateError(null)
     try {
-      const cfg = config() ?? {}
-      cfg.model = model()
-      cfg.plugins = plugins()
-      await window.api.launcherSaveConfig(cfg)
+      await window.api.launcherCreateConfigFile({
+        location: createLocation(),
+        type: createType(),
+      })
       await refresh()
+      setShowCreateDialog(false)
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : String(err))
     } finally {
-      setSaving(false)
+      setCreating(false)
     }
   }
-  const removePlugin = (spec: string) => setPlugins(plugins().filter((p) => p !== spec))
+
+  const grouped = () => groupConfigFilesByGroup(configFiles())
+  // 工单 04：只显示存在的 .opencode/ 子目录节点（不铺平到顶层清单）。
+  const visibleSubdirs = () => opencodeSubdirs().filter((d) => d.exists)
 
   return (
     <div class="launcher-configedit">
       <div class="launcher-configedit__head">
         <h2 class="launcher-configedit__title">配置编辑</h2>
-        <button class="launcher-btn launcher-btn--small" onClick={openConfigFile}>
-          打开配置文件
+        <button class="launcher-btn launcher-btn--small" onClick={openCreateDialog}>
+          新建配置文件
         </button>
       </div>
-      {config() === null ? (
-        <p class="launcher-configedit__empty">无 config 文件（点"打开配置文件"创建）</p>
+      {configFiles().length === 0 ? (
+        <p class="launcher-configedit__empty">未发现配置文件</p>
       ) : (
-        <div class="launcher-configedit__form">
-          <label class="launcher-configedit__field">
-            <span class="launcher-configedit__label">当前模型</span>
-            <input
-              class="launcher-configedit__input"
-              value={model()}
-              onInput={(e) => setModel(e.currentTarget.value)}
-              placeholder="如: claude-sonnet-4"
-            />
-          </label>
-          <div class="launcher-configedit__field">
-            <span class="launcher-configedit__label">插件列表</span>
-            {plugins().length === 0 ? (
-              <span class="launcher-configedit__empty">无插件</span>
-            ) : (
-              <ul class="launcher-configedit__plugins">
-                {plugins().map((spec) => (
-                  <li class="launcher-configedit__plugin">
-                    <span class="launcher-configedit__spec">{spec}</span>
-                    <button
-                      class="launcher-btn launcher-btn--mini launcher-btn--danger"
-                      onClick={() => removePlugin(spec)}
-                    >
-                      移除
-                    </button>
-                  </li>
-                ))}
-              </ul>
+        <div class="launcher-configedit__files">
+          <For each={grouped()}>
+            {(entry) => (
+              <div class="launcher-configedit__group">
+                <h3 class="launcher-configedit__group-title">{entry.label}</h3>
+                <For each={entry.files}>
+                  {(file) => (
+                    <div class="launcher-configedit__file">
+                      <div class="launcher-configedit__file-row">
+                        <button
+                          class="launcher-configedit__expand"
+                          aria-label={expandedPaths().has(file.path) ? "折叠" : "展开"}
+                          onClick={() => toggleExpand(file.path)}
+                        >
+                          {expandedPaths().has(file.path) ? "▼" : "▶"}
+                        </button>
+                        <span class="launcher-configedit__filename">{file.name}</span>
+                        <button
+                          class="launcher-btn launcher-btn--small"
+                          onClick={() => openConfigFile(file.path)}
+                        >
+                          打开源文件
+                        </button>
+                      </div>
+                      <Show when={expandedPaths().has(file.path)}>
+                        <div class="launcher-configedit__expand-content">
+                          <ConfigFileForm file={file} />
+                        </div>
+                      </Show>
+                    </div>
+                  )}
+                </For>
+              </div>
             )}
-          </div>
-          <button class="launcher-btn launcher-btn--primary" disabled={saving()} onClick={save}>
-            {saving() ? "保存中…" : "保存"}
-          </button>
+          </For>
+          {/* 工单 04：.opencode/ 下目录节点可展开 + 内部文件打开，不铺平到顶层清单 */}
+          <Show when={visibleSubdirs().length > 0}>
+            <div class="launcher-configedit__group">
+              <h3 class="launcher-configedit__group-title">.opencode 目录</h3>
+              <For each={visibleSubdirs()}>
+                {(subdir) => (
+                  <OpencodeSubdirNode
+                    name={subdir.name}
+                    path={subdir.path}
+                    expanded={expandedPaths().has(subdir.path)}
+                    onToggle={() => toggleExpand(subdir.path)}
+                    onOpenFile={openConfigFile}
+                  />
+                )}
+              </For>
+            </div>
+          </Show>
         </div>
       )}
+      <Show when={showCreateDialog()}>
+        <div class="launcher-configedit__dialog-overlay" onClick={() => setShowCreateDialog(false)}>
+          <div class="launcher-configedit__dialog" onClick={(e) => e.stopPropagation()}>
+            <h3 class="launcher-configedit__dialog-title">新建配置文件</h3>
+            <div class="launcher-configedit__dialog-field">
+              <span class="launcher-configedit__dialog-label">位置</span>
+              <div class="launcher-configedit__dialog-options">
+                <For each={CREATE_LOCATIONS}>
+                  {(loc) => (
+                    <label class="launcher-configedit__dialog-option">
+                      <input
+                        type="radio"
+                        name="create-location"
+                        checked={createLocation() === loc}
+                        onChange={() => setCreateLocation(loc)}
+                      />
+                      <span>{locationLabel(loc)}</span>
+                    </label>
+                  )}
+                </For>
+              </div>
+            </div>
+            <div class="launcher-configedit__dialog-field">
+              <span class="launcher-configedit__dialog-label">类型</span>
+              <div class="launcher-configedit__dialog-options">
+                <For each={CREATE_TYPES}>
+                  {(typ) => (
+                    <label class="launcher-configedit__dialog-option">
+                      <input
+                        type="radio"
+                        name="create-type"
+                        checked={createType() === typ}
+                        onChange={() => setCreateType(typ)}
+                      />
+                      <span>{typ}</span>
+                    </label>
+                  )}
+                </For>
+              </div>
+            </div>
+            <Show when={createError()}>
+              <p class="launcher-configedit__dialog-error">{createError()}</p>
+            </Show>
+            <div class="launcher-configedit__dialog-actions">
+              <button
+                class="launcher-btn launcher-btn--small"
+                disabled={creating()}
+                onClick={() => void createConfig()}
+              >
+                创建
+              </button>
+              <button
+                class="launcher-btn launcher-btn--small"
+                disabled={creating()}
+                onClick={() => setShowCreateDialog(false)}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+         </div>
+      </Show>
+    </div>
+  )
+}
+
+/**
+ * 工单 06：agent 模型绑定表单。
+ *
+ * - 列出所有 agent（含现有 + 未来新增），每个 agent 下拉选模型或「自动」。
+ * - 保存写入 opencode.json 的 agent.*.model。
+ * - 「自动」= 不绑（primary 形态会话级选、派遣形态继承派遣者）。
+ * - 不改 core（只在 UI 层，符合路线 A）。
+ */
+function AgentModelForm(props: {
+  config: Record<string, unknown> | null
+  saving: boolean
+  onSave: (key: string, value: unknown) => Promise<void>
+}) {
+  // S6 修复：移除 initialBindings，统一由 createEffect 驱动初始化。
+  const [bindings, setBindings] = createSignal<AgentBinding[]>([])
+  const [newName, setNewName] = createSignal("")
+  const [newModel, setNewModel] = createSignal("auto")
+
+  // 同步外部 config 变化（保存后 refresh）
+  createEffect(() => {
+    setBindings(extractAgentBindings(props.config?.agent))
+  })
+
+  const updateModel = (name: string, model: string) => {
+    setBindings((list) => list.map((b) => (b.name === name ? { ...b, model } : b)))
+  }
+
+  const addAgent = () => {
+    const name = newName().trim()
+    if (!name) return
+    // 避免重名
+    if (bindings().some((b) => b.name === name)) return
+    setBindings((list) => [...list, { name, model: newModel() || "auto" }].sort((a, b) => a.name.localeCompare(b.name)))
+    setNewName("")
+    setNewModel("auto")
+  }
+
+  const removeAgent = (name: string) => {
+    setBindings((list) => list.filter((b) => b.name !== name))
+  }
+
+  const save = () => void props.onSave("agent", buildAgentConfig(bindings(), props.config?.agent))
+
+  return (
+    <div class="launcher-configedit__subform">
+      <p class="launcher-configedit__label">agent 模型绑定（「自动」= 不绑，会话级选或继承派遣者）</p>
+      <For each={bindings()}>
+        {(binding) => (
+          <div class="launcher-configedit__kv-row">
+            <span class="launcher-configedit__kv-key">{binding.name}</span>
+            <select
+              class="launcher-configedit__input"
+              value={binding.model}
+              onChange={(e) => updateModel(binding.name, e.currentTarget.value)}
+            >
+              <option value="auto">自动</option>
+              <option value="claude-sonnet-4">claude-sonnet-4</option>
+              <option value="claude-opus-4">claude-opus-4</option>
+              <option value="gpt-5">gpt-5</option>
+              <option value="deepseek-chat">deepseek-chat</option>
+              <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+              <Show when={!isPresetModel(binding.model)}>
+                <option value={binding.model}>{binding.model}</option>
+              </Show>
+            </select>
+            <button
+              class="launcher-btn launcher-btn--small"
+              onClick={() => removeAgent(binding.name)}
+              aria-label={`删除 agent ${binding.name}`}
+            >
+              删除
+            </button>
+          </div>
+        )}
+      </For>
+      <div class="launcher-configedit__kv-row">
+        <input
+          class="launcher-configedit__input"
+          value={newName()}
+          onInput={(e) => setNewName(e.currentTarget.value)}
+          placeholder="新 agent 名称"
+        />
+        <select
+          class="launcher-configedit__input"
+          value={newModel()}
+          onChange={(e) => setNewModel(e.currentTarget.value)}
+        >
+          <option value="auto">自动</option>
+          <option value="claude-sonnet-4">claude-sonnet-4</option>
+          <option value="claude-opus-4">claude-opus-4</option>
+          <option value="gpt-5">gpt-5</option>
+          <option value="deepseek-chat">deepseek-chat</option>
+          <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+        </select>
+        <button class="launcher-btn launcher-btn--small" onClick={addAgent}>
+          添加
+        </button>
+      </div>
+      <button class="launcher-btn launcher-btn--primary" disabled={props.saving} onClick={save}>
+        {props.saving ? "保存中…" : "保存 agent 绑定"}
+      </button>
+    </div>
+  )
+}
+
+// 预设模型清单——下拉选项里已列出的模型。用于判断是否需要额外追加自定义选项。
+const PRESET_MODELS = new Set(["auto", "claude-sonnet-4", "claude-opus-4", "gpt-5", "deepseek-chat", "gemini-2.5-pro"])
+
+function isPresetModel(model: string): boolean {
+  return PRESET_MODELS.has(model)
+}
+
+/**
+ * 工单 07：MCP 服务器表单。
+ *
+ * - 可新增/删除 MCP 服务器（name + command 或 url + args + env）。
+ * - args 为可增删字符串列表，env 为可增删键值对列表。
+ * - 保存写入 opencode.json 的 mcp.*。
+ */
+function McpServerForm(props: {
+  config: Record<string, unknown> | null
+  saving: boolean
+  onSave: (key: string, value: unknown) => Promise<void>
+}) {
+  // S6 修复：移除 initialServers，统一由 createEffect 驱动初始化。
+  const [servers, setServers] = createSignal<McpServerEntry[]>([])
+  const [newName, setNewName] = createSignal("")
+  const [newCommand, setNewCommand] = createSignal("")
+  const [newUrl, setNewUrl] = createSignal("")
+
+  createEffect(() => {
+    setServers(extractMcpServers(props.config?.mcp))
+  })
+
+  const addServer = () => {
+    const name = newName().trim()
+    if (!name) return
+    if (servers().some((s) => s.name === name)) return
+    const entry: McpServerEntry = {
+      name,
+      args: [],
+      env: [],
+    }
+    if (newCommand().trim()) entry.command = newCommand().trim()
+    if (newUrl().trim()) entry.url = newUrl().trim()
+    setServers((list) => [...list, entry])
+    setNewName("")
+    setNewCommand("")
+    setNewUrl("")
+  }
+
+  const removeServer = (name: string) => {
+    setServers((list) => list.filter((s) => s.name !== name))
+  }
+
+  const updateField = <K extends keyof McpServerEntry>(name: string, key: K, value: McpServerEntry[K]) => {
+    setServers((list) => list.map((s) => (s.name === name ? { ...s, [key]: value } : s)))
+  }
+
+  const addArg = (name: string) => {
+    setServers((list) => list.map((s) => (s.name === name ? { ...s, args: [...s.args, ""] } : s)))
+  }
+
+  const updateArg = (name: string, idx: number, value: string) => {
+    setServers((list) =>
+      list.map((s) =>
+        s.name === name ? { ...s, args: s.args.map((a, i) => (i === idx ? value : a)) } : s,
+      ),
+    )
+  }
+
+  const removeArg = (name: string, idx: number) => {
+    setServers((list) =>
+      list.map((s) => (s.name === name ? { ...s, args: s.args.filter((_, i) => i !== idx) } : s)),
+    )
+  }
+
+  const addEnv = (name: string) => {
+    setServers((list) => list.map((s) => (s.name === name ? { ...s, env: [...s.env, { key: "", value: "" }] } : s)))
+  }
+
+  const updateEnvKey = (name: string, idx: number, key: string) => {
+    setServers((list) =>
+      list.map((s) =>
+        s.name === name ? { ...s, env: s.env.map((e, i) => (i === idx ? { ...e, key } : e)) } : s,
+      ),
+    )
+  }
+
+  const updateEnvValue = (name: string, idx: number, value: string) => {
+    setServers((list) =>
+      list.map((s) =>
+        s.name === name ? { ...s, env: s.env.map((e, i) => (i === idx ? { ...e, value } : e)) } : s,
+      ),
+    )
+  }
+
+  const removeEnv = (name: string, idx: number) => {
+    setServers((list) =>
+      list.map((s) => (s.name === name ? { ...s, env: s.env.filter((_, i) => i !== idx) } : s)),
+    )
+  }
+
+  const save = () => void props.onSave("mcp", buildMcpConfig(servers(), props.config?.mcp))
+
+  return (
+    <div class="launcher-configedit__subform">
+      <p class="launcher-configedit__label">MCP 服务器（name + command 或 url + args + env）</p>
+      <For each={servers()}>
+        {(server) => (
+          <div class="launcher-configedit__card">
+            <div class="launcher-configedit__card-head">
+              <span class="launcher-configedit__kv-key">{server.name}</span>
+              <button
+                class="launcher-btn launcher-btn--small"
+                onClick={() => removeServer(server.name)}
+                aria-label={`删除 MCP 服务器 ${server.name}`}
+              >
+                删除
+              </button>
+            </div>
+            <label class="launcher-configedit__field">
+              <span class="launcher-configedit__label">command（本地命令）</span>
+              <input
+                class="launcher-configedit__input"
+                value={server.command ?? ""}
+                onInput={(e) => updateField(server.name, "command", e.currentTarget.value || undefined)}
+                placeholder="如: node"
+              />
+            </label>
+            <label class="launcher-configedit__field">
+              <span class="launcher-configedit__label">url（远程服务器）</span>
+              <input
+                class="launcher-configedit__input"
+                value={server.url ?? ""}
+                onInput={(e) => updateField(server.name, "url", e.currentTarget.value || undefined)}
+                placeholder="https://example.com/mcp"
+              />
+            </label>
+            <div class="launcher-configedit__field">
+              <span class="launcher-configedit__label">args（参数列表）</span>
+              <For each={server.args}>
+                {(arg, idx) => (
+                  <div class="launcher-configedit__kv-row">
+                    <input
+                      class="launcher-configedit__input"
+                      value={arg}
+                      onInput={(e) => updateArg(server.name, idx(), e.currentTarget.value)}
+                    />
+                    <button
+                      class="launcher-btn launcher-btn--small"
+                      onClick={() => removeArg(server.name, idx())}
+                      aria-label="删除参数"
+                    >
+                      删除
+                    </button>
+                  </div>
+                )}
+              </For>
+              <button class="launcher-btn launcher-btn--small" onClick={() => addArg(server.name)}>
+                添加参数
+              </button>
+            </div>
+            <div class="launcher-configedit__field">
+              <span class="launcher-configedit__label">env（环境变量键值对）</span>
+              <For each={server.env}>
+                {(env, idx) => (
+                  <div class="launcher-configedit__kv-row">
+                    <input
+                      class="launcher-configedit__input"
+                      value={env.key}
+                      onInput={(e) => updateEnvKey(server.name, idx(), e.currentTarget.value)}
+                      placeholder="变量名"
+                    />
+                    <input
+                      class="launcher-configedit__input"
+                      value={env.value}
+                      onInput={(e) => updateEnvValue(server.name, idx(), e.currentTarget.value)}
+                      placeholder="变量值"
+                    />
+                    <button
+                      class="launcher-btn launcher-btn--small"
+                      onClick={() => removeEnv(server.name, idx())}
+                      aria-label="删除环境变量"
+                    >
+                      删除
+                    </button>
+                  </div>
+                )}
+              </For>
+              <button class="launcher-btn launcher-btn--small" onClick={() => addEnv(server.name)}>
+                添加环境变量
+              </button>
+            </div>
+          </div>
+        )}
+      </For>
+      <div class="launcher-configedit__card">
+        <p class="launcher-configedit__label">新增 MCP 服务器</p>
+        <label class="launcher-configedit__field">
+          <span class="launcher-configedit__label">name（必填）</span>
+          <input
+            class="launcher-configedit__input"
+            value={newName()}
+            onInput={(e) => setNewName(e.currentTarget.value)}
+            placeholder="如: my-server"
+          />
+        </label>
+        <label class="launcher-configedit__field">
+          <span class="launcher-configedit__label">command</span>
+          <input
+            class="launcher-configedit__input"
+            value={newCommand()}
+            onInput={(e) => setNewCommand(e.currentTarget.value)}
+            placeholder="如: node"
+          />
+        </label>
+        <label class="launcher-configedit__field">
+          <span class="launcher-configedit__label">url</span>
+          <input
+            class="launcher-configedit__input"
+            value={newUrl()}
+            onInput={(e) => setNewUrl(e.currentTarget.value)}
+            placeholder="https://example.com/mcp"
+          />
+        </label>
+        <button class="launcher-btn launcher-btn--small" onClick={addServer}>
+          添加服务器
+        </button>
+      </div>
+      <button class="launcher-btn launcher-btn--primary" disabled={props.saving} onClick={save}>
+        {props.saving ? "保存中…" : "保存 MCP 配置"}
+      </button>
+    </div>
+  )
+}
+
+/**
+ * 工单 08：权限规则表单。
+ *
+ * - 可新增/删除权限规则（glob 模式 + allow/deny/ask）。
+ * - 保存写入 opencode.json 的 permission。
+ */
+function PermissionRuleForm(props: {
+  config: Record<string, unknown> | null
+  saving: boolean
+  onSave: (key: string, value: unknown) => Promise<void>
+}) {
+  // S6 修复：移除 initialRules，统一由 createEffect 驱动初始化。
+  const [rules, setRules] = createSignal<PermissionRule[]>([])
+  const [newGlob, setNewGlob] = createSignal("")
+  const [newMode, setNewMode] = createSignal<"allow" | "deny" | "ask">("allow")
+
+  createEffect(() => {
+    setRules(extractPermissionRules(props.config?.permission))
+  })
+
+  const addRule = () => {
+    const glob = newGlob().trim()
+    if (!glob) return
+    setRules((list) => [...list, { glob, mode: newMode() }])
+    setNewGlob("")
+    setNewMode("allow")
+  }
+
+  const updateMode = (idx: number, mode: "allow" | "deny" | "ask") => {
+    setRules((list) => list.map((r, i) => (i === idx ? { ...r, mode } : r)))
+  }
+
+  const removeRule = (idx: number) => {
+    setRules((list) => list.filter((_, i) => i !== idx))
+  }
+
+  const save = () => void props.onSave("permission", buildPermissionConfig(rules(), props.config?.permission))
+
+  return (
+    <div class="launcher-configedit__subform">
+      <p class="launcher-configedit__label">权限规则（glob 模式 + allow/deny/ask）</p>
+      <For each={rules()}>
+        {(rule, idx) => (
+          <div class="launcher-configedit__kv-row">
+            <input
+              class="launcher-configedit__input"
+              value={rule.glob}
+              onInput={(e) =>
+                setRules((list) => list.map((r, i) => (i === idx() ? { ...r, glob: e.currentTarget.value } : r)))
+              }
+              placeholder="如: src/**"
+            />
+            <select
+              class="launcher-configedit__input"
+              value={rule.mode}
+              onChange={(e) => updateMode(idx(), e.currentTarget.value as "allow" | "deny" | "ask")}
+            >
+              <option value="allow">allow</option>
+              <option value="deny">deny</option>
+              <option value="ask">ask</option>
+            </select>
+            <button
+              class="launcher-btn launcher-btn--small"
+              onClick={() => removeRule(idx())}
+              aria-label="删除规则"
+            >
+              删除
+            </button>
+          </div>
+        )}
+      </For>
+      <div class="launcher-configedit__kv-row">
+        <input
+          class="launcher-configedit__input"
+          value={newGlob()}
+          onInput={(e) => setNewGlob(e.currentTarget.value)}
+          placeholder="新规则 glob 模式"
+        />
+        <select
+          class="launcher-configedit__input"
+          value={newMode()}
+          onChange={(e) => setNewMode(e.currentTarget.value as "allow" | "deny" | "ask")}
+        >
+          <option value="allow">allow</option>
+          <option value="deny">deny</option>
+          <option value="ask">ask</option>
+        </select>
+        <button class="launcher-btn launcher-btn--small" onClick={addRule}>
+          添加规则
+        </button>
+      </div>
+      <button class="launcher-btn launcher-btn--primary" disabled={props.saving} onClick={save}>
+        {props.saving ? "保存中…" : "保存权限规则"}
+      </button>
+    </div>
+  )
+}
+
+/**
+ * 工单 03：按文件分别编辑的表单。
+ *
+ * - opencode.json/opencode.jsonc/config.json：显示该文件实际存在的 model/plugins/provider/agent/mcp/permission 字段。
+ *   保存时：读全量 → 改对应字段 → 写全量（保留其他字段如 instructions/theme）。
+ * - auth.json：API key 表单（不展示现有 key，只提供设置/修改输入）。
+ * - tui.json：提示「打开源文件编辑」（不走表单）。
+ * - unknown：提示「打开源文件编辑」。
+ *
+ * 保存触发 auto snapshot（main 端 launcher:save-config-file handler 内置）。
+ * 保存后提示重启生效（配置不热加载）。
+ */
+function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
+  const kind: ConfigFileKind = detectConfigFileKind(props.file.name)
+  const [config, setConfig] = createSignal<Record<string, unknown> | null>(null)
+  const [saving, setSaving] = createSignal(false)
+  const [message, setMessage] = createSignal<{ kind: "ok" | "err"; text: string } | null>(null)
+  // opencode.json 表单字段输入
+  const [modelValue, setModelValue] = createSignal("")
+  const [pluginsValue, setPluginsValue] = createSignal("")
+  // auth.json 表单字段输入
+  const [authProviderID, setAuthProviderID] = createSignal("")
+  const [authKey, setAuthKey] = createSignal("")
+
+  const fields = (): ConfigFormFields => pickFormFields(config())
+
+  const refresh = async () => {
+    const cfg = await window.api.launcherReadConfigFile(props.file.path)
+    setConfig(cfg)
+    if (cfg && typeof cfg.model === "string") setModelValue(cfg.model)
+    if (cfg && Array.isArray(cfg.plugins)) setPluginsValue((cfg.plugins as unknown[]).join(", "))
+  }
+  onMount(() => void refresh())
+
+  // S4 修复：保存后不调 refresh()，避免重置其他字段的未保存编辑。
+  // 只更新 config signal（用于 fields() 计算），不重置 modelValue/pluginsValue 等输入。
+  const saveField = async (key: string, value: unknown) => {
+    setSaving(true)
+    setMessage(null)
+    try {
+      const current = await window.api.launcherReadConfigFile(props.file.path)
+      const merged = mergeConfigField(current, key, value)
+      await window.api.launcherSaveConfigFile(props.file.path, merged)
+      // 不调 refresh()，避免重置其他字段未保存编辑
+      // 只更新 config signal（用于 fields() 计算）
+      setConfig(merged)
+      setMessage({ kind: "ok", text: `已保存 ${key}，重启 OpenCode 后生效` })
+    } catch (err) {
+      setMessage({ kind: "err", text: err instanceof Error ? err.message : String(err) })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // S3 修复：空值时从 config 删除 model key，而非写入 model: null。
+  const saveModel = async () => {
+    const trimmed = modelValue().trim()
+    if (!trimmed) {
+      // 删除 model 字段
+      const current = await window.api.launcherReadConfigFile(props.file.path)
+      if (current) {
+        const merged = { ...current }
+        delete merged.model
+        setSaving(true)
+        try {
+          await window.api.launcherSaveConfigFile(props.file.path, merged)
+          setConfig(merged)
+          setMessage({ kind: "ok", text: "已删除 model，重启 OpenCode 后生效" })
+        } catch (err) {
+          setMessage({ kind: "err", text: err instanceof Error ? err.message : String(err) })
+        } finally {
+          setSaving(false)
+        }
+      }
+      return
+    }
+    void saveField("model", trimmed)
+  }
+
+  const savePlugins = () => {
+    const trimmed = pluginsValue()
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+    void saveField("plugins", trimmed)
+  }
+
+  const saveAuthKey = async () => {
+    const providerID = authProviderID().trim()
+    const key = authKey().trim()
+    if (!providerID) {
+      setMessage({ kind: "err", text: "厂商 ID 必填" })
+      return
+    }
+    if (!key) {
+      setMessage({ kind: "err", text: "API Key 必填" })
+      return
+    }
+    setSaving(true)
+    setMessage(null)
+    try {
+      await window.api.launcherSaveAuthKey(providerID, key)
+      setAuthProviderID("")
+      setAuthKey("")
+      setMessage({ kind: "ok", text: `已保存 ${providerID} 的 API Key，重启 OpenCode 后生效` })
+    } catch (err) {
+      setMessage({ kind: "err", text: err instanceof Error ? err.message : String(err) })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // S5 修复：暴露删除 API key 功能。
+  const deleteAuthKey = async () => {
+    const providerID = authProviderID().trim()
+    if (!providerID) {
+      setMessage({ kind: "err", text: "请输入要删除的厂商 ID" })
+      return
+    }
+    setSaving(true)
+    try {
+      await window.api.launcherSaveAuthKey(providerID, null)
+      setAuthProviderID("")
+      setAuthKey("")
+      setMessage({ kind: "ok", text: `已删除 ${providerID} 的 API Key` })
+    } catch (err) {
+      setMessage({ kind: "err", text: err instanceof Error ? err.message : String(err) })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const openSource = () => openFileHandler(window.api.openLocalFile, props.file.path)()
+
+  return (
+    <div class="launcher-configedit__form">
+      <Show when={message()}>
+        {(msg) => (
+          <p
+            class="launcher-configedit__empty"
+            style={{ color: msg().kind === "ok" ? "var(--jx-success)" : "var(--jx-error)" }}
+          >
+            {msg().text}
+          </p>
+        )}
+      </Show>
+      <Switch>
+        {/* auth.json：API key 表单（不展示现有 key） */}
+        <Match when={isAuthKeyForm(kind)}>
+          <p class="launcher-configedit__empty">设置或修改 API Key（出于安全考虑，不展示现有 key）</p>
+          <label class="launcher-configedit__field">
+            <span class="launcher-configedit__label">厂商标识</span>
+            <input
+              class="launcher-configedit__input"
+              value={authProviderID()}
+              onInput={(e) => setAuthProviderID(e.currentTarget.value)}
+              placeholder="如: deepseek"
+            />
+          </label>
+          <label class="launcher-configedit__field">
+            <span class="launcher-configedit__label">API Key</span>
+            <input
+              class="launcher-configedit__input"
+              type="password"
+              value={authKey()}
+              onInput={(e) => setAuthKey(e.currentTarget.value)}
+              placeholder="sk-..."
+            />
+          </label>
+          <button class="launcher-btn launcher-btn--primary" disabled={saving()} onClick={saveAuthKey}>
+            {saving() ? "保存中…" : "保存"}
+          </button>
+          <button class="launcher-btn launcher-btn--small launcher-btn--danger" disabled={saving()} onClick={deleteAuthKey}>
+            删除 API Key
+          </button>
+        </Match>
+        {/* tui.json / unknown：提示「打开源文件编辑」 */}
+        <Match when={isSourceOnlyForm(kind) || kind === "unknown"}>
+          <p class="launcher-configedit__empty">此文件建议直接打开源文件编辑</p>
+          <button class="launcher-btn launcher-btn--small" onClick={openSource}>
+            打开源文件
+          </button>
+        </Match>
+        {/* opencode.json/opencode.jsonc/config.json：按实际有的字段渲染 */}
+        <Match when={kind === "opencode"}>
+          <Show when={!config()}>
+            <p class="launcher-configedit__empty">文件为空或解析失败</p>
+          </Show>
+          <Show when={config()}>
+            <Show when={fields().model}>
+              <label class="launcher-configedit__field">
+                <span class="launcher-configedit__label">model（当前模型）</span>
+                <input
+                  class="launcher-configedit__input"
+                  value={modelValue()}
+                  onInput={(e) => setModelValue(e.currentTarget.value)}
+                  placeholder="如: deepseek-chat"
+                />
+                <button
+                  class="launcher-btn launcher-btn--small"
+                  disabled={saving()}
+                  onClick={saveModel}
+                >
+                  保存 model
+                </button>
+              </label>
+            </Show>
+            <Show when={fields().plugins}>
+              <label class="launcher-configedit__field">
+                <span class="launcher-configedit__label">plugins（逗号分隔）</span>
+                <input
+                  class="launcher-configedit__input"
+                  value={pluginsValue()}
+                  onInput={(e) => setPluginsValue(e.currentTarget.value)}
+                  placeholder="如: @opencode-ai/plugin-x, ./local-plugin"
+                />
+                <button
+                  class="launcher-btn launcher-btn--small"
+                  disabled={saving()}
+                  onClick={savePlugins}
+                >
+                  保存 plugins
+                </button>
+              </label>
+            </Show>
+            <Show when={fields().provider}>
+              <p class="launcher-configedit__empty">
+                provider 字段已存在——建议通过下方「LLM API 快捷配置」或打开源文件编辑
+              </p>
+            </Show>
+            <Show when={fields().agent}>
+              <AgentModelForm config={config()} saving={saving()} onSave={saveField} />
+            </Show>
+            <Show when={fields().mcp}>
+              <McpServerForm config={config()} saving={saving()} onSave={saveField} />
+            </Show>
+            <Show when={fields().permission}>
+              <PermissionRuleForm config={config()} saving={saving()} onSave={saveField} />
+            </Show>
+            {/* 只显示该文件实际有的字段——没有字段时不显示任何表单 */}
+            <Show
+              when={
+                !fields().model &&
+                !fields().plugins &&
+                !fields().provider &&
+                !fields().agent &&
+                !fields().mcp &&
+                !fields().permission
+              }
+            >
+              <p class="launcher-configedit__empty">
+                此文件无可编辑字段（仅含 $schema/instructions/theme 等非表单字段）
+              </p>
+            </Show>
+            {/* 保留其他字段提示 */}
+            <Show when={fields().instructions || fields().theme}>
+              <p class="launcher-configedit__empty">
+                instructions/theme 等字段保留不变（保存只改对应字段）
+              </p>
+            </Show>
+          </Show>
+        </Match>
+      </Switch>
+    </div>
+  )
+}
+
+/**
+ * 工单 04：.opencode/ 下目录节点（agents/skills/plugins/themes/command）。
+ *
+ * - 显示为可展开节点，展开后列出目录内文件。
+ * - 点内部文件「打开源文件」调系统编辑器打开。
+ * - 不铺平到顶层清单（保持目录节点折叠形态）。
+ */
+function OpencodeSubdirNode(props: {
+  name: string
+  path: string
+  expanded: boolean
+  onToggle: () => void
+  onOpenFile: (path: string) => void
+}) {
+  const [entries, setEntries] = createSignal<LauncherDirectoryEntry[]>([])
+
+  const refresh = async () => {
+    if (!props.expanded) return
+    const list = await window.api.launcherListDirectoryEntries(props.path)
+    setEntries(list)
+  }
+  // 展开时加载目录内容
+  createEffect(() => {
+    if (props.expanded) void refresh()
+  })
+
+  return (
+    <div class="launcher-configedit__file">
+      <div class="launcher-configedit__file-row">
+        <button
+          class="launcher-configedit__expand"
+          aria-label={props.expanded ? "折叠" : "展开"}
+          onClick={props.onToggle}
+        >
+          {props.expanded ? "▼" : "▶"}
+        </button>
+        <span class="launcher-configedit__filename">{props.name}/</span>
+      </div>
+      <Show when={props.expanded}>
+        <div class="launcher-configedit__expand-content">
+          <Show
+            when={entries().length > 0}
+            fallback={<p class="launcher-configedit__placeholder">空目录</p>}
+          >
+            <ul class="launcher-configedit__subdir-list">
+              <For each={entries()}>
+                {(entry) => (
+                  <li class="launcher-configedit__subdir-entry">
+                    <span class="launcher-configedit__subdir-name">
+                      {entry.isDirectory ? `${entry.name}/` : entry.name}
+                    </span>
+                    <Show when={!entry.isDirectory}>
+                      <button
+                        class="launcher-btn launcher-btn--small"
+                        onClick={() => props.onOpenFile(entry.path)}
+                      >
+                        打开源文件
+                      </button>
+                    </Show>
+                  </li>
+                )}
+              </For>
+            </ul>
+          </Show>
+        </div>
+      </Show>
     </div>
   )
 }

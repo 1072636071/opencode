@@ -34,6 +34,31 @@ export type LauncherSnapshotMeta = {
   configFiles: string[]
 }
 
+export type LauncherConfigFileGroup = "global" | "project" | "opencode" | "home" | "env"
+
+export type LauncherConfigFileInfo = {
+  path: string
+  group: LauncherConfigFileGroup
+  name: string
+}
+
+// 工单 04：.opencode/ 下可展开子目录节点。
+export type LauncherOpencodeSubdirInfo = {
+  name: string
+  path: string
+  exists: boolean
+}
+
+// 工单 04：目录内条目（用于 .opencode/ 子目录节点展开）。
+export type LauncherDirectoryEntry = {
+  name: string
+  path: string
+  isDirectory: boolean
+}
+
+export type LauncherCreateConfigLocation = "global" | "project" | "opencode"
+export type LauncherCreateConfigType = "opencode.json" | "tui.json" | "auth.json"
+
 export type RollbackPhase = "idle" | "stopping" | "restoring" | "reinstalling" | "restarting" | "done" | "failed"
 
 export type RollbackProgress = {
@@ -170,8 +195,19 @@ export type ElectronAPI = {
   launcherExportLogs: (path: string, content: string) => Promise<void>
   launcherGetConfigPath: () => Promise<string | null>
   launcherReadConfig: () => Promise<Record<string, unknown> | null>
+  launcherListConfigFiles: () => Promise<LauncherConfigFileInfo[]>
+  launcherCreateConfigFile: (opts: {
+    location: LauncherCreateConfigLocation
+    type: LauncherCreateConfigType
+  }) => Promise<string>
   launcherSaveConfig: (config: Record<string, unknown>) => Promise<string>
   launcherSaveAuthKey: (providerID: string, key: string | null) => Promise<string>
+  // 工单 03：按文件分别读写。renderer 端读全量 → 改字段 → 写全量保留其他字段。
+  launcherReadConfigFile: (path: string) => Promise<Record<string, unknown> | null>
+  launcherSaveConfigFile: (path: string, config: Record<string, unknown>) => Promise<string>
+  // 工单 04：.opencode/ 下目录节点可展开 + 内部文件打开。
+  launcherListOpencodeSubdirs: () => Promise<LauncherOpencodeSubdirInfo[]>
+  launcherListDirectoryEntries: (dirPath: string) => Promise<LauncherDirectoryEntry[]>
   launcherInstallPlugin: (spec: string) => Promise<void>
   launcherUninstallPlugin: (spec: string) => Promise<void>
   launcherTogglePlugin: (spec: string, enabled: boolean) => Promise<void>

@@ -83,12 +83,20 @@ import {
   getConfigFilePath,
   readConfigObject,
   saveConfigObject,
+  findConfigFilesGrouped,
+  createConfigFile,
   writeAuthKey,
   installPlugin,
   uninstallPlugin,
   togglePlugin,
   exportBundle,
   importBundle,
+  readConfigFileAtPath,
+  saveConfigFileAtPath,
+  listDirectoryEntries,
+  findOpencodeSubdirs,
+  isConfigPathAllowed,
+  isDirectoryPathAllowed,
 } from "./launcher-snapshot"
 import { createLauncherTray } from "./launcher-tray"
 import { getLauncherSettings, setLauncherSettings } from "./launcher-settings"
@@ -383,7 +391,7 @@ const main = Effect.gen(function* () {
   ipcMain.handle("launcher:stop-opencode", () => stopOpencode())
   ipcMain.handle("launcher:get-status", () => ({ status: getOpencodeStatus(), error: getLastError() }))
   ipcMain.handle("launcher:manual-snapshot", async () => {
-    const snap = await createSnapshot({ type: "manual" })
+    const snap = await createSnapshot({ type: "manual", projectPath: process.cwd() })
     return {
       id: snap.id,
       timestamp: snap.timestamp,
@@ -408,16 +416,43 @@ const main = Effect.gen(function* () {
     const { writeFile } = await import("node:fs/promises")
     await writeFile(path, content, "utf8")
   })
-  ipcMain.handle("launcher:get-config-path", () => getConfigFilePath())
-  ipcMain.handle("launcher:read-config", () => readConfigObject())
+  ipcMain.handle("launcher:get-config-path", () => getConfigFilePath(process.cwd()))
+  ipcMain.handle("launcher:read-config", () => readConfigObject(process.cwd()))
+  ipcMain.handle("launcher:list-config-files", () => findConfigFilesGrouped(process.cwd()))
+  ipcMain.handle(
+    "launcher:create-config-file",
+    (_event, opts: { location: "global" | "project" | "opencode"; type: "opencode.json" | "tui.json" | "auth.json" }) =>
+      createConfigFile({ ...opts, projectPath: process.cwd() }),
+  )
   ipcMain.handle("launcher:save-config", async (_event, config: Record<string, unknown>) => {
-    const path = await saveConfigObject(config)
-    await createSnapshot({ type: "auto" }).catch((err) => console.warn("post-save snapshot failed", err))
+    const path = await saveConfigObject(config, process.cwd())
+    await createSnapshot({ type: "auto", projectPath: process.cwd() }).catch((err) => console.warn("post-save snapshot failed", err))
     return path
   })
   ipcMain.handle("launcher:save-auth-key", (_event, providerID: string, key: string | null) =>
     writeAuthKey(providerID, key),
   )
+  // 工单 03：按文件分别读写。renderer 端负责读全量 → 改字段 → 写全量（保留其他字段）。
+  // 保存后触发 auto snapshot，提示重启生效（配置不热加载）。
+  // C1 安全修复：校验路径在允许的配置目录树内，防止路径遍历。
+  ipcMain.handle("launcher:read-config-file", (_event, filePath: string) => {
+    if (!isConfigPathAllowed(filePath)) throw new Error("路径不在允许的配置目录内")
+    return readConfigFileAtPath(filePath)
+  })
+  ipcMain.handle("launcher:save-config-file", async (_event, filePath: string, config: Record<string, unknown>) => {
+    if (!isConfigPathAllowed(filePath)) throw new Error("路径不在允许的配置目录内")
+    const path = await saveConfigFileAtPath(filePath, config)
+    await createSnapshot({ type: "auto", projectPath: process.cwd() }).catch((err) =>
+      console.warn("post-save-file snapshot failed", err),
+    )
+    return path
+  })
+  // 工单 04：.opencode/ 下目录节点可展开 + 内部文件打开。
+  ipcMain.handle("launcher:list-opencode-subdirs", () => findOpencodeSubdirs(process.cwd()))
+  ipcMain.handle("launcher:list-directory-entries", (_event, dirPath: string) => {
+    if (!isDirectoryPathAllowed(dirPath)) throw new Error("路径不在允许的配置目录内")
+    return listDirectoryEntries(dirPath)
+  })
   ipcMain.handle("launcher:install-plugin", (_event, spec: string) => installPlugin(spec))
   ipcMain.handle("launcher:uninstall-plugin", (_event, spec: string) => uninstallPlugin(spec))
   ipcMain.handle("launcher:toggle-plugin", (_event, spec: string, enabled: boolean) => togglePlugin(spec, enabled))
@@ -439,7 +474,7 @@ const main = Effect.gen(function* () {
   ipcMain.handle("launcher:get-diagnostics-meta", () => getDiagnosticsMeta())
   // 更新前强制自动 snapshot（ADR-023 D13）：main 端保证，更新后起不来可一键回滚到更新前。
   ipcMain.handle("launcher:install-update", async () => {
-    await createSnapshot({ type: "auto" }).catch((err) => {
+    await createSnapshot({ type: "auto", projectPath: process.cwd() }).catch((err) => {
       logger.warn("pre-update snapshot failed", { error: String(err) })
     })
     return updater.install()
