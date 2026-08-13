@@ -99,6 +99,15 @@ import {
   findOpencodeSubdirs,
   isConfigPathAllowed,
   isDirectoryPathAllowed,
+  findExtensionResources,
+  readExtensionResourceContent,
+  createExtensionResource,
+  deleteExtensionResource,
+  importSkillUrl,
+  removeSkillUrl,
+  readSkillUrls,
+  switchTheme,
+  readCurrentTheme,
 } from "./launcher-snapshot"
 import { createLauncherTray } from "./launcher-tray"
 import { getLauncherSettings, setLauncherSettings } from "./launcher-settings"
@@ -469,6 +478,34 @@ const main = Effect.gen(function* () {
     if (!isDirectoryPathAllowed(dirPath)) throw new Error("路径不在允许的配置目录内")
     return listDirectoryEntries(dirPath)
   })
+  // 工单 06（ADR-029）：扩展资源管理——agents/skills/themes 发现 + CRUD + skills URL 导入 + themes 切换。
+  ipcMain.handle("launcher:list-extension-resources", (_event, kind: "agent" | "skill" | "theme") =>
+    findExtensionResources(kind, process.cwd()),
+  )
+  ipcMain.handle("launcher:read-extension-resource", (_event, path: string) => {
+    if (!isConfigPathAllowed(path)) throw new Error("路径不在允许的配置目录内")
+    return readExtensionResourceContent(path)
+  })
+  ipcMain.handle(
+    "launcher:create-extension-resource",
+    (_event, opts: { kind: "agent" | "skill" | "theme"; location: string; name: string }) =>
+      createExtensionResource({ ...opts, location: opts.location as never, projectPath: process.cwd() }),
+  )
+  ipcMain.handle("launcher:delete-extension-resource", (_event, path: string) => {
+    if (!isConfigPathAllowed(path)) throw new Error("路径不在允许的配置目录内")
+    return deleteExtensionResource(path)
+  })
+  ipcMain.handle("launcher:import-skill-url", (_event, url: string) =>
+    importSkillUrl(url, process.cwd()),
+  )
+  ipcMain.handle("launcher:remove-skill-url", (_event, url: string) =>
+    removeSkillUrl(url, process.cwd()),
+  )
+  ipcMain.handle("launcher:list-skill-urls", () => readSkillUrls(process.cwd()))
+  ipcMain.handle("launcher:switch-theme", (_event, themeName: string) =>
+    switchTheme(themeName, process.cwd()),
+  )
+  ipcMain.handle("launcher:read-current-theme", () => readCurrentTheme(process.cwd()))
   ipcMain.handle("launcher:install-plugin", (_event, spec: string) => installPlugin(spec))
   ipcMain.handle("launcher:uninstall-plugin", (_event, spec: string) => uninstallPlugin(spec))
   ipcMain.handle("launcher:toggle-plugin", (_event, spec: string, enabled: boolean) => togglePlugin(spec, enabled))

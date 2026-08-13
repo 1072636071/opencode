@@ -1752,3 +1752,348 @@ body {
   white-space: pre-wrap;
   word-break: break-all;
 }
+
+/* 工单 06（ADR-029）：扩展管理——agents/skills/themes/plugins 统一管理 */
+.launcher-ext-tabs {
+  display: flex;
+  gap: var(--jx-space-2);
+  margin: var(--jx-space-4) 0;
+  border-bottom: 1px solid var(--jx-border-deco);
+}
+
+.launcher-ext-tab {
+  padding: var(--jx-space-2) var(--jx-space-4);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--jx-text-weak);
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-small);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.launcher-ext-tab:hover {
+  color: var(--jx-text-base);
+}
+
+.launcher-ext-tab--current {
+  color: var(--jx-gold);
+  border-bottom-color: var(--jx-gold);
+}
+
+.launcher-ext {
+  margin-top: var(--jx-space-4);
+  padding: var(--jx-space-6);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  box-shadow: var(--jx-shadow-1);
+}
+
+.launcher-ext__head {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  margin-bottom: var(--jx-space-4);
+}
+
+.launcher-ext__title {
+  margin: 0;
+  flex: 1;
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h3);
+  color: var(--jx-gold);
+}
+
+.launcher-ext__error {
+  margin: 0 0 var(--jx-space-3);
+  padding: var(--jx-space-2) var(--jx-space-3);
+  background-color: rgba(178, 53, 53, 0.08);
+  border: 1px solid var(--jx-seal-deep);
+  border-radius: var(--jx-radius-sm);
+  color: var(--jx-seal-bright);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-ext__ok {
+  margin: 0 0 var(--jx-space-3);
+  padding: var(--jx-space-2) var(--jx-space-3);
+  background-color: rgba(134, 176, 138, 0.08);
+  border: 1px solid var(--jx-success);
+  border-radius: var(--jx-radius-sm);
+  color: var(--jx-success);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-ext__create {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--jx-space-3);
+  margin-bottom: var(--jx-space-4);
+  padding: var(--jx-space-3);
+  background-color: var(--jx-surface-0);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-sm);
+}
+
+.launcher-ext__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jx-space-1);
+}
+
+.launcher-ext__label {
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-faint);
+}
+
+.launcher-ext__input,
+.launcher-ext__select {
+  padding: var(--jx-space-2) var(--jx-space-3);
+  background-color: var(--jx-surface-0);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-sm);
+  color: var(--jx-text-base);
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  min-width: 180px;
+}
+
+.launcher-ext__groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jx-space-4);
+}
+
+.launcher-ext__group-title {
+  margin: 0 0 var(--jx-space-2);
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-faint);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.launcher-ext__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.launcher-ext__item {
+  padding: var(--jx-space-2) 0;
+  border-bottom: 1px solid var(--jx-border-deco);
+}
+
+.launcher-ext__item:last-child {
+  border-bottom: none;
+}
+
+.launcher-ext__item-head {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  flex-wrap: wrap;
+}
+
+.launcher-ext__name {
+  flex: 1;
+  min-width: 120px;
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+}
+
+.launcher-ext__source-dir {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-faint);
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.launcher-ext__empty {
+  color: var(--jx-text-faint);
+  font-size: var(--jx-fs-small);
+}
+
+/* markdown 预览 */
+.launcher-ext-preview {
+  margin: var(--jx-space-2) 0 0;
+  padding: var(--jx-space-3);
+  background-color: var(--jx-surface-0);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-sm);
+  max-height: 320px;
+  overflow: auto;
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+}
+
+.launcher-ext-preview__h1,
+.launcher-ext-preview__h2,
+.launcher-ext-preview__h3 {
+  margin: var(--jx-space-2) 0 var(--jx-space-1);
+  font-family: var(--jx-font-display);
+  color: var(--jx-gold);
+}
+
+.launcher-ext-preview__h1 {
+  font-size: var(--jx-fs-h2);
+}
+
+.launcher-ext-preview__h2 {
+  font-size: var(--jx-fs-h3);
+}
+
+.launcher-ext-preview__h3 {
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-ext-preview__p,
+.launcher-ext-preview__li {
+  margin: var(--jx-space-1) 0;
+}
+
+.launcher-ext-preview__li {
+  padding-left: var(--jx-space-3);
+  position: relative;
+}
+
+.launcher-ext-preview__li::before {
+  content: "·";
+  position: absolute;
+  left: var(--jx-space-1);
+  color: var(--jx-text-faint);
+}
+
+.launcher-ext-preview__hr {
+  border: none;
+  border-top: 1px solid var(--jx-border-deco);
+  margin: var(--jx-space-2) 0;
+}
+
+.launcher-ext-preview__br {
+  height: var(--jx-space-2);
+}
+
+.launcher-ext-preview__code {
+  margin: var(--jx-space-2) 0;
+  padding: var(--jx-space-2) var(--jx-space-3);
+  background-color: var(--jx-surface-2);
+  border-radius: var(--jx-radius-sm);
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-weak);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.launcher-ext-preview__empty {
+  color: var(--jx-text-faint);
+  font-size: var(--jx-fs-caption);
+}
+
+/* skills URL 导入 */
+.launcher-ext-skillurls {
+  margin-top: var(--jx-space-4);
+  padding: var(--jx-space-6);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  box-shadow: var(--jx-shadow-1);
+}
+
+.launcher-ext-skillurls__hint {
+  margin: 0 0 var(--jx-space-3);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-weak);
+}
+
+.launcher-ext-skillurls__hint code {
+  font-family: var(--jx-font-code);
+  background-color: var(--jx-surface-0);
+  padding: 0 var(--jx-space-1);
+  border-radius: var(--jx-radius-sm);
+}
+
+.launcher-ext-skillurls__input-row {
+  display: flex;
+  gap: var(--jx-space-3);
+  margin-bottom: var(--jx-space-3);
+}
+
+.launcher-ext-skillurls__input-row .launcher-ext__input {
+  flex: 1;
+}
+
+.launcher-ext-skillurls__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.launcher-ext-skillurls__item {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  padding: var(--jx-space-2) 0;
+  border-bottom: 1px solid var(--jx-border-deco);
+}
+
+.launcher-ext-skillurls__item:last-child {
+  border-bottom: none;
+}
+
+.launcher-ext-skillurls__url {
+  flex: 1;
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 主题切换 */
+.launcher-ext-themeswitch {
+  margin-top: var(--jx-space-4);
+  padding: var(--jx-space-6);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  box-shadow: var(--jx-shadow-1);
+}
+
+.launcher-ext-themeswitch__hint {
+  margin: 0 0 var(--jx-space-3);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-weak);
+}
+
+.launcher-ext-themeswitch__hint code {
+  font-family: var(--jx-font-code);
+  background-color: var(--jx-surface-0);
+  padding: 0 var(--jx-space-1);
+  border-radius: var(--jx-radius-sm);
+}
+
+.launcher-ext-themeswitch__current {
+  margin-bottom: var(--jx-space-3);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-base);
+}
+
+.launcher-ext-themeswitch__current-name {
+  font-family: var(--jx-font-code);
+  color: var(--jx-gold);
+}
+
+.launcher-ext-themeswitch__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--jx-space-2);
+}

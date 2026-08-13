@@ -58,6 +58,32 @@ export type LauncherDirectoryEntry = {
   isDirectory: boolean
 }
 
+// 工单 06（ADR-029）：扩展资源管理——agents/skills/themes。
+export type LauncherExtensionResourceKind = "agent" | "skill" | "theme"
+
+export type LauncherExtensionResourceSource =
+  | "global-config" // ~/.config/opencode/...
+  | "project-opencode" // 项目 .opencode/...
+  | "claude" // ~/.claude/...
+  | "agents-dir" // ~/.agents/...
+
+export type LauncherExtensionResourceInfo = {
+  kind: LauncherExtensionResourceKind
+  name: string
+  path: string
+  source: LauncherExtensionResourceSource
+  sourceDir: string
+  ext: string
+}
+
+export type LauncherExtensionCreateLocation = "global-config" | "project-opencode" | "claude" | "agents-dir"
+
+export type LauncherExtensionCreateOpts = {
+  kind: LauncherExtensionResourceKind
+  location: LauncherExtensionCreateLocation
+  name: string
+}
+
 export type LauncherCreateConfigLocation = "global" | "project" | "opencode"
 export type LauncherCreateConfigType = "opencode.json" | "tui.json" | "auth.json"
 
@@ -216,6 +242,18 @@ export type ElectronAPI = {
   // 工单 04：.opencode/ 下目录节点可展开 + 内部文件打开。
   launcherListOpencodeSubdirs: () => Promise<LauncherOpencodeSubdirInfo[]>
   launcherListDirectoryEntries: (dirPath: string) => Promise<LauncherDirectoryEntry[]>
+  // 工单 06（ADR-029）：扩展资源管理——agents/skills/themes 发现 + CRUD + skills URL 导入 + themes 切换。
+  launcherListExtensionResources: (
+    kind: LauncherExtensionResourceKind,
+  ) => Promise<LauncherExtensionResourceInfo[]>
+  launcherReadExtensionResource: (path: string) => Promise<string | null>
+  launcherCreateExtensionResource: (opts: LauncherExtensionCreateOpts) => Promise<string>
+  launcherDeleteExtensionResource: (path: string) => Promise<void>
+  launcherImportSkillUrl: (url: string) => Promise<string>
+  launcherRemoveSkillUrl: (url: string) => Promise<string>
+  launcherListSkillUrls: () => Promise<string[]>
+  launcherSwitchTheme: (themeName: string) => Promise<string>
+  launcherReadCurrentTheme: () => Promise<string | null>
   launcherInstallPlugin: (spec: string) => Promise<void>
   launcherUninstallPlugin: (spec: string) => Promise<void>
   launcherTogglePlugin: (spec: string, enabled: boolean) => Promise<void>

@@ -23,6 +23,15 @@ import {
   tagSnapshot,
   getSnapshot,
   REDACTED_PLACEHOLDER,
+  findExtensionResources,
+  readExtensionResourceContent,
+  createExtensionResource,
+  deleteExtensionResource,
+  importSkillUrl,
+  removeSkillUrl,
+  readSkillUrls,
+  switchTheme,
+  readCurrentTheme,
 } from "./launcher-snapshot"
 
 // 工单 01 主 seam 单测：配置发现对齐本体 Global.Path.config（ADR-028）。
@@ -1290,5 +1299,365 @@ describe("setSnapshotNote / listSnapshots（工单 05 备注字段）", () => {
 
     const after = await getSnapshot(snap.id)
     expect(after?.note).toBe(longNote)
+  })
+})
+
+// 工单 06（ADR-029）：扩展资源管理——agents/skills/themes 发现 + CRUD + skills URL 导入 + themes 切换。
+// 注意：~/.claude 与 ~/.agents 是用户全局目录，不受 OPENCODE_CONFIG_DIR 控制，
+// 测试只验证我们创建的资源被找到且来源正确，不验证总数（避免受用户全局内容干扰）。
+describe("findExtensionResources（工单 06 扩展资源发现）", () => {
+  test("agent 资源发现——global-config 与 project-opencode", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    const projectPath = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    // global-config: ~/.config/opencode/agents/foo.md
+    await mkdir(join(configDir, "agents"), { recursive: true })
+    await writeFile(join(configDir, "agents", "foo.md"), "# foo agent", "utf8")
+    // project-opencode: .opencode/agent/bar.md（注意单数 agent）
+    await mkdir(join(projectPath, ".opencode", "agent"), { recursive: true })
+    await writeFile(join(projectPath, ".opencode", "agent", "bar.md"), "# bar agent", "utf8")
+
+    const resources = await findExtensionResources("agent", projectPath)
+    const foo = resources.find((r) => r.name === "foo.md")
+    const bar = resources.find((r) => r.name === "bar.md")
+    expect(foo).toBeDefined()
+    expect(foo?.source).toBe("global-config")
+    expect(foo?.sourceDir).toBe(join(configDir, "agents"))
+    expect(bar).toBeDefined()
+    expect(bar?.source).toBe("project-opencode")
+    expect(bar?.sourceDir).toBe(join(projectPath, ".opencode", "agent"))
+  })
+
+  test("agent 目录形态——name/SKILL.md 优先", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    // 目录形态：agents/my-skill/SKILL.md
+    await mkdir(join(configDir, "agents", "my-skill"), { recursive: true })
+    await writeFile(join(configDir, "agents", "my-skill", "SKILL.md"), "# my-skill", "utf8")
+
+    const resources = await findExtensionResources("agent")
+    const mySkill = resources.find((r) => r.name === "my-skill")
+    expect(mySkill).toBeDefined()
+    expect(mySkill?.path).toBe(join(configDir, "agents", "my-skill", "SKILL.md"))
+  })
+
+  test("skill 资源发现——双候选目录 skill 与 skills", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    // skill 单数
+    await mkdir(join(configDir, "skill"), { recursive: true })
+    await writeFile(join(configDir, "skill", "a.md"), "# a", "utf8")
+    // skills 复数
+    await mkdir(join(configDir, "skills"), { recursive: true })
+    await writeFile(join(configDir, "skills", "b.md"), "# b", "utf8")
+
+    const resources = await findExtensionResources("skill")
+    const a = resources.find((r) => r.name === "a.md")
+    const b = resources.find((r) => r.name === "b.md")
+    expect(a).toBeDefined()
+    expect(a?.source).toBe("global-config")
+    expect(b).toBeDefined()
+    expect(b?.source).toBe("global-config")
+  })
+
+  test("theme 资源发现——CSS 与 JSON", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await mkdir(join(configDir, "themes"), { recursive: true })
+    await writeFile(join(configDir, "themes", "dark.css"), ":root {}", "utf8")
+    await writeFile(join(configDir, "themes", "light.json"), "{}", "utf8")
+    // 非 CSS/JSON 不列出
+    await writeFile(join(configDir, "themes", "readme.md"), "# readme", "utf8")
+
+    const resources = await findExtensionResources("theme")
+    const dark = resources.find((r) => r.name === "dark.css")
+    const light = resources.find((r) => r.name === "light.json")
+    const readme = resources.find((r) => r.name === "readme.md")
+    expect(dark).toBeDefined()
+    expect(light).toBeDefined()
+    expect(readme).toBeUndefined()
+  })
+
+  test("不存在的目录不产生该来源的资源", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    // global-config 目录不存在，不应有 global-config 来源的资源
+    const resources = await findExtensionResources("agent")
+    const globalConfig = resources.filter((r) => r.source === "global-config")
+    expect(globalConfig).toEqual([])
+  })
+
+  test("隐藏点文件不列出", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await mkdir(join(configDir, "agents"), { recursive: true })
+    await writeFile(join(configDir, "agents", ".hidden.md"), "# hidden", "utf8")
+    await writeFile(join(configDir, "agents", "visible.md"), "# visible", "utf8")
+
+    const resources = await findExtensionResources("agent")
+    const names = resources.map((r) => r.name)
+    expect(names).not.toContain(".hidden.md")
+    expect(names).toContain("visible.md")
+  })
+})
+
+
+describe("readExtensionResourceContent（工单 06 资源预览）", () => {
+  test("读取存在的文件返回内容", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await mkdir(join(configDir, "agents"), { recursive: true })
+    const path = join(configDir, "agents", "foo.md")
+    await writeFile(path, "# foo\n\nTODO", "utf8")
+
+    const content = await readExtensionResourceContent(path)
+    expect(content).toBe("# foo\n\nTODO")
+  })
+
+  test("不存在的文件返回 null", async () => {
+    const content = await readExtensionResourceContent("/nonexistent/path/to/file.md")
+    expect(content).toBeNull()
+  })
+})
+
+describe("createExtensionResource（工单 06 新建资源）", () => {
+  test("新建 agent 在 global-config 位置", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    const path = await createExtensionResource({
+      kind: "agent",
+      location: "global-config",
+      name: "my-agent",
+    })
+    expect(path).toBe(join(configDir, "agents", "my-agent.md"))
+    expect(existsSync(path)).toBe(true)
+    const content = await readFile(path, "utf8")
+    expect(content).toContain("# my-agent")
+  })
+
+  test("新建 skill 在 project-opencode 位置", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    const projectPath = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    const path = await createExtensionResource({
+      kind: "skill",
+      location: "project-opencode",
+      name: "my-skill",
+      projectPath,
+    })
+    expect(path).toBe(join(projectPath, ".opencode", "skills", "my-skill.md"))
+    expect(existsSync(path)).toBe(true)
+  })
+
+  test("新建 theme 在 global-config 位置（扩展名 .css）", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    const path = await createExtensionResource({
+      kind: "theme",
+      location: "global-config",
+      name: "my-theme",
+    })
+    expect(path).toBe(join(configDir, "themes", "my-theme.css"))
+    expect(existsSync(path)).toBe(true)
+  })
+
+  test("已存在资源抛错不覆盖", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await createExtensionResource({ kind: "agent", location: "global-config", name: "exists" })
+    await expect(
+      createExtensionResource({ kind: "agent", location: "global-config", name: "exists" }),
+    ).rejects.toThrow("资源已存在")
+  })
+
+  test("不合法名称抛错——含路径分隔符", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await expect(
+      createExtensionResource({ kind: "agent", location: "global-config", name: "../etc/passwd" }),
+    ).rejects.toThrow("不合法的资源名称")
+  })
+
+  test("不合法名称抛错——点开头", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await expect(
+      createExtensionResource({ kind: "agent", location: "global-config", name: ".hidden" }),
+    ).rejects.toThrow("不合法的资源名称")
+  })
+})
+
+describe("deleteExtensionResource（工单 06 删除资源）", () => {
+  test("删除单文件资源", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    const path = await createExtensionResource({
+      kind: "agent",
+      location: "global-config",
+      name: "to-delete",
+    })
+    expect(existsSync(path)).toBe(true)
+    await deleteExtensionResource(path)
+    expect(existsSync(path)).toBe(false)
+  })
+
+  test("删除目录形态资源——同时删父目录", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    // 构造目录形态：agents/my-skill/SKILL.md
+    const dir = join(configDir, "agents", "my-skill")
+    await mkdir(dir, { recursive: true })
+    const path = join(dir, "SKILL.md")
+    await writeFile(path, "# my-skill", "utf8")
+
+    await deleteExtensionResource(path)
+    expect(existsSync(path)).toBe(false)
+    expect(existsSync(dir)).toBe(false)
+  })
+})
+
+describe("importSkillUrl / readSkillUrls / removeSkillUrl（工单 06 skills URL 导入）", () => {
+  test("导入 URL 写入 opencode.json 的 skills.urls", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await writeFile(join(configDir, "opencode.json"), "{}", "utf8")
+    await importSkillUrl("https://example.com/skill.md")
+
+    const urls = await readSkillUrls()
+    expect(urls).toEqual(["https://example.com/skill.md"])
+  })
+
+  test("重复导入同一 URL 不重复", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await writeFile(join(configDir, "opencode.json"), "{}", "utf8")
+    await importSkillUrl("https://example.com/skill.md")
+    await importSkillUrl("https://example.com/skill.md")
+
+    const urls = await readSkillUrls()
+    expect(urls).toEqual(["https://example.com/skill.md"])
+  })
+
+  test("不合法 URL 抛错", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await expect(importSkillUrl("not-a-url")).rejects.toThrow("不合法的 URL")
+  })
+
+  test("移除已导入 URL", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await writeFile(join(configDir, "opencode.json"), "{}", "utf8")
+    await importSkillUrl("https://example.com/a.md")
+    await importSkillUrl("https://example.com/b.md")
+    await removeSkillUrl("https://example.com/a.md")
+
+    const urls = await readSkillUrls()
+    expect(urls).toEqual(["https://example.com/b.md"])
+  })
+})
+
+describe("switchTheme / readCurrentTheme（工单 06 主题切换）", () => {
+  test("切换主题写入 tui.json 的 theme 字段", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await switchTheme("my-dark")
+    const current = await readCurrentTheme()
+    expect(current).toBe("my-dark")
+  })
+
+  test("tui.json 不存在时 readCurrentTheme 返回 null", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    const current = await readCurrentTheme()
+    expect(current).toBeNull()
+  })
+
+  test("切换到 default 主题", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    await switchTheme("default")
+    const current = await readCurrentTheme()
+    expect(current).toBe("default")
+  })
+
+  test("保留 tui.json 其他字段", async () => {
+    const configDir = await tempRoot()
+    const emptyData = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", emptyData)
+
+    // 先建 tui.json 含其他字段
+    await writeFile(join(configDir, "tui.json"), JSON.stringify({ theme: "old", keybinds: {} }, null, 2), "utf8")
+    await switchTheme("new-theme")
+    const result = await readConfigFileAtPath(join(configDir, "tui.json"))
+    expect(result.config?.theme).toBe("new-theme")
+    expect(result.config?.keybinds).toBeDefined()
   })
 })

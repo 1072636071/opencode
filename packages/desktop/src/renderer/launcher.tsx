@@ -14,6 +14,9 @@ import type {
   LauncherCreateConfigType,
   LauncherOpencodeSubdirInfo,
   LauncherDirectoryEntry,
+  LauncherExtensionResourceInfo,
+  LauncherExtensionResourceKind,
+  LauncherExtensionCreateLocation,
 } from "../preload/types"
 import { mergeProviderConfig, validateLlmApiForm, type LlmApiFormState } from "./llm-api-form"
 import {
@@ -2197,7 +2200,7 @@ const NAV_PAGES = [
   { hash: "#safemode", label: "安全模式", icon: ShieldIcon },
   { hash: "#config", label: "配置", icon: ConfigIcon },
   { hash: "#snapshots", label: "快照", icon: SnapshotIcon },
-  { hash: "#plugins", label: "插件", icon: PluginIcon },
+  { hash: "#plugins", label: "扩展", icon: PluginIcon },
 ] as const
 
 function currentHash(): string {
@@ -2271,7 +2274,7 @@ function PageRouter() {
         <SnapshotsPage />
       </Match>
       <Match when={activeHash() === "#plugins"}>
-        <PluginsPage />
+        <ExtensionsPage />
       </Match>
     </Switch>
   )
@@ -2392,13 +2395,474 @@ function SnapshotsPage() {
   )
 }
 
-/* 工单 07：插件页 */
-function PluginsPage() {
+/* 工单 06（ADR-029）：扩展页——内部 4 tab：agents/skills/themes/plugins。
+   导航仍 6 页不变，"插件"页扩展为"扩展"页。 */
+function ExtensionsPage() {
+  const [tab, setTab] = createSignal<"agents" | "skills" | "themes" | "plugins">("agents")
   return (
     <div class="launcher-page">
-      <h2 class="launcher-page__title">插件管理</h2>
-      <p class="launcher-page__subtitle">安装、卸载、查看来源与版本。</p>
-      <PluginManagementPanel />
+      <h2 class="launcher-page__title">扩展管理</h2>
+      <p class="launcher-page__subtitle">agents / skills / themes / plugins——按来源分组、预览、打开源文件、增删、URL 导入、主题切换。</p>
+      <div class="launcher-ext-tabs" role="tablist">
+        <For each={[
+          { id: "agents", label: "agents" },
+          { id: "skills", label: "skills" },
+          { id: "themes", label: "themes" },
+          { id: "plugins", label: "plugins" },
+        ] as const}>
+          {(t) => (
+            <button
+              class={`launcher-ext-tab ${tab() === t.id ? "launcher-ext-tab--current" : ""}`}
+              role="tab"
+              aria-selected={tab() === t.id}
+              onClick={() => setTab(t.id)}
+            >
+              {t.label}
+            </button>
+          )}
+        </For>
+      </div>
+      <Switch>
+        <Match when={tab() === "agents"}>
+          <ExtensionResourcesPanel kind="agent" />
+        </Match>
+        <Match when={tab() === "skills"}>
+          <ExtensionResourcesPanel kind="skill" />
+          <SkillUrlImportPanel />
+        </Match>
+        <Match when={tab() === "themes"}>
+          <ThemeSwitchPanel />
+          <ExtensionResourcesPanel kind="theme" />
+        </Match>
+        <Match when={tab() === "plugins"}>
+          <PluginManagementPanel />
+        </Match>
+      </Switch>
+    </div>
+  )
+}
+
+// 来源标签——renderer 端纯展示映射。
+// 接受 source 与 create location 两种类型（二者字面量相同）。
+function extensionSourceLabel(source: LauncherExtensionResourceInfo["source"] | LauncherExtensionCreateLocation): string {
+  if (source === "global-config") return "~/.config/opencode"
+  if (source === "project-opencode") return "项目 .opencode"
+  if (source === "claude") return "~/.claude"
+  return "~/.agents"
+}
+
+// 简易 markdown 渲染——只处理 # 标题、--- 分隔、列表项、代码块、空行。
+// 不引入外部 markdown 库（ADR-021 不透明文件版本化——不与上游 schema 耦合）。
+function renderMarkdownPreview(content: string): string {
+  // 转义 HTML 特殊字符防 XSS
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  const lines = content.split(/\r?\n/)
+  let html = ""
+  let inCode = false
+  for (const line of lines) {
+    if (line.startsWith("```")) {
+      inCode = !inCode
+      html += inCode ? '<pre class="launcher-ext-preview__code">' : "</pre>"
+      continue
+    }
+    if (inCode) {
+      html += esc(line) + "\n"
+      continue
+    }
+    if (line.startsWith("---")) {
+      html += '<hr class="launcher-ext-preview__hr" />'
+      continue
+    }
+    if (line.startsWith("# ")) {
+      html += `<h1 class="launcher-ext-preview__h1">${esc(line.slice(2))}</h1>`
+      continue
+    }
+    if (line.startsWith("## ")) {
+      html += `<h2 class="launcher-ext-preview__h2">${esc(line.slice(3))}</h2>`
+      continue
+    }
+    if (line.startsWith("### ")) {
+      html += `<h3 class="launcher-ext-preview__h3">${esc(line.slice(4))}</h3>`
+      continue
+    }
+    if (line.startsWith("- ") || line.startsWith("* ")) {
+      html += `<div class="launcher-ext-preview__li">${esc(line.slice(2))}</div>`
+      continue
+    }
+    if (line.trim() === "") {
+      html += '<div class="launcher-ext-preview__br"></div>'
+      continue
+    }
+    html += `<div class="launcher-ext-preview__p">${esc(line)}</div>`
+  }
+  return html
+}
+
+function ExtensionResourcesPanel(props: { kind: LauncherExtensionResourceKind }) {
+  const [resources, setResources] = createSignal<LauncherExtensionResourceInfo[]>([])
+  const [previewPath, setPreviewPath] = createSignal<string | null>(null)
+  const [previewContent, setPreviewContent] = createSignal<string | null>(null)
+  const [showCreate, setShowCreate] = createSignal(false)
+  const [busy, setBusy] = createSignal(false)
+  const [newName, setNewName] = createSignal("")
+  const [newLocation, setNewLocation] = createSignal<LauncherExtensionCreateLocation>("global-config")
+  const [error, setError] = createSignal<string | null>(null)
+
+  const refresh = async () => {
+    try {
+      setResources(await window.api.launcherListExtensionResources(props.kind))
+    } catch {
+      setResources([])
+    }
+  }
+  onMount(() => void refresh())
+
+  const openPreview = async (path: string) => {
+    if (previewPath() === path) {
+      setPreviewPath(null)
+      setPreviewContent(null)
+      return
+    }
+    setPreviewPath(path)
+    setPreviewContent(null)
+    const content = await window.api.launcherReadExtensionResource(path)
+    setPreviewContent(content)
+  }
+
+  const openSource = (path: string) => window.api.openPath(path)
+
+  const remove = async (path: string) => {
+    setBusy(true)
+    setError(null)
+    try {
+      await window.api.launcherDeleteExtensionResource(path)
+      if (previewPath() === path) {
+        setPreviewPath(null)
+        setPreviewContent(null)
+      }
+      await refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const create = async () => {
+    const name = newName().trim()
+    if (!name) return
+    setBusy(true)
+    setError(null)
+    try {
+      await window.api.launcherCreateExtensionResource({
+        kind: props.kind,
+        location: newLocation(),
+        name,
+      })
+      setNewName("")
+      setShowCreate(false)
+      await refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // 按来源分组
+  const grouped = () => {
+    const map = new Map<LauncherExtensionResourceInfo["source"], LauncherExtensionResourceInfo[]>()
+    for (const r of resources()) {
+      const key = r.source
+      const arr = map.get(key) ?? []
+      arr.push(r)
+      map.set(key, arr)
+    }
+    return Array.from(map.entries())
+  }
+
+  // 新建可选位置——theme 只能 global-config
+  const availableLocations = (): LauncherExtensionCreateLocation[] => {
+    if (props.kind === "theme") return ["global-config"]
+    return ["global-config", "project-opencode", "claude", "agents-dir"]
+  }
+
+  const kindLabel = () => (props.kind === "agent" ? "agent" : props.kind === "skill" ? "skill" : "theme")
+
+  return (
+    <div class="launcher-ext">
+      <div class="launcher-ext__head">
+        <h3 class="launcher-ext__title">{kindLabel()} 资源</h3>
+        <button
+          class="launcher-btn launcher-btn--small"
+          onClick={() => setShowCreate(!showCreate())}
+          aria-label={`新建 ${kindLabel()}`}
+        >
+          {showCreate() ? "取消" : `新建 ${kindLabel()}`}
+        </button>
+        <button class="launcher-btn launcher-btn--mini" onClick={() => void refresh()} aria-label="刷新">
+          刷新
+        </button>
+      </div>
+      <Show when={error()}>
+        {(err) => <p class="launcher-ext__error">{err()}</p>}
+      </Show>
+      <Show when={showCreate()}>
+        <div class="launcher-ext__create">
+          <label class="launcher-ext__field">
+            <span class="launcher-ext__label">位置</span>
+            <select
+              class="launcher-ext__select"
+              value={newLocation()}
+              onChange={(e) => setNewLocation(e.currentTarget.value as LauncherExtensionCreateLocation)}
+            >
+              <For each={availableLocations()}>
+                {(loc) => (
+                  <option value={loc}>{extensionSourceLabel(loc)}</option>
+                )}
+              </For>
+            </select>
+          </label>
+          <label class="launcher-ext__field">
+            <span class="launcher-ext__label">名称</span>
+            <input
+              class="launcher-ext__input"
+              value={newName()}
+              onInput={(e) => setNewName(e.currentTarget.value)}
+              placeholder={`如: my-${kindLabel()}`}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void create()
+              }}
+            />
+          </label>
+          <button class="launcher-btn launcher-btn--primary launcher-btn--small" disabled={busy()} onClick={create}>
+            创建
+          </button>
+        </div>
+      </Show>
+      <Show when={resources().length === 0} fallback={
+        <div class="launcher-ext__groups">
+          <For each={grouped()}>
+            {(group) => (
+              <div class="launcher-ext__group">
+                <h4 class="launcher-ext__group-title">{extensionSourceLabel(group[0])}</h4>
+                <ul class="launcher-ext__list">
+                  <For each={group[1]}>
+                    {(r) => (
+                      <li class="launcher-ext__item">
+                        <div class="launcher-ext__item-head">
+                          <span class="launcher-ext__name">{r.name}</span>
+                          <span class="launcher-ext__source-dir" title={r.sourceDir}>{r.sourceDir}</span>
+                          <button
+                            class="launcher-btn launcher-btn--mini"
+                            aria-label="预览"
+                            onClick={() => void openPreview(r.path)}
+                          >
+                            {previewPath() === r.path ? "收起" : "预览"}
+                          </button>
+                          <button
+                            class="launcher-btn launcher-btn--mini"
+                            aria-label="打开源文件"
+                            onClick={() => openSource(r.path)}
+                          >
+                            打开源文件
+                          </button>
+                          <button
+                            class="launcher-btn launcher-btn--mini launcher-btn--danger"
+                            aria-label="删除"
+                            disabled={busy()}
+                            onClick={() => void remove(r.path)}
+                          >
+                            删除
+                          </button>
+                        </div>
+                        <Show when={previewPath() === r.path}>
+                          <div class="launcher-ext-preview">
+                            <Show when={previewContent() !== null} fallback={<p class="launcher-ext-preview__empty">读取失败</p>}>
+                              <div innerHTML={renderMarkdownPreview(previewContent() ?? "")} />
+                            </Show>
+                          </div>
+                        </Show>
+                      </li>
+                    )}
+                  </For>
+                </ul>
+              </div>
+            )}
+          </For>
+        </div>
+      }>
+        <p class="launcher-ext__empty">无 {kindLabel()} 资源</p>
+      </Show>
+    </div>
+  )
+}
+
+function SkillUrlImportPanel() {
+  const [urls, setUrls] = createSignal<string[]>([])
+  const [newUrl, setNewUrl] = createSignal("")
+  const [busy, setBusy] = createSignal(false)
+  const [error, setError] = createSignal<string | null>(null)
+  const [okMsg, setOkMsg] = createSignal<string | null>(null)
+
+  const refresh = async () => {
+    try {
+      setUrls(await window.api.launcherListSkillUrls())
+    } catch {
+      setUrls([])
+    }
+  }
+  onMount(() => void refresh())
+
+  const add = async () => {
+    const url = newUrl().trim()
+    if (!url) return
+    setBusy(true)
+    setError(null)
+    setOkMsg(null)
+    try {
+      await window.api.launcherImportSkillUrl(url)
+      setNewUrl("")
+      setOkMsg("已写入 opencode.json，重启后生效")
+      await refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const remove = async (url: string) => {
+    setBusy(true)
+    setError(null)
+    try {
+      await window.api.launcherRemoveSkillUrl(url)
+      await refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div class="launcher-ext-skillurls">
+      <div class="launcher-ext__head">
+        <h3 class="launcher-ext__title">skills URL 导入</h3>
+      </div>
+      <p class="launcher-ext-skillurls__hint">写入 opencode.json 的 <code>skills.urls</code>，重启后本体拉取远程 skill。</p>
+      <Show when={error()}>
+        {(err) => <p class="launcher-ext__error">{err()}</p>}
+      </Show>
+      <Show when={okMsg()}>
+        {(msg) => <p class="launcher-ext__ok">{msg()}</p>}
+      </Show>
+      <div class="launcher-ext-skillurls__input-row">
+        <input
+          class="launcher-ext__input"
+          value={newUrl()}
+          onInput={(e) => setNewUrl(e.currentTarget.value)}
+          placeholder="https://example.com/skill.md"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void add()
+          }}
+        />
+        <button class="launcher-btn launcher-btn--small" disabled={busy()} onClick={add}>
+          导入
+        </button>
+      </div>
+      <Show when={urls().length > 0}>
+        <ul class="launcher-ext-skillurls__list">
+          <For each={urls()}>
+            {(url) => (
+              <li class="launcher-ext-skillurls__item">
+                <span class="launcher-ext-skillurls__url">{url}</span>
+                <button
+                  class="launcher-btn launcher-btn--mini launcher-btn--danger"
+                  disabled={busy()}
+                  onClick={() => void remove(url)}
+                >
+                  移除
+                </button>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
+    </div>
+  )
+}
+
+function ThemeSwitchPanel() {
+  const [themes, setThemes] = createSignal<LauncherExtensionResourceInfo[]>([])
+  const [current, setCurrent] = createSignal<string | null>(null)
+  const [busy, setBusy] = createSignal(false)
+  const [error, setError] = createSignal<string | null>(null)
+  const [okMsg, setOkMsg] = createSignal<string | null>(null)
+
+  const refresh = async () => {
+    try {
+      setThemes(await window.api.launcherListExtensionResources("theme"))
+      setCurrent(await window.api.launcherReadCurrentTheme())
+    } catch {
+      // ignore
+    }
+  }
+  onMount(() => void refresh())
+
+  const switchTo = async (themeName: string) => {
+    setBusy(true)
+    setError(null)
+    setOkMsg(null)
+    try {
+      await window.api.launcherSwitchTheme(themeName)
+      setOkMsg(`已切换到 ${themeName}，重启后生效`)
+      await refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // 主题名 = 文件名去扩展名
+  const themeName = (r: LauncherExtensionResourceInfo) => r.name.replace(/\.(css|json)$/i, "")
+
+  return (
+    <div class="launcher-ext-themeswitch">
+      <div class="launcher-ext__head">
+        <h3 class="launcher-ext__title">主题切换</h3>
+      </div>
+      <p class="launcher-ext-themeswitch__hint">写入 tui.json 的 <code>theme</code> 字段，重启后生效。</p>
+      <Show when={error()}>
+        {(err) => <p class="launcher-ext__error">{err()}</p>}
+      </Show>
+      <Show when={okMsg()}>
+        {(msg) => <p class="launcher-ext__ok">{msg()}</p>}
+      </Show>
+      <div class="launcher-ext-themeswitch__current">
+        当前主题：<span class="launcher-ext-themeswitch__current-name">{current() ?? "（未设置）"}</span>
+      </div>
+      <div class="launcher-ext-themeswitch__actions">
+        <button
+          class="launcher-btn launcher-btn--mini"
+          disabled={busy() || current() === "default"}
+          onClick={() => void switchTo("default")}
+        >
+          恢复默认
+        </button>
+        <For each={themes()}>
+          {(r) => (
+            <button
+              class={`launcher-btn launcher-btn--mini ${current() === themeName(r) ? "launcher-btn--primary" : ""}`}
+              disabled={busy() || current() === themeName(r)}
+              onClick={() => void switchTo(themeName(r))}
+            >
+              {themeName(r)}
+            </button>
+          )}
+        </For>
+      </div>
     </div>
   )
 }

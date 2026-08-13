@@ -748,3 +748,313 @@ export async function listDirectoryEntries(
     return []
   }
 }
+
+// 工单 06（ADR-029）：扩展资源管理——agents/skills/themes 统一发现 + CRUD。
+// 不做启停（本体无单个体启停机制，存在即生效，删了就不生效）。
+// 来源分组对齐 ADR-029 表格：
+//   agents: ~/.config/opencode/agents / 项目 .opencode/agent（单数）/ ~/.claude/agents / ~/.agents/agents
+//   skills: ~/.config/opencode/{skill,skills} / 项目 .opencode/{skill,skills} / ~/.claude/skills / ~/.agents/skills
+//   themes: ~/.config/opencode/themes 下的 CSS/JSON 文件
+
+export type ExtensionResourceKind = "agent" | "skill" | "theme"
+
+// 资源来源分组标签——renderer 据此分组显示。
+// 字符串值同时是 UI 上的来源目录标注，保持可读性。
+export type ExtensionResourceSource =
+  | "global-config" // ~/.config/opencode/...
+  | "project-opencode" // 项目 .opencode/...
+  | "claude" // ~/.claude/...
+  | "agents-dir" // ~/.agents/...
+
+export type ExtensionResourceInfo = {
+  kind: ExtensionResourceKind
+  name: string
+  path: string
+  source: ExtensionResourceSource
+  sourceDir: string
+  // 文件扩展名（agent/skill 通常是 .md，theme 是 .css/.json）
+  ext: string
+}
+
+// 各 kind 的来源目录候选——顺序即 UI 分组顺序。
+// agents 项目目录用单数 `agent`（本体约定），skills 项目目录双候选 `skill`+`skills`。
+function extensionSourceDirs(kind: ExtensionResourceKind, projectPath?: string): Array<{ dir: string; source: ExtensionResourceSource }> {
+  const configDir = opencodeConfigDir()
+  const home = homedir()
+  if (kind === "agent") {
+    return [
+      { dir: join(configDir, "agents"), source: "global-config" },
+      { dir: join(projectPath ?? process.cwd(), ".opencode", "agent"), source: "project-opencode" },
+      { dir: join(home, ".claude", "agents"), source: "claude" },
+      { dir: join(home, ".agents", "agents"), source: "agents-dir" },
+    ]
+  }
+  if (kind === "skill") {
+    return [
+      { dir: join(configDir, "skill"), source: "global-config" },
+      { dir: join(configDir, "skills"), source: "global-config" },
+      { dir: join(projectPath ?? process.cwd(), ".opencode", "skill"), source: "project-opencode" },
+      { dir: join(projectPath ?? process.cwd(), ".opencode", "skills"), source: "project-opencode" },
+      { dir: join(home, ".claude", "skills"), source: "claude" },
+      { dir: join(home, ".agents", "skills"), source: "agents-dir" },
+    ]
+  }
+  // theme 只在全局配置目录下
+  return [{ dir: join(configDir, "themes"), source: "global-config" }]
+}
+
+// 列出某 kind 的所有资源文件。
+// agent/skill：递归一层目录找 .md（agent/skill 可能是 `name.md` 或 `name/SKILL.md`/`name/agent.md`）。
+// theme：列 .css/.json。
+// 不跟随符号链接、不深入二层以上目录——保持发现简单可预测。
+export async function findExtensionResources(
+  kind: ExtensionResourceKind,
+  projectPath?: string,
+): Promise<ExtensionResourceInfo[]> {
+  const sources = extensionSourceDirs(kind, projectPath)
+  const results: ExtensionResourceInfo[] = []
+  const seen = new Set<string>()
+  for (const { dir, source } of sources) {
+    if (!existsSync(dir)) continue
+    let entries: import("node:fs").Dirent[]
+    try {
+      entries = await readdir(dir, { withFileTypes: true })
+    } catch {
+      continue
+    }
+    for (const entry of entries) {
+      if (entry.name.startsWith(".")) continue
+      const fullPath = join(dir, entry.name)
+      if (entry.isDirectory()) {
+        // 子目录：找里面一个 .md 文件（agent/skill 的目录形态）
+        if (kind === "theme") continue
+        let subEntries: import("node:fs").Dirent[]
+        try {
+          subEntries = await readdir(fullPath, { withFileTypes: true })
+        } catch {
+          continue
+        }
+        // 优先 SKILL.md / agent.md / AGENT.md，否则第一个 .md
+        const mdFiles = subEntries.filter((e) => e.isFile() && e.name.endsWith(".md"))
+        if (mdFiles.length === 0) continue
+        const preferred = mdFiles.find((e) => e.name === "SKILL.md") ?? mdFiles.find((e) => e.name === "agent.md") ?? mdFiles.find((e) => e.name === "AGENT.md") ?? mdFiles[0]
+        const resourcePath = join(fullPath, preferred.name)
+        if (seen.has(resourcePath)) continue
+        seen.add(resourcePath)
+        results.push({
+          kind,
+          name: entry.name,
+          path: resourcePath,
+          source,
+          sourceDir: dir,
+          ext: ".md",
+        })
+      } else if (entry.isFile()) {
+        const lower = entry.name.toLowerCase()
+        if (kind === "theme") {
+          if (!lower.endsWith(".css") && !lower.endsWith(".json")) continue
+        } else {
+          if (!lower.endsWith(".md")) continue
+        }
+        if (seen.has(fullPath)) continue
+        seen.add(fullPath)
+        const ext = lower.endsWith(".css") ? ".css" : lower.endsWith(".json") ? ".json" : ".md"
+        results.push({
+          kind,
+          name: entry.name,
+          path: fullPath,
+          source,
+          sourceDir: dir,
+          ext,
+        })
+      }
+    }
+  }
+  return results
+}
+
+// 读取资源内容用于预览（markdown 渲染）。文件不存在返回 null。
+export async function readExtensionResourceContent(path: string): Promise<string | null> {
+  try {
+    return await readFile(path, "utf8")
+  } catch {
+    return null
+  }
+}
+
+// 新建资源位置选项——renderer 用此列出可选位置。
+export type ExtensionCreateLocation = "global-config" | "project-opencode" | "claude" | "agents-dir"
+
+export type ExtensionCreateOpts = {
+  kind: ExtensionResourceKind
+  location: ExtensionCreateLocation
+  name: string
+  projectPath?: string
+}
+
+// 解析新建位置到目标目录。
+function resolveExtensionCreateDir(opts: ExtensionCreateOpts): string {
+  const configDir = opencodeConfigDir()
+  const home = homedir()
+  if (opts.location === "global-config") {
+    if (opts.kind === "agent") return join(configDir, "agents")
+    if (opts.kind === "skill") return join(configDir, "skills")
+    return join(configDir, "themes")
+  }
+  if (opts.location === "project-opencode") {
+    if (opts.kind === "agent") return join(opts.projectPath ?? process.cwd(), ".opencode", "agent")
+    if (opts.kind === "skill") return join(opts.projectPath ?? process.cwd(), ".opencode", "skills")
+    return join(configDir, "themes") // theme 只在全局
+  }
+  if (opts.location === "claude") {
+    if (opts.kind === "agent") return join(home, ".claude", "agents")
+    return join(home, ".claude", "skills")
+  }
+  // agents-dir
+  if (opts.kind === "agent") return join(home, ".agents", "agents")
+  return join(home, ".agents", "skills")
+}
+
+// 资源名称合法校验——防路径遍历（不允许 / \ .. 等）。
+function isValidResourceName(name: string): boolean {
+  if (!name || name.length > 128) return false
+  if (/[\\/:]/.test(name)) return false
+  if (name.startsWith(".")) return false
+  return true
+}
+
+// 新建资源模板内容。
+function extensionTemplate(kind: ExtensionResourceKind, name: string): string {
+  if (kind === "agent") {
+    return `---
+description: ${name} agent
+tools:
+  - read
+  - write
+  - edit
+---
+
+# ${name}
+
+TODO: 在此编写 agent 指令。
+`
+  }
+  if (kind === "skill") {
+    return `---
+description: ${name} skill
+---
+
+# ${name}
+
+TODO: 在此编写 skill 内容。
+`
+  }
+  // theme 模板——CSS 骨架
+  return `/* ${name} theme */\n:root {\n  /* 在此定义主题变量 */\n}\n`
+}
+
+// 新建扩展资源。返回新文件路径。
+// agent/skill 创建为 `<dir>/<name>.md`；theme 创建为 `<dir>/<name>.css`。
+// 已存在则抛错（不覆盖）。
+export async function createExtensionResource(opts: ExtensionCreateOpts): Promise<string> {
+  if (!isValidResourceName(opts.name)) throw new Error(`不合法的资源名称: ${opts.name}`)
+  const dir = resolveExtensionCreateDir(opts)
+  await mkdir(dir, { recursive: true })
+  const ext = opts.kind === "theme" ? ".css" : ".md"
+  const filePath = join(dir, `${opts.name}${ext}`)
+  if (existsSync(filePath)) throw new Error(`资源已存在: ${filePath}`)
+  await writeFile(filePath, extensionTemplate(opts.kind, opts.name), "utf8")
+  return filePath
+}
+
+// 删除扩展资源文件。若资源在子目录形态下（agent/skill 的目录形态），删除整个子目录。
+// 出于安全：校验路径在允许的根目录内。
+export async function deleteExtensionResource(path: string): Promise<void> {
+  if (!isConfigPathAllowed(path) && !isDirectoryPathAllowed(dirname(path))) {
+    throw new Error("路径不在允许的目录内")
+  }
+  // 若文件名是 SKILL.md / agent.md / AGENT.md 且同目录只有这一个 md，删除父目录
+  const parent = dirname(path)
+  const fileName = basename(path)
+  const dirFormNames = new Set(["SKILL.md", "agent.md", "AGENT.md"])
+  if (dirFormNames.has(fileName)) {
+    try {
+      const siblings = await readdir(parent, { withFileTypes: true })
+      const mdFiles = siblings.filter((e) => e.isFile() && e.name.endsWith(".md"))
+      if (mdFiles.length === 1 && mdFiles[0].name === fileName) {
+        await rm(parent, { recursive: true, force: true })
+        return
+      }
+    } catch {
+      // 回退到删单文件
+    }
+  }
+  await rm(path, { force: true })
+}
+
+// skills URL 导入：写入 opencode.json 的 `skills.urls` 数组。
+// 重启后本体读取此字段拉取远程 skill。
+export async function importSkillUrl(url: string, projectPath?: string): Promise<string> {
+  if (!/^https?:\/\//.test(url)) throw new Error(`不合法的 URL: ${url}`)
+  const config = (await readConfigObject(projectPath)) ?? {}
+  const skills = (config.skills as Record<string, unknown> | undefined) ?? {}
+  const urls = Array.isArray(skills.urls) ? (skills.urls as unknown[]) : []
+  if (!urls.includes(url)) urls.push(url)
+  skills.urls = urls
+  config.skills = skills
+  const savedPath = await saveConfigObject(config, projectPath)
+  await createSnapshot({ type: "auto", projectPath: projectPath ?? process.cwd() }).catch(() => {})
+  return savedPath
+}
+
+// themes 切换：写 tui.json 的 `theme` 字段。
+// tui.json 位于全局配置目录；不存在则创建。
+export async function switchTheme(themeName: string, projectPath?: string): Promise<string> {
+  if (!isValidResourceName(themeName) && themeName !== "default") {
+    throw new Error(`不合法的 theme 名称: ${themeName}`)
+  }
+  const configDir = opencodeConfigDir()
+  const tuiPath = join(configDir, "tui.json")
+  let config: Record<string, unknown> = {}
+  if (existsSync(tuiPath)) {
+    const result = await readConfigFileAtPath(tuiPath)
+    if (result.config) config = result.config
+  }
+  config.theme = themeName
+  const savedPath = await saveConfigFileAtPath(tuiPath, config)
+  await createSnapshot({ type: "auto", projectPath: projectPath ?? process.cwd() }).catch(() => {})
+  return savedPath
+}
+
+// 读取当前 tui.json 的 theme 字段（供 UI 显示当前主题）。
+export async function readCurrentTheme(projectPath?: string): Promise<string | null> {
+  const configDir = opencodeConfigDir()
+  const tuiPath = join(configDir, "tui.json")
+  if (!existsSync(tuiPath)) return null
+  const result = await readConfigFileAtPath(tuiPath)
+  if (!result.config) return null
+  const theme = result.config.theme
+  return typeof theme === "string" ? theme : null
+}
+
+// 读取 opencode.json 的 skills.urls 数组（供 UI 显示已导入 URL）。
+export async function readSkillUrls(projectPath?: string): Promise<string[]> {
+  const config = await readConfigObject(projectPath)
+  if (!config) return []
+  const skills = config.skills as Record<string, unknown> | undefined
+  if (!skills || !Array.isArray(skills.urls)) return []
+  return (skills.urls as unknown[]).filter((u): u is string => typeof u === "string")
+}
+
+// 删除已导入的 skill URL。
+export async function removeSkillUrl(url: string, projectPath?: string): Promise<string> {
+  const config = (await readConfigObject(projectPath)) ?? {}
+  const skills = (config.skills as Record<string, unknown> | undefined) ?? {}
+  if (Array.isArray(skills.urls)) {
+    skills.urls = (skills.urls as unknown[]).filter((u) => u !== url)
+  }
+  config.skills = skills
+  const savedPath = await saveConfigObject(config, projectPath)
+  await createSnapshot({ type: "auto", projectPath: projectPath ?? process.cwd() }).catch(() => {})
+  return savedPath
+}
