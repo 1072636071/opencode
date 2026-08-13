@@ -25,6 +25,7 @@ import {
   locationLabel,
   detectConfigFileKind,
   pickFormFields,
+  pickMiscFields,
   mergeConfigField,
   isAuthKeyForm,
   isSourceOnlyForm,
@@ -1476,6 +1477,8 @@ function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
   const [authKey, setAuthKey] = createSignal("")
 
   const fields = (): ConfigFormFields => pickFormFields(config())
+  // 工单 03：杂项字段（small_model/instructions/theme/keybinds）走"打开源文件"。
+  const miscFields = (): string[] => pickMiscFields(config())
 
   const refresh = async () => {
     const result = await window.api.launcherReadConfigFile(props.file.path)
@@ -1699,7 +1702,18 @@ function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
             <Show when={fields().permission}>
               <PermissionRuleForm config={config()} saving={saving()} onSave={saveField} />
             </Show>
-            {/* 只显示该文件实际有的字段——没有字段时不显示任何表单 */}
+            {/* 工单 03：杂项字段（small_model/instructions/theme/keybinds）走"打开源文件"。
+                这些字段不在表单中编辑——结构复杂或低频修改，直接打开源文件更安全。
+                保存表单只改对应字段，不影响这些字段。 */}
+            <Show when={miscFields().length > 0}>
+              <p class="launcher-configedit__empty">
+                以下字段建议打开源文件编辑：{miscFields().join("、")}（保存表单只改对应字段，不影响这些字段）
+              </p>
+              <button class="launcher-btn launcher-btn--small" onClick={openSource}>
+                打开源文件
+              </button>
+            </Show>
+            {/* 只显示该文件实际有的字段——无表单字段且无杂项字段时兜底（如只有 $schema） */}
             <Show
               when={
                 !fields().model &&
@@ -1707,16 +1721,16 @@ function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
                 !fields().provider &&
                 !fields().agent &&
                 !fields().mcp &&
-                !fields().permission
+                !fields().permission &&
+                miscFields().length === 0
               }
             >
               <p class="launcher-configedit__empty">
-                此文件无可编辑字段（仅含 $schema/instructions/theme 等非表单字段）
+                此文件无可编辑字段（仅含 $schema 等非表单字段）
               </p>
-            </Show>
-            {/* 保留其他字段提示 */}
-            <Show when={fields().instructions || fields().theme}>
-              <p class="launcher-configedit__empty">instructions/theme 等字段保留不变（保存只改对应字段）</p>
+              <button class="launcher-btn launcher-btn--small" onClick={openSource}>
+                打开源文件
+              </button>
             </Show>
           </Show>
         </Match>

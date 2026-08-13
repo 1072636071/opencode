@@ -136,6 +136,18 @@ export function mergeConfigField(
   return { ...(orig ?? {}), [key]: value }
 }
 
+// 工单 03：杂项字段（small_model/instructions/theme/keybinds）走"打开源文件"。
+// 这些字段不在表单中编辑——结构复杂或低频修改，直接打开源文件更安全。
+// tui.json 整文件走打开源文件（isSourceOnlyForm），此处只列 opencode.json 内的杂项字段。
+export const MISC_FIELD_NAMES = ["small_model", "instructions", "theme", "keybinds"] as const
+
+// 返回文件中实际存在的杂项字段名列表（用于 UI 提示"打开源文件编辑"）。
+// 只列文件里有的字段——不发明新字段。
+export function pickMiscFields(config: Record<string, unknown> | null): string[] {
+  if (!config) return []
+  return MISC_FIELD_NAMES.filter((name) => name in config)
+}
+
 // auth.json 表单不展示现有 key（安全要求），只提供设置/修改输入。
 // 此函数返回 true 表示该文件应渲染脱敏的 API key 表单。
 export function isAuthKeyForm(kind: ConfigFileKind): boolean {

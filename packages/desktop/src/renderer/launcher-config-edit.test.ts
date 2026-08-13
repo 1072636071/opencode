@@ -8,6 +8,7 @@ import {
   locationLabel,
   detectConfigFileKind,
   pickFormFields,
+  pickMiscFields,
   mergeConfigField,
   isAuthKeyForm,
   isSourceOnlyForm,
@@ -269,6 +270,50 @@ describe("pickFormFields（工单 03 表单只显示该文件实际有的字段�
     expect(fields.agent).toBe(false)
     expect(fields.mcp).toBe(false)
     expect(fields.permission).toBe(false)
+  })
+})
+
+describe("pickMiscFields（工单 03 杂项字段走打开源文件）", () => {
+  test("null config 返回空数组", () => {
+    expect(pickMiscFields(null)).toEqual([])
+  })
+
+  test("small_model 字段被识别", () => {
+    expect(pickMiscFields({ small_model: "gpt-4o-mini" })).toEqual(["small_model"])
+  })
+
+  test("instructions 字段被识别", () => {
+    expect(pickMiscFields({ instructions: "你是助手" })).toEqual(["instructions"])
+  })
+
+  test("theme 字段被识别", () => {
+    expect(pickMiscFields({ theme: "dark" })).toEqual(["theme"])
+  })
+
+  test("keybinds 字段被识别", () => {
+    expect(pickMiscFields({ keybinds: { "ctrl+c": "quit" } })).toEqual(["keybinds"])
+  })
+
+  test("多个杂项字段按 MISC_FIELD_NAMES 顺序返回", () => {
+    const config = {
+      keybinds: {},
+      theme: "dark",
+      small_model: "gpt-4o-mini",
+      instructions: "abc",
+    }
+    expect(pickMiscFields(config)).toEqual(["small_model", "instructions", "theme", "keybinds"])
+  })
+
+  test("表单字段（model/plugins/provider 等）不被识别为杂项", () => {
+    expect(pickMiscFields({ model: "deepseek-chat", plugins: [], provider: {} })).toEqual([])
+  })
+
+  test("$schema 等非杂项字段不被识别", () => {
+    expect(pickMiscFields({ $schema: "https://opencode.ai/config.json" })).toEqual([])
+  })
+
+  test("空对象返回空数组", () => {
+    expect(pickMiscFields({})).toEqual([])
   })
 })
 
