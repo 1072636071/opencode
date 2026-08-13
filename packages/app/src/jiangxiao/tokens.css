@@ -1,0 +1,163 @@
+/* ============================================================
+   姜晓·墨染 分包 1/6：tokens（令牌唯一值源 + 字体）
+   ============================================================
+   本文件由 jiangxiao.css 拆分而来（纯移动，未改规则）。
+   DESIGN.md §10 附录令牌的唯一落地形式；浅色取值见 light.css。
+   双通道一致性（jiangxiao.json ↔ 本文件）由 script/check-jiangxiao-theme.ts 校验。
+   注：inline SVG data URI 内的颜色无法引用 var()，使用令牌字面量保持一致。
+   ============================================================ */
+/* ============================================================
+   姜晓·唐风主题定制样式（纯视觉层，不影响任何功能逻辑）
+   ============================================================ */
+
+/* ---------- 色值变量表（ADR-006 决策 1，深底烫金统一新表；ADR-019 语义 token） ----------
+   作用域限定 [data-theme="jiangxiao"]（合并后 themeId 恒为 jiangxiao，ADR-019）。
+   深色为默认作用域，浅色由 [data-color-scheme="light"] 覆盖（见文件末尾）。
+   本表两段：
+   ① 规范 token 块（DESIGN.md §10 附录）——唯一落地形式，一律引用规范名；
+   ② 装饰 SVG 变量（值取 docs/image/产出/jiangxiao-ui-preview.html :root 内联）。
+   后续工单（02-07）一律通过 var() 引用本表，不再硬编码色值。
+   注：inline SVG data URI 内的颜色无法引用 var()，使用新表字面量保持一致。
+   语义 token（ADR-019）：surface 表面色阶 + text 文字色阶，深浅各一套值，
+   共享规则只引用语义名，由 token 值自动适配深浅。 */
+[data-theme="jiangxiao"] {
+  /* === ① DESIGN.md §10 规范 token 块（深色默认） === */
+  /* Surface 表面色阶（0 最深/底、3 最浅/raised；深色=黑檀深色系） */
+  --jx-surface-0: #0b090d;
+  --jx-surface-1: #121016;
+  --jx-surface-2: #1a1620;
+  --jx-surface-3: #2d242f;
+  /* Text 文字色阶（strong 最强调、faint 最弱；深色=浅色字） */
+  --jx-text-strong: #f2ead8;
+  --jx-text-base: #f2ead8;
+  --jx-text-weak: #a99c8a;
+  --jx-text-faint: #a99c8a;
+  /* Gold 金族（品牌金色，强调/装饰，与 text-* 文字语用区分） */
+  --jx-gold-bright: #f6d365;
+  --jx-gold: #d6b34a;
+  --jx-gold-deep: #b8860b;
+  --jx-gold-dim: #996515;
+  --jx-ginkgo: #dfb793;
+  --jx-gold-foil: linear-gradient(135deg, #f6d365 0%, #fda085 50%, #b8860b 100%);
+  /* Seal 印章族（朱红印章按钮） */
+  --jx-seal: #c7493a;
+  --jx-seal-deep: #a8382b;
+  --jx-seal-bright: #d85444;
+  --jx-seal-ink: #fff8ef;
+  /* Atmosphere 氛围族（仅渐变/特效/插画层） */
+  --jx-mist: #b5a8b2;
+  --jx-mountain: #827686;
+  --jx-water: #767687;
+  --jx-cloud: #e7d3d2;
+  --jx-moon: #ecd8d8;
+  --jx-hair: #d1beca;
+  --jx-wisteria: #997694;
+  /* 朱红强调色（印章/窗口按钮） */
+  --jx-cinnabar: #c3272b;
+  /* 深底高亮提亮变体（ADR-004：深底容器上 file/agent 高亮须提亮） */
+  --jx-hl-file: #7fd8e8;
+  --jx-hl-agent: #e5c07b;
+  --jx-success: #86b08a;
+  --jx-warn: #d9a05b;
+  --jx-error: #d06552;
+  --jx-border-deco: #3d3218;
+  --jx-selection: rgba(184, 134, 11, 0.3);
+  --jx-scroll-track: #2a2210;
+  --jx-scroll-thumb: #b8860b;
+  /* Typography */
+  --jx-font-display: "Ma Shan Zheng", "Kaiti SC", "STKaiti", "KaiTi", serif;
+  --jx-font-ui: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --jx-font-code: ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --jx-fs-display: clamp(44px, 4.5vw, 64px);
+  --jx-fs-h1: 32px;
+  --jx-fs-h2: 24px;
+  --jx-fs-h3: 18px;
+  --jx-fs-body: 14px;
+  --jx-fs-small: 12px;
+  --jx-fs-caption: 11px;
+  --jx-lh-body: 1.8;
+  --jx-ls-caps: 0.18em;
+  /* Spacing（4px 基准）/ Radius */
+  --jx-space-1: 4px;
+  --jx-space-2: 8px;
+  --jx-space-3: 12px;
+  --jx-space-4: 16px;
+  --jx-space-6: 24px;
+  --jx-space-8: 32px;
+  --jx-space-12: 48px;
+  --jx-radius-sm: 4px;
+  --jx-radius-md: 6px;
+  --jx-radius-lg: 8px;
+  --jx-radius-xl: 12px;
+  --jx-radius-seal: 50%;
+  /* Depth */
+  --jx-shadow-1: 0 2px 8px rgba(5, 3, 8, 0.5);
+  --jx-shadow-2: 0 8px 24px rgba(5, 3, 8, 0.55);
+  --jx-gold-rim: 0 0 0 1px #3d3218, 0 0 14px rgba(246, 211, 101, 0.12);
+  --jx-moon-glow: 0 0 40px rgba(236, 216, 216, 0.25);
+  /* Z 层级 */
+  --jx-z-fx: 1;
+  --jx-z-content: 10;
+  --jx-z-character: 40;
+  --jx-z-demo: 43;
+  --jx-z-bubble: 45;
+  --jx-z-titlebar: 50;
+  --jx-z-toast: 80;
+  --jx-z-dialog: 100;
+  --jx-z-splash: 200;
+  /* Motion */
+  --jx-dur-fast: 0.15s;
+  --jx-dur: 0.35s;
+  --jx-breathe: 6s;
+  --jx-ease: ease;
+  /* Icons（唐风线描 sprite） */
+  --jx-icon-stroke: 1.8;
+  --jx-icon-s: 13px;
+  --jx-icon-m: 16px;
+  --jx-icon-l: 20px;
+
+  /* === ② 装饰 SVG（preview.html :root 内联值，data URI 内为单引号/外层双引号） === */
+  --jx-cloud-line: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='8' viewBox='0 0 56 8'%3E%3Cpath d='M0 6 Q7 0 14 6 T28 6 T42 6 T56 6' fill='none' stroke='%23996515' stroke-opacity='.55' stroke-width='1.2'/%3E%3C/svg%3E");
+  /* --jx-leaf-gold / --jx-leaf-white / --jx-rosette 已删除（S4：全仓库无 var() 引用，死代码清理） */
+}
+
+/* ---------- 唐风楷体字体 ---------- */
+/* 工单 06（high-fidelity）：本地 woff2 打包入库（public/fonts/），离线可用。
+   font-family 用规范名 'Ma Shan Zheng' / 'Noto Serif SC'，与 --jx-font-display / --jx-font-ui
+   的族名一致，浏览器优先命中本地字面文件，local 回退保留（未打包环境仍可显示系统楷体/宋体）。 */
+@font-face {
+  font-family: "Ma Shan Zheng";
+  src:
+    url("/fonts/mashanzheng-l1.woff2") format("woff2"),
+    local("Ma Shan Zheng"),
+    local("楷体"),
+    local("KaiTi");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Noto Serif SC";
+  src:
+    url("/fonts/notoserifsc-l1.woff2") format("woff2-variations"),
+    url("/fonts/notoserifsc-l1.woff2") format("woff2"),
+    local("Noto Serif SC"),
+    local("宋体"),
+    local("SimSun");
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TangKai";
+  src: local("楷体"), local("KaiTi"), local("STKaiti"), local("Noto Serif CJK SC");
+  font-weight: 400 700;
+}
+
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"],
+[data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-status"],
+[data-theme="jiangxiao"] h1,
+[data-theme="jiangxiao"] h2,
+[data-theme="jiangxiao"] h3 {
+  font-family: "TangKai", "Inter", sans-serif;
+}

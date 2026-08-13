@@ -19,12 +19,7 @@ html[data-theme="jiangxiao"] {
   --jx-gold-deep: #b8860b;
   --jx-gold-dim: #996515;
   --jx-ginkgo: #dfb793;
-  --jx-gold-foil: linear-gradient(
-    135deg,
-    #f6d365 0%,
-    #fda085 50%,
-    #b8860b 100%
-  );
+  --jx-gold-foil: linear-gradient(135deg, #f6d365 0%, #fda085 50%, #b8860b 100%);
   /* Seal 印章族（朱红印章按钮） */
   --jx-seal: #c7493a;
   --jx-seal-deep: #a8382b;
@@ -53,8 +48,7 @@ html[data-theme="jiangxiao"] {
   /* Typography */
   --jx-font-display: "Ma Shan Zheng", "Kaiti SC", "STKaiti", "KaiTi", serif;
   --jx-font-ui: "Noto Serif SC", "Songti SC", "SimSun", serif;
-  --jx-font-code:
-    ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --jx-font-code: ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
   --jx-fs-display: clamp(44px, 4.5vw, 64px);
   --jx-fs-h1: 32px;
   --jx-fs-h2: 24px;
@@ -156,7 +150,7 @@ body {
   background:
     radial-gradient(ellipse 60% 40% at 15% 95%, rgba(130, 118, 134, 0.18) 0%, transparent 70%),
     radial-gradient(ellipse 70% 45% at 85% 98%, rgba(118, 118, 135, 0.15) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 30% at 50% 100%, rgba(181, 168, 178, 0.10) 0%, transparent 60%);
+    radial-gradient(ellipse 50% 30% at 50% 100%, rgba(181, 168, 178, 0.1) 0%, transparent 60%);
 }
 
 /* 月光：右上角柔和光晕，box-shadow glow（--jx-moon-glow） */
@@ -173,8 +167,15 @@ body {
 }
 
 @keyframes launcher-moon-breathe {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.06); }
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.06);
+  }
 }
 
 /* 金粉粒子：12 颗小圆点，CSS 动画错时漂移 */
@@ -193,23 +194,80 @@ body {
   animation: launcher-particle-drift var(--jx-breathe) var(--jx-ease) infinite;
 }
 
-.launcher-atmosphere__particle:nth-child(1) { top: 12%; left: 22%; animation-delay: 0s; }
-.launcher-atmosphere__particle:nth-child(2) { top: 28%; left: 78%; animation-delay: 0.5s; }
-.launcher-atmosphere__particle:nth-child(3) { top: 45%; left: 15%; animation-delay: 1s; }
-.launcher-atmosphere__particle:nth-child(4) { top: 62%; left: 88%; animation-delay: 1.5s; }
-.launcher-atmosphere__particle:nth-child(5) { top: 75%; left: 30%; animation-delay: 2s; }
-.launcher-atmosphere__particle:nth-child(6) { top: 85%; left: 65%; animation-delay: 2.5s; }
-.launcher-atmosphere__particle:nth-child(7) { top: 18%; left: 55%; animation-delay: 3s; }
-.launcher-atmosphere__particle:nth-child(8) { top: 38%; left: 42%; animation-delay: 3.5s; }
-.launcher-atmosphere__particle:nth-child(9) { top: 55%; left: 70%; animation-delay: 4s; }
-.launcher-atmosphere__particle:nth-child(10) { top: 70%; left: 10%; animation-delay: 4.5s; }
-.launcher-atmosphere__particle:nth-child(11) { top: 92%; left: 50%; animation-delay: 5s; }
-.launcher-atmosphere__particle:nth-child(12) { top: 8%; left: 88%; animation-delay: 5.5s; }
+.launcher-atmosphere__particle:nth-child(1) {
+  top: 12%;
+  left: 22%;
+  animation-delay: 0s;
+}
+.launcher-atmosphere__particle:nth-child(2) {
+  top: 28%;
+  left: 78%;
+  animation-delay: 0.5s;
+}
+.launcher-atmosphere__particle:nth-child(3) {
+  top: 45%;
+  left: 15%;
+  animation-delay: 1s;
+}
+.launcher-atmosphere__particle:nth-child(4) {
+  top: 62%;
+  left: 88%;
+  animation-delay: 1.5s;
+}
+.launcher-atmosphere__particle:nth-child(5) {
+  top: 75%;
+  left: 30%;
+  animation-delay: 2s;
+}
+.launcher-atmosphere__particle:nth-child(6) {
+  top: 85%;
+  left: 65%;
+  animation-delay: 2.5s;
+}
+.launcher-atmosphere__particle:nth-child(7) {
+  top: 18%;
+  left: 55%;
+  animation-delay: 3s;
+}
+.launcher-atmosphere__particle:nth-child(8) {
+  top: 38%;
+  left: 42%;
+  animation-delay: 3.5s;
+}
+.launcher-atmosphere__particle:nth-child(9) {
+  top: 55%;
+  left: 70%;
+  animation-delay: 4s;
+}
+.launcher-atmosphere__particle:nth-child(10) {
+  top: 70%;
+  left: 10%;
+  animation-delay: 4.5s;
+}
+.launcher-atmosphere__particle:nth-child(11) {
+  top: 92%;
+  left: 50%;
+  animation-delay: 5s;
+}
+.launcher-atmosphere__particle:nth-child(12) {
+  top: 8%;
+  left: 88%;
+  animation-delay: 5.5s;
+}
 
 @keyframes launcher-particle-drift {
-  0% { transform: translate(0, 0); opacity: 0.2; }
-  50% { transform: translate(8px, -12px); opacity: 0.7; }
-  100% { transform: translate(-6px, 6px); opacity: 0.2; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translate(8px, -12px);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-6px, 6px);
+    opacity: 0.2;
+  }
 }
 
 /* prefers-reduced-motion：关闭动画与粒子漂移 */
@@ -404,8 +462,14 @@ body {
 }
 
 @keyframes launcher-page-fade {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -533,39 +597,63 @@ body {
 /* 四态可区分：idle/starting/running/failed */
 .launcher-stage__ring--idle {
   border-color: var(--jx-gold-deep);
-  box-shadow: 0 0 0 1px var(--jx-border-deco), 0 0 24px rgba(184, 134, 11, 0.18);
+  box-shadow:
+    0 0 0 1px var(--jx-border-deco),
+    0 0 24px rgba(184, 134, 11, 0.18);
 }
 
 .launcher-stage__ring--idle:hover:not(:disabled) {
   border-color: var(--jx-gold-bright);
-  box-shadow: 0 0 0 1px var(--jx-gold-deep), 0 0 36px rgba(246, 211, 101, 0.35);
+  box-shadow:
+    0 0 0 1px var(--jx-gold-deep),
+    0 0 36px rgba(246, 211, 101, 0.35);
 }
 
 .launcher-stage__ring--starting {
   border-color: var(--jx-warn);
-  box-shadow: 0 0 0 1px var(--jx-warn), 0 0 32px rgba(217, 160, 91, 0.4);
+  box-shadow:
+    0 0 0 1px var(--jx-warn),
+    0 0 32px rgba(217, 160, 91, 0.4);
   animation: launcher-stage-pulse var(--jx-breathe) var(--jx-ease) infinite;
 }
 
 .launcher-stage__ring--running {
   border-color: var(--jx-success);
-  box-shadow: 0 0 0 1px var(--jx-success), 0 0 32px rgba(134, 176, 138, 0.35);
+  box-shadow:
+    0 0 0 1px var(--jx-success),
+    0 0 32px rgba(134, 176, 138, 0.35);
   animation: launcher-stage-breathe var(--jx-breathe) var(--jx-ease) infinite;
 }
 
 .launcher-stage__ring--failed {
   border-color: var(--jx-error);
-  box-shadow: 0 0 0 1px var(--jx-seal-deep), 0 0 32px rgba(208, 101, 82, 0.4);
+  box-shadow:
+    0 0 0 1px var(--jx-seal-deep),
+    0 0 32px rgba(208, 101, 82, 0.4);
 }
 
 @keyframes launcher-stage-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.04); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
 }
 
 @keyframes launcher-stage-breathe {
-  0%, 100% { box-shadow: 0 0 0 1px var(--jx-success), 0 0 24px rgba(134, 176, 138, 0.25); }
-  50% { box-shadow: 0 0 0 1px var(--jx-success), 0 0 40px rgba(134, 176, 138, 0.5); }
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px var(--jx-success),
+      0 0 24px rgba(134, 176, 138, 0.25);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px var(--jx-success),
+      0 0 40px rgba(134, 176, 138, 0.5);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

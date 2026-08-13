@@ -1,10 +1,5 @@
 import { contextBridge, ipcRenderer, webUtils } from "electron"
-import type {
-  ElectronAPI,
-  WslServersEvent,
-  LauncherPluginLogEntry,
-  LauncherPluginLoadEntry,
-} from "./types"
+import type { ElectronAPI, WslServersEvent, LauncherPluginLogEntry, LauncherPluginLoadEntry } from "./types"
 import type { UpdaterState } from "@opencode-ai/app/updater"
 
 const updaterCallbacks = new Set<(state: UpdaterState) => void>()

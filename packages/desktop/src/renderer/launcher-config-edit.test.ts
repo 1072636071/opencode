@@ -17,6 +17,7 @@ import {
   buildMcpConfig,
   extractPermissionRules,
   buildPermissionConfig,
+  formatSubdirNodeLabel,
   type AgentBinding,
   type McpServerEntry,
   type PermissionRule,
@@ -419,20 +420,20 @@ describe("extractMcpServers / buildMcpConfig（工单 07 MCP 服务器）", () =
   })
 
   test("缺 args/env 时返回空数组", () => {
-    const mcpConfig = { "simple": { command: "node" } }
+    const mcpConfig = { simple: { command: "node" } }
     const servers = extractMcpServers(mcpConfig)
     expect(servers[0].args).toEqual([])
     expect(servers[0].env).toEqual([])
   })
 
   test("args 非数组时返回空数组", () => {
-    const mcpConfig = { "bad": { command: "node", args: "not-array" } }
+    const mcpConfig = { bad: { command: "node", args: "not-array" } }
     const servers = extractMcpServers(mcpConfig)
     expect(servers[0].args).toEqual([])
   })
 
   test("env 非对象时返回空数组", () => {
-    const mcpConfig = { "bad": { command: "node", env: "not-object" } }
+    const mcpConfig = { bad: { command: "node", env: "not-object" } }
     const servers = extractMcpServers(mcpConfig)
     expect(servers[0].env).toEqual([])
   })
@@ -460,21 +461,17 @@ describe("extractMcpServers / buildMcpConfig（工单 07 MCP 服务器）", () =
         args: ["server.js"],
         env: { API_KEY: "xxx" },
       },
-      "remote": { url: "https://example.com/mcp" },
+      remote: { url: "https://example.com/mcp" },
     })
   })
 
   test("buildMcpConfig 空 args/env 不写入", () => {
-    const servers: McpServerEntry[] = [
-      { name: "simple", command: "node", args: [], env: [] },
-    ]
+    const servers: McpServerEntry[] = [{ name: "simple", command: "node", args: [], env: [] }]
     expect(buildMcpConfig(servers)).toEqual({ simple: { command: "node" } })
   })
 
   test("buildMcpConfig 空 command/url 不写入", () => {
-    const servers: McpServerEntry[] = [
-      { name: "empty", command: undefined, url: undefined, args: [], env: [] },
-    ]
+    const servers: McpServerEntry[] = [{ name: "empty", command: undefined, url: undefined, args: [], env: [] }]
     expect(buildMcpConfig(servers)).toEqual({ empty: {} })
   })
 
@@ -485,7 +482,7 @@ describe("extractMcpServers / buildMcpConfig（工单 07 MCP 服务器）", () =
         args: ["server.js"],
         env: { API_KEY: "xxx" },
       },
-      "remote": { url: "https://example.com/mcp" },
+      remote: { url: "https://example.com/mcp" },
     }
     const rebuilt = buildMcpConfig(extractMcpServers(orig))
     expect(rebuilt).toEqual(orig)
@@ -624,27 +621,21 @@ describe("I1: buildMcpConfig 保留嵌套字段", () => {
       "my-server": { command: "node", args: ["server.js"] },
       "legacy-server": { command: "python", custom: "保留" },
     }
-    const servers: McpServerEntry[] = [
-      { name: "my-server", command: "node", args: ["server.js"], env: [] },
-    ]
+    const servers: McpServerEntry[] = [{ name: "my-server", command: "node", args: ["server.js"], env: [] }]
     const rebuilt = buildMcpConfig(servers, orig)
     expect(rebuilt["legacy-server"]).toEqual({ command: "python", custom: "保留" })
   })
 
   test("清空 command 时从 entry 删除 command 字段", () => {
     const orig = { "my-server": { command: "node", custom: "保留" } }
-    const servers: McpServerEntry[] = [
-      { name: "my-server", command: undefined, args: [], env: [] },
-    ]
+    const servers: McpServerEntry[] = [{ name: "my-server", command: undefined, args: [], env: [] }]
     const rebuilt = buildMcpConfig(servers, orig)
     expect(rebuilt["my-server"]).toEqual({ custom: "保留" })
     expect("command" in (rebuilt["my-server"] as Record<string, unknown>)).toBe(false)
   })
 
   test("无 orig 时行为与之前一致", () => {
-    const servers: McpServerEntry[] = [
-      { name: "simple", command: "node", args: [], env: [] },
-    ]
+    const servers: McpServerEntry[] = [{ name: "simple", command: "node", args: [], env: [] }]
     expect(buildMcpConfig(servers)).toEqual({ simple: { command: "node" } })
   })
 })
@@ -731,33 +722,66 @@ describe("S2: extractMcpServers args 元素类型校验", () => {
 // S7 修复测试：extractMcpServers 校验 val 为对象。
 describe("S7: extractMcpServers val 对象校验", () => {
   test("val 为 string 时返回空 args/env", () => {
-    const mcpConfig = { "bad": "string-value" }
+    const mcpConfig = { bad: "string-value" }
     const servers = extractMcpServers(mcpConfig)
     expect(servers[0]).toEqual({ name: "bad", args: [], env: [] })
   })
 
   test("val 为数字时返回空 args/env", () => {
-    const mcpConfig = { "bad": 42 }
+    const mcpConfig = { bad: 42 }
     const servers = extractMcpServers(mcpConfig)
     expect(servers[0]).toEqual({ name: "bad", args: [], env: [] })
   })
 
   test("val 为 null 时返回空 args/env", () => {
-    const mcpConfig = { "bad": null }
+    const mcpConfig = { bad: null }
     const servers = extractMcpServers(mcpConfig)
     expect(servers[0]).toEqual({ name: "bad", args: [], env: [] })
   })
 
   test("val 为数组时返回空 args/env", () => {
-    const mcpConfig = { "bad": [1, 2, 3] }
+    const mcpConfig = { bad: [1, 2, 3] }
     const servers = extractMcpServers(mcpConfig)
     expect(servers[0]).toEqual({ name: "bad", args: [], env: [] })
   })
 
   test("val 为对象时正常提取", () => {
-    const mcpConfig = { "good": { command: "node", args: ["server.js"] } }
+    const mcpConfig = { good: { command: "node", args: ["server.js"] } }
     const servers = extractMcpServers(mcpConfig)
     expect(servers[0].command).toBe("node")
     expect(servers[0].args).toEqual(["server.js"])
+  })
+})
+
+// 工单 12 次 seam 单测：.opencode/ 目录节点标签含文件数。
+describe("formatSubdirNodeLabel（工单 12 目录节点标签含文件数）", () => {
+  test("未展开：只显示目录名 + 斜杠", () => {
+    expect(formatSubdirNodeLabel("agents", false, 0)).toBe("agents/")
+    expect(formatSubdirNodeLabel("skills", false, 5)).toBe("skills/")
+  })
+
+  test("展开后：显示目录名 + 文件数", () => {
+    expect(formatSubdirNodeLabel("agents", true, 3)).toBe("agents/（3）")
+    expect(formatSubdirNodeLabel("plugins", true, 12)).toBe("plugins/（12）")
+  })
+
+  test("展开后空目录：显示文件数 0", () => {
+    expect(formatSubdirNodeLabel("themes", true, 0)).toBe("themes/（0）")
+  })
+
+  test("文件数来自 entries 长度——与 listDirectoryEntries 返回条目数一致", () => {
+    // 模拟 listDirectoryEntries 返回 3 个条目
+    const entries = [
+      { name: "a.md", path: "/.opencode/agents/a.md", isDirectory: false },
+      { name: "b.md", path: "/.opencode/agents/b.md", isDirectory: false },
+      { name: "sub", path: "/.opencode/agents/sub", isDirectory: true },
+    ]
+    expect(formatSubdirNodeLabel("agents", true, entries.length)).toBe("agents/（3）")
+  })
+
+  test("展开/收起切换：同一目录标签随 expanded 变化", () => {
+    expect(formatSubdirNodeLabel("agents", false, 3)).toBe("agents/")
+    expect(formatSubdirNodeLabel("agents", true, 3)).toBe("agents/（3）")
+    expect(formatSubdirNodeLabel("agents", false, 3)).toBe("agents/")
   })
 })

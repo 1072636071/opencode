@@ -1,10 +1,14 @@
 import { createHash } from "node:crypto"
 import { execFile } from "node:child_process"
 import { existsSync } from "node:fs"
-import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises"
+import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
 import { dirname, isAbsolute, join, relative, resolve } from "node:path"
 import { promisify } from "node:util"
+import { parse, modify, applyEdits } from "jsonc-parser"
+import type { FormattingOptions } from "jsonc-parser"
+import { Global } from "@opencode-ai/core/global"
+import { Flag } from "@opencode-ai/core/flag/flag"
 
 const execFileAsync = promisify(execFile)
 
@@ -38,39 +42,27 @@ export type Snapshot = SnapshotMeta & {
 }
 
 const DEFAULT_MAX_AUTO = 50
+// 工单 09（审计 S1）：auth.json 脱敏占位——快照/导出存此标记而非明文 key，恢复/导入时跳过。
+export const REDACTED_PLACEHOLDER = "<redacted>"
 // 配置文件候选名（对齐本体 config/paths.ts + config/tui.ts + auth/index.ts）。
 // 全局配置目录与 OPENCODE_CONFIG_DIR 下查找这些候选名。
 const CONFIG_CANDIDATES = ["opencode.jsonc", "opencode.json", "config.json", "tui.json"]
 // 项目根目录与 findUp `.opencode` 目录下查找这些候选名。
 const PROJECT_CONFIG_CANDIDATES = ["opencode.jsonc", "opencode.json"]
 
+// ADR-028：复用本体 Global.Path.config（xdg-basedir）消灭配置发现漂移。
+// 保留 OPENCODE_CONFIG_DIR 覆盖——本体 Global.make().config 即此语义（Flag.OPENCODE_CONFIG_DIR ?? Path.config），
+// 供测试隔离与用户手动指定。
 function opencodeConfigDir(): string {
-  if (process.env.OPENCODE_CONFIG_DIR) return process.env.OPENCODE_CONFIG_DIR
-  const xdgConfig =
-    process.env.XDG_CONFIG_HOME ||
-    (process.platform === "win32"
-      ? process.env.APPDATA || join(homedir(), "AppData", "Roaming")
-      : join(homedir(), ".config"))
-  return join(xdgConfig, "opencode")
+  return Flag.OPENCODE_CONFIG_DIR ?? Global.Path.config
 }
 
 export { opencodeConfigDir }
 
-/**
- * Resolve the opencode data directory (where `auth.json` lives).
- * Mirrors `Global.Path.data` from `@opencode-ai/core`: `xdgData/opencode`.
- * On Windows xdg-data is `LOCALAPPDATA` (not `APPDATA`, which is config/roaming).
- */
+// ADR-028：复用本体 Global.Path.data（xdg-basedir）消灭数据目录漂移。
+// 保留 OPENCODE_DATA_DIR 覆盖供测试隔离与用户手动指定（core 包未提供此 flag，此处补齐）。
 function opencodeDataDir(): string {
-  if (process.env.OPENCODE_DATA_DIR) return process.env.OPENCODE_DATA_DIR
-  const xdgData =
-    process.env.XDG_DATA_HOME ||
-    (process.platform === "win32"
-      ? process.env.LOCALAPPDATA || join(homedir(), "AppData", "Local")
-      : process.platform === "darwin"
-        ? join(homedir(), "Library", "Application Support")
-        : join(homedir(), ".local", "share"))
-  return join(xdgData, "opencode")
+  return process.env.OPENCODE_DATA_DIR ?? Global.Path.data
 }
 
 export { opencodeDataDir }
@@ -141,12 +133,12 @@ export type ConfigFileInfo = {
 }
 
 // 发现所有存在的配置文件，按本体 config/paths.ts 的 directories() 顺序遍历：
-//   1. xdg 全局配置目录（Global.Path.config）
+//   1. xdg 全局配置目录（Global.Path.config = ~/.config/opencode，ADR-028 对齐本体）
 //   2. findUp `.opencode` 目录 from projectPath
 //   3. `~/.opencode` 目录
 //   4. OPENCODE_CONFIG_DIR 环境变量目录
 //   5. auth.json 位于 xdg 数据目录（Global.Path.data）
-// 不查找 `~/.config/opencode`（本体也不读，xdg 全局目录已由 opencodeConfigDir() 处理）。
+// ADR-028：第 1 条即 ~/.config/opencode（本体读此目录，20 工单"本体不读"为错误查证，已废弃）。
 function findConfigFiles(projectPath?: string): string[] {
   return findConfigFilesGrouped(projectPath).map((f) => f.path)
 }
@@ -237,7 +229,8 @@ export async function createSnapshot(opts: { type: SnapshotType; projectPath?: s
   const configContents: Record<string, string> = {}
   for (const file of configFiles) {
     try {
-      configContents[file] = await readFile(file, "utf8")
+      // 工单 09（审计 S1）：auth.json 脱敏——存占位而非明文 key，恢复时跳过。
+      configContents[file] = isAuthConfigFile(file) ? REDACTED_PLACEHOLDER : await readFile(file, "utf8")
     } catch {
       continue
     }
@@ -256,7 +249,11 @@ export async function createSnapshot(opts: { type: SnapshotType; projectPath?: s
   }
   const dir = snapshotDir(opts.projectPath)
   await mkdir(dir, { recursive: true })
-  await writeFile(snapshotPath(id, opts.projectPath), JSON.stringify(snapshot, null, 2), "utf8")
+  // 工单 09（审计 S1）：快照文件收紧 0600，防止配置明文被同机其他用户读取。
+  await writeFile(snapshotPath(id, opts.projectPath), JSON.stringify(snapshot, null, 2), {
+    encoding: "utf8",
+    mode: 0o600,
+  })
   return snapshot
 }
 
@@ -305,14 +302,65 @@ export async function tagSnapshot(id: string, tag: string, projectPath?: string)
   const snap = await getSnapshot(id, projectPath)
   if (!snap) throw new Error(`snapshot not found: ${id}`)
   snap.tag = tag
-  await writeFile(snapshotPath(id, projectPath), JSON.stringify(snap, null, 2), "utf8")
+  await writeFile(snapshotPath(id, projectPath), JSON.stringify(snap, null, 2), { encoding: "utf8", mode: 0o600 })
+}
+
+// M2（审计 S1 拖留泄露面）：迁移旧快照——工单09 前创建的旧快照可能含 auth.json 明文 key
+// 且权限未收紧（默认）。此函数扫描所有快照，对含明文 auth.json 的快照脱敏重写 + 收紧 0o600。
+// 整体 try/catch，不抛异常（迁移失败不阻断启动）。返回迁移的快照数量。
+export async function migrateRedactOldSnapshots(projectPath?: string): Promise<number> {
+  try {
+    const metas = await listSnapshots(projectPath)
+    const dir = snapshotDir(projectPath)
+    let migrated = 0
+    for (const meta of metas) {
+      const file = join(dir, `${meta.id}.json`)
+      let raw: string
+      try {
+        raw = await readFile(file, "utf8")
+      } catch {
+        continue
+      }
+      let snap: Snapshot
+      try {
+        snap = JSON.parse(stripBom(raw)) as Snapshot
+      } catch {
+        continue
+      }
+      let needsRewrite = false
+      // 检查 configContents 是否含 auth.json 明文——脱敏为占位
+      if (snap.configContents && typeof snap.configContents === "object") {
+        for (const [filePath, content] of Object.entries(snap.configContents)) {
+          if (isAuthConfigFile(filePath) && content !== REDACTED_PLACEHOLDER) {
+            snap.configContents[filePath] = REDACTED_PLACEHOLDER
+            needsRewrite = true
+          }
+        }
+      }
+      // 检查文件权限是否 0o600（非 Windows）——未收紧则重写收紧
+      if (process.platform !== "win32") {
+        try {
+          const s = await stat(file)
+          if ((s.mode & 0o777) !== 0o600) needsRewrite = true
+        } catch {
+          // stat 失败不阻断——继续处理其他快照
+        }
+      }
+      if (!needsRewrite) continue
+      await writeFile(file, JSON.stringify(snap, null, 2), { encoding: "utf8", mode: 0o600 })
+      migrated++
+    }
+    return migrated
+  } catch {
+    return 0
+  }
 }
 
 export async function untagSnapshot(id: string, projectPath?: string): Promise<void> {
   const snap = await getSnapshot(id, projectPath)
   if (!snap) throw new Error(`snapshot not found: ${id}`)
   snap.tag = null
-  await writeFile(snapshotPath(id, projectPath), JSON.stringify(snap, null, 2), "utf8")
+  await writeFile(snapshotPath(id, projectPath), JSON.stringify(snap, null, 2), { encoding: "utf8", mode: 0o600 })
 }
 
 function toMeta(snap: Snapshot): SnapshotMeta {
@@ -328,8 +376,10 @@ function toMeta(snap: Snapshot): SnapshotMeta {
 }
 
 // 恢复 snapshot 的 config 文件到原路径（ADR-021 D5 整文件版本化）。
+// 工单 09（审计 S1）：跳过脱敏占位——不覆盖现有 auth.json。
 export async function restoreSnapshotConfig(snapshot: Snapshot): Promise<void> {
   for (const [filePath, content] of Object.entries(snapshot.configContents)) {
+    if (content === REDACTED_PLACEHOLDER) continue
     await mkdir(dirname(filePath), { recursive: true })
     await writeFile(filePath, content, "utf8")
   }
@@ -356,22 +406,30 @@ export function getConfigFilePath(projectPath?: string): string | null {
 }
 
 // 读 config 文件并解析为对象。返回 null 如果无 config 或解析失败。
+// 用 jsonc-parser parse 容错解析注释/尾逗号（工单 10，修复审计 S2）。
 export async function readConfigObject(projectPath?: string): Promise<Record<string, unknown> | null> {
   const path = getConfigFilePath(projectPath)
   if (!path) return null
   try {
     const text = await readFile(path, "utf8")
-    return JSON.parse(stripBom(text)) as Record<string, unknown>
+    const parsed = parse(stripBom(text), undefined, { allowTrailingComma: true })
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return null
+    return parsed as Record<string, unknown>
   } catch {
     return null
   }
 }
 
 // 写 config 文件。若不存在则创建 opencode.json。
+// .jsonc 用最小编辑保留注释/字段顺序；.json 用整体 stringify（工单 10）。
 export async function saveConfigObject(config: Record<string, unknown>, projectPath?: string): Promise<string> {
   const path = getConfigFilePath(projectPath) ?? join(opencodeConfigDir(), "opencode.json")
   await mkdir(dirname(path), { recursive: true })
-  await writeFile(path, JSON.stringify(config, null, 2), "utf8")
+  if (path.endsWith(".jsonc")) {
+    await writeJsoncMinimal(path, config)
+  } else {
+    await writeFile(path, JSON.stringify(config, null, 2), "utf8")
+  }
   return path
 }
 
@@ -455,7 +513,11 @@ export async function exportBundle(id: string): Promise<string> {
     launcherVersion: "v0.1.0",
     configFiles: snap.configFiles.map((f) => basename(f)),
     configContents: Object.fromEntries(
-      Object.entries(snap.configContents).map(([f, content]) => [basename(f), content]),
+      Object.entries(snap.configContents).map(([f, content]) => [
+        basename(f),
+        // 工单 09（审计 S1）：导出双保险——旧快照可能含明文，再次脱敏 auth.json。
+        isAuthConfigFile(f) ? REDACTED_PLACEHOLDER : content,
+      ]),
     ),
     plugins: snap.plugins,
   }
@@ -475,7 +537,9 @@ export async function importBundle(
   const dir = opencodeConfigDir()
   await mkdir(dir, { recursive: true })
   for (const [filename, text] of Object.entries(bundle.configContents)) {
-    await writeFile(join(dir, filename), text, "utf8")
+    // 工单 09（审计 S1）：跳过脱敏占位——不覆盖现有 auth.json。
+    if (text === REDACTED_PLACEHOLDER) continue
+    await writeFile(join(dir, filename), text, { encoding: "utf8", mode: 0o600 })
   }
   onProgress?.("reinstalling")
   const failedPlugins: string[] = []
@@ -547,26 +611,90 @@ function basename(path: string): string {
   return parts[parts.length - 1] || path
 }
 
+// 工单 09（审计 S1）：判断是否为 auth.json——快照/导出需脱敏，恢复需跳过。
+function isAuthConfigFile(path: string): boolean {
+  return basename(path) === "auth.json"
+}
+
 // 工单 03：读取指定路径的配置文件并解析为对象。
 // 与 readConfigObject 不同——readConfigObject 只读第一个存在的 config 文件，
 // 此函数读取任意指定路径（含 auth.json / tui.json / 项目配置等）。
-// 返回 null 如果文件不存在或解析失败。
-export async function readConfigFileAtPath(filePath: string): Promise<Record<string, unknown> | null> {
+// 工单 10（O4 联动）：返回 { config, error } 判别式，让 UI 区分「读失败 vs 文件为空」，
+// 解析失败时引导「打开源文件」。用 jsonc-parser parse 容错解析注释/尾逗号。
+export type ConfigReadResult = {
+  config: Record<string, unknown> | null
+  error?: "not-found" | "parse-failed" | "not-object"
+}
+
+export async function readConfigFileAtPath(filePath: string): Promise<ConfigReadResult> {
+  let text: string
   try {
-    const text = await readFile(filePath, "utf8")
-    return JSON.parse(stripBom(text)) as Record<string, unknown>
+    text = await readFile(filePath, "utf8")
   } catch {
-    return null
+    return { config: null, error: "not-found" }
   }
+  // M1（审计 M1 防御性编程）：parse 包进 try/catch——jsonc-parser 容错模式当前不抛，
+  // 但未来版本/异常输入可能抛，包裹后与 undefined 分支统一返回 parse-failed。
+  let parsed: unknown
+  try {
+    parsed = parse(stripBom(text), undefined, { allowTrailingComma: true })
+  } catch {
+    return { config: null, error: "parse-failed" }
+  }
+  if (parsed === undefined) return { config: null, error: "parse-failed" }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    return { config: null, error: "not-object" }
+  }
+  return { config: parsed as Record<string, unknown> }
 }
 
 // 工单 03：保存配置到指定路径（全量写入）。
 // 调用方负责读全量 → 改字段 → 写全量，以保留表单未覆盖的字段（如 instructions/theme）。
 // 不在此处做字段合并——保持单一职责。
+// 工单 10：.jsonc 用 jsonc-parser modify/applyEdits 最小编辑保留注释/字段顺序；.json 整体 stringify。
 export async function saveConfigFileAtPath(filePath: string, config: Record<string, unknown>): Promise<string> {
   await mkdir(dirname(filePath), { recursive: true })
-  await writeFile(filePath, JSON.stringify(config, null, 2), "utf8")
+  if (filePath.endsWith(".jsonc")) {
+    await writeJsoncMinimal(filePath, config)
+  } else {
+    await writeFile(filePath, JSON.stringify(config, null, 2), "utf8")
+  }
   return filePath
+}
+
+// 对 .jsonc 文件用 jsonc-parser modify/applyEdits 做最小编辑写回，
+// 保留注释、字段顺序与 $schema 位置（工单 10，修复审计 S2）。
+// 文件不存在或原内容解析失败时回退整体 stringify（无注释可保留）。
+async function writeJsoncMinimal(filePath: string, config: Record<string, unknown>): Promise<void> {
+  let text: string
+  try {
+    text = stripBom(await readFile(filePath, "utf8"))
+  } catch {
+    await writeFile(filePath, JSON.stringify(config, null, 2), "utf8")
+    return
+  }
+  // M1（审计 M1 防御性编程）：parse 包进 try/catch——异常时回退整体 stringify，
+  // 与"parse 返回非对象时回退"分支合并，保证写入不因 parse 抛异常而失败。
+  let original: unknown
+  try {
+    original = parse(text, undefined, { allowTrailingComma: true })
+  } catch {
+    await writeFile(filePath, JSON.stringify(config, null, 2), "utf8")
+    return
+  }
+  if (typeof original !== "object" || original === null || Array.isArray(original)) {
+    await writeFile(filePath, JSON.stringify(config, null, 2), "utf8")
+    return
+  }
+  const formattingOptions: FormattingOptions = { insertSpaces: true, tabSize: 2, eol: "\n" }
+  const allKeys = new Set([...Object.keys(config), ...Object.keys(original)])
+  // 逐个 key 链式 applyEdits——合并所有 edits 一次应用会在删除/新增字段时产生 Overlapping edit。
+  let current = text
+  for (const key of allKeys) {
+    const newValue = key in config ? config[key] : undefined
+    current = applyEdits(current, modify(current, [key], newValue, { formattingOptions }))
+  }
+  await writeFile(filePath, current, "utf8")
 }
 
 // 工单 04：.opencode/ 下可展开子目录节点。固定列表——agents/skills/plugins/themes/command。

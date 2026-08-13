@@ -1,0 +1,524 @@
+/* ============================================================
+   姜晓·墨染 分包 3/6：session（会话视图）
+   ============================================================
+   本文件由 jiangxiao.css 拆分而来（纯移动，未改规则）。
+   覆盖：session-new-design、prompt-input（宣纸笺 + 印章发送钮）、
+   消息卷轴（text-part / user-message）、代码块容器、工单 09 Review 面板。
+   ============================================================ */
+/* ---------- 新建会话页：深底 + 金纹 + 浅紫点缀（工单 03） ---------- */
+[data-theme="jiangxiao"] [data-component="session-new-design"] {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='48' viewBox='0 0 180 48'%3E%3Cpath d='M20 24c6-10 18-12 26-6 6 4 14 4 20-2 4-4 10-6 16-4' fill='none' stroke='%23B8860B' stroke-opacity='0.10' stroke-width='1'/%3E%3Cpath d='M10 38c8-8 20-8 30-4 6 2 14 1 20-4 6-5 14-6 22-3' fill='none' stroke='%23B8860B' stroke-opacity='0.07' stroke-width='1'/%3E%3Ccircle cx='150' cy='12' r='2' fill='%23B8860B' fill-opacity='0.10'/%3E%3Ccircle cx='70' cy='14' r='1.4' fill='%23B8860B' fill-opacity='0.08'/%3E%3C/svg%3E"),
+    var(--jx-surface-0);
+  border: 1px solid color-mix(in srgb, var(--jx-wisteria) 30%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--jx-gold-deep) 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--jx-wisteria) 15%, transparent);
+}
+
+/* 新建会话页内所有文字：深底浅字（覆盖 light 下深色 text token） */
+[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-text-text-faint,
+[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-text-text-base,
+[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-text-text-muted {
+  color: var(--jx-text-base);
+  -webkit-text-fill-color: var(--jx-text-base);
+}
+
+/* 新建会话页内图标：烫金 */
+[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-icon-icon-muted,
+[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-icon-icon-base {
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
+}
+
+/* 项目下拉框 trigger 文字烫金（data-action="prompt-project" 精确匹配） */
+[data-theme="jiangxiao"] [data-action="prompt-project"] {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+}
+
+[data-theme="jiangxiao"] [data-action="prompt-project"] .text-v2-icon-icon-muted,
+[data-theme="jiangxiao"] [data-action="prompt-project"] .text-v2-icon-icon-base {
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
+}
+
+/* 本地/分支 trigger 显式烫金（工单 03 补齐，ADR-006 决策 1）
+   在 prompt-workspace-selector.tsx 中通过 data-slot 标记定位（纯视觉标记，不改逻辑）。
+   不再依赖工单 07 全局变量重写的隐式覆盖。 */
+[data-theme="jiangxiao"] [data-slot="prompt-workspace-trigger"],
+[data-theme="jiangxiao"] [data-slot="prompt-workspace-trigger"] [data-component="icon"] {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+}
+
+[data-theme="jiangxiao"] [data-slot="prompt-workspace-trigger"] svg,
+[data-theme="jiangxiao"] [data-slot="prompt-workspace-trigger"] [data-slot="icon-svg"] {
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
+}
+
+[data-theme="jiangxiao"] [data-slot="prompt-git-status"],
+[data-theme="jiangxiao"] [data-slot="prompt-git-status"] [data-component="icon"] {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+}
+
+[data-theme="jiangxiao"] [data-slot="prompt-git-status"] svg,
+[data-theme="jiangxiao"] [data-slot="prompt-git-status"] [data-slot="icon-svg"] {
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
+}
+
+/* 新建会话页 WordmarkV2（text-v2-background-bg-inverse）：保持可见 */
+[data-theme="jiangxiao"] [data-component="session-new-design"] .text-v2-background-bg-inverse {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+}
+
+/* ---------- 输入框：宣纸笺样式 ---------- */
+[data-theme="jiangxiao"] [data-component="prompt-input-v2"] {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--jx-border-deco) 94%, var(--jx-gold-deep) 6%),
+    var(--jx-surface-2)
+  ) !important;
+  border: 1px solid color-mix(in srgb, var(--jx-gold-deep) 32%, transparent) !important;
+  box-shadow:
+    inset 0 0 24px color-mix(in srgb, var(--jx-gold-deep) 9%, transparent),
+    0 4px 24px color-mix(in srgb, var(--jx-surface-0) 32%, transparent);
+}
+
+[data-theme="jiangxiao"] [data-component="prompt-input-v2"]:focus-within {
+  border-color: color-mix(in srgb, var(--jx-gold-deep) 62%, transparent) !important;
+  box-shadow:
+    inset 0 0 24px color-mix(in srgb, var(--jx-gold-deep) 13%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--jx-gold-deep) 36%, transparent),
+    0 4px 24px color-mix(in srgb, var(--jx-surface-0) 32%, transparent);
+}
+
+/* 发送按钮：朱红印章风格圆钮 */
+[data-theme="jiangxiao"] [data-action="prompt-submit"] {
+  border-radius: 9999px !important;
+  background-image: none !important;
+  background-color: var(--jx-seal) !important;
+  border: 1px solid var(--jx-seal-deep) !important;
+  box-shadow:
+    0 2px 6px color-mix(in srgb, var(--jx-seal) 40%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--jx-seal-ink) 22%, transparent) !important;
+  color: var(--jx-seal-ink) !important;
+  transition:
+    background-color var(--jx-dur-fast) ease,
+    transform 0.1s ease;
+}
+
+[data-theme="jiangxiao"] [data-action="prompt-submit"]:hover:not(:disabled) {
+  background-color: var(--jx-seal-bright) !important;
+  transform: translateY(-1px);
+}
+
+[data-theme="jiangxiao"] [data-action="prompt-submit"]:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
+}
+
+/* 发送按钮图标微调（印章感） */
+[data-theme="jiangxiao"] [data-action="prompt-submit"] svg {
+  color: var(--jx-seal-ink) !important;
+}
+
+/* 输入框文字：烫金效果 */
+[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [contenteditable="true"],
+[data-theme="jiangxiao"] [data-component="prompt-input-v2"] textarea,
+[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-component="prompt-input"] [contenteditable="true"] {
+  color: var(--jx-gold-bright) !important;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--jx-gold-bright) 35%, transparent);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+}
+
+/* 输入框占位符：暗金 */
+[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [contenteditable="true"]::before,
+[data-theme="jiangxiao"] [data-component="prompt-input-v2"] textarea::placeholder,
+[data-theme="jiangxiao"] [data-component="prompt-input-v2"] ::placeholder {
+  color: color-mix(in srgb, var(--jx-gold-deep) 55%, var(--jx-gold-dim)) !important;
+  -webkit-text-fill-color: color-mix(in srgb, var(--jx-gold-deep) 55%, var(--jx-gold-dim));
+}
+
+/* 输入框内 mention 高亮：保持可读的暖金 */
+[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-mention="file"],
+[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-mention="agent"],
+[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-mention="reference"] {
+  -webkit-text-fill-color: initial;
+  text-shadow: none;
+}
+
+/* 输入框底部 agent / model / variant 选择按钮（ghost-muted）：提亮 */
+[data-theme="jiangxiao"] [data-component="prompt-input-v2"] [data-component="button-v2"][data-variant="ghost-muted"] {
+  color: color-mix(in srgb, var(--jx-gold-deep) 75%, var(--jx-gold-bright) 25%);
+}
+
+[data-theme="jiangxiao"]
+  [data-component="prompt-input-v2"]
+  [data-component="button-v2"][data-variant="ghost-muted"]
+  [data-slot="icon-svg"] {
+  color: color-mix(in srgb, var(--jx-gold-deep) 75%, var(--jx-gold-bright) 25%);
+}
+
+
+/* ---------- 消息卷轴：助手消息黑漆卷轴深底米白字 + 用户消息金边气泡 ----------
+   工单 04：推翻原「宣纸卷轴浅底深字」设计（ADR-006 决策 2）。
+   助手消息改深底米白字（黑漆卷轴刻字感），与用户消息深底烫金区分。 */
+[data-theme="jiangxiao"] [data-component="text-part"] {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--jx-surface-1) 92%, var(--jx-gold-deep) 8%),
+    var(--jx-surface-0) 60%
+  );
+  border-inline-start: 1px solid color-mix(in srgb, var(--jx-gold-deep) 45%, transparent);
+  border-start-start-radius: 2px;
+  border-end-start-radius: 2px;
+  /* 深底必配浅字（ADR-004/006）：米白字，light/dark 一致 */
+  color: var(--jx-text-base);
+  -webkit-text-fill-color: var(--jx-text-base);
+}
+
+/* 助手消息内 markdown 正文文字米白 */
+[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] {
+  color: var(--jx-text-base);
+  -webkit-text-fill-color: var(--jx-text-base);
+}
+
+/* 助手消息内 markdown 标题/加粗：亮金强调 */
+[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] :is(h1, h2, h3, h4, h5, h6),
+[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] :is(strong, b) {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+}
+
+/* 助手消息内链接：亮金 */
+[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] a {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+}
+
+/* 助手消息内列表 marker、blockquote：暗金/米白 */
+[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] li::marker,
+[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] blockquote {
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
+}
+
+/* 助手消息内行内 code：深底暗金 */
+[data-theme="jiangxiao"] [data-component="text-part"] [data-component="markdown"] :not(pre) > code {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+  background: color-mix(in srgb, var(--jx-gold-deep) 12%, transparent);
+}
+
+/* 助手消息 meta 文字（text-text-weak）：米白 */
+[data-theme="jiangxiao"] [data-component="text-part"] .text-text-weak,
+[data-theme="jiangxiao"] [data-component="text-part"] [data-slot="text-part-meta"] {
+  color: var(--jx-text-base);
+  -webkit-text-fill-color: var(--jx-text-base);
+}
+
+[data-theme="jiangxiao"] [data-component="user-message"] [data-slot="user-message-text"] {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--jx-surface-0) 92%, var(--jx-gold-deep) 8%),
+    color-mix(in srgb, var(--jx-surface-2) 95%, var(--jx-gold-deep) 5%)
+  );
+  border: 1px solid color-mix(in srgb, var(--jx-gold-deep) 42%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--jx-gold-deep) 12%, transparent),
+    0 2px 8px color-mix(in srgb, var(--jx-surface-0) 30%, transparent);
+  /* 深底必配浅字（ADR-004）：气泡背景被写死为深色，文字必须配套烫金，
+     否则 light 模式下文字 token 为深色系，出现黑字黑底 */
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+  text-shadow: 0 0 4px color-mix(in srgb, var(--jx-gold-bright) 22%, transparent);
+}
+
+/* 气泡内 file/agent 高亮：light 变体下 syntax 色偏暗，深底上须提亮（ADR-004） */
+[data-theme="jiangxiao"] [data-component="user-message"] [data-slot="user-message-text"] [data-highlight="file"] {
+  color: var(--jx-hl-file);
+  -webkit-text-fill-color: var(--jx-hl-file);
+}
+
+[data-theme="jiangxiao"] [data-component="user-message"] [data-slot="user-message-text"] [data-highlight="agent"] {
+  color: var(--jx-hl-agent);
+  -webkit-text-fill-color: var(--jx-hl-agent);
+}
+
+/* ---------- 代码块容器唐风化（工单 05，ADR-006 决策 4） ----------
+   只改代码块容器边框/背景为唐风深底+金色描边。
+   语法高亮配色（.shiki code span token 颜色）完全不动，保持原版专业配色。 */
+[data-theme="jiangxiao"] [data-component="markdown"] .shiki {
+  background: var(--jx-surface-0) !important;
+  border: 1px solid color-mix(in srgb, var(--jx-gold-deep) 35%, transparent) !important;
+  border-radius: var(--jx-radius-md);
+}
+
+/* 代码块容器外层（markdown-code）：金色描边装饰 */
+[data-theme="jiangxiao"] [data-component="markdown-code"] {
+  position: relative;
+}
+
+[data-theme="jiangxiao"] [data-component="markdown-code"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent, var(--jx-gold-deep), transparent);
+  border-radius: 1px;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* 代码块复制按钮：深底浅字 */
+[data-theme="jiangxiao"] [data-component="markdown"] [data-slot="markdown-copy-button"] {
+  color: var(--jx-text-base);
+  -webkit-text-fill-color: var(--jx-text-base);
+}
+
+/* 代码块 shell 变体：深底 */
+[data-theme="jiangxiao"] [data-component="markdown"] [data-component="markdown-code"][data-code-kind="shell"] .shiki {
+  background: var(--jx-surface-1) !important;
+  border-color: color-mix(in srgb, var(--jx-gold-deep) 25%, transparent) !important;
+}
+
+
+/* ============================================================
+   工单 09：session Review 面板组件级复刻 + 收起态（ADR-008）
+   ============================================================
+   基准：docs/image/产出/jiangxiao-ui-session.html
+   结构：`[data-component="review-panel"]` = .rv-head（标题 + 收起钮 i-x）
+   + `[data-component="file-tree-v2"]`（.ft-row 文件行，.on 高亮）
+   + .rv-diff（.dl.add/.dl.del/.dl.ctx 行块，行号+符号+代码三列）。
+   配色用 --jx-* 规范 token；代码行文字色用上游 --syntax-* 专业配色
+   （dark 值作用域内重写，保证 light 系统偏好下深底仍用暗色系）。 */
+[data-theme="jiangxiao"] [data-component="review-panel"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--jx-surface-1) 72%, transparent);
+  border-left: 1px solid var(--jx-border-deco);
+}
+
+/* —— 面板头：标题 + 收起按钮（i-x 线描图标）—— */
+[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head {
+  padding: var(--jx-space-3) 14px var(--jx-space-2);
+  font-family: var(--jx-font-display);
+  color: var(--jx-gold);
+  letter-spacing: 0.08em;
+  font-size: var(--jx-fs-h3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--jx-space-2);
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head .rv-t {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-2);
+  min-width: 0;
+  overflow: hidden;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head .rv-t > svg {
+  color: var(--jx-gold-deep);
+  flex: 0 0 auto;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head .rv-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 标题内的模式下拉（SelectV2 inline）：融入头文字 */
+[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head [data-component="select-v2"],
+[data-theme="jiangxiao"]
+  [data-component="review-panel"]
+  .rv-head
+  [data-component="select-v2"]
+  [data-slot="select-v2-trigger"] {
+  color: var(--jx-gold);
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head button {
+  color: var(--jx-text-weak);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  min-width: var(--jx-space-8);
+  min-height: var(--jx-space-8);
+  border-radius: var(--jx-radius-sm);
+  flex: 0 0 auto;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .rv-head button:is(:hover, :focus-visible) {
+  color: var(--jx-gold-bright);
+  background: var(--jx-selection);
+  outline: none;
+}
+
+/* —— 文件树：.ft-row 文件行（file 图标 + 文件名 + 增删统计）—— */
+[data-theme="jiangxiao"] [data-component="review-panel"] [data-component="file-tree-v2"] {
+  overflow-y: auto;
+  padding: var(--jx-space-1) 0 10px;
+  border-top: 1px solid var(--jx-border-deco);
+  flex: 0 1 auto;
+  max-height: 46%;
+  gap: 0;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row {
+  display: flex;
+  gap: var(--jx-space-2);
+  align-items: center;
+  padding: 5px 14px;
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-weak);
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  min-width: 0;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row:hover {
+  background: color-mix(in srgb, var(--jx-gold-deep) 8%, transparent);
+  color: var(--jx-text-base);
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row.on {
+  background: var(--jx-selection);
+  color: var(--jx-gold-bright);
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row > svg {
+  color: var(--jx-gold-dim);
+  flex: 0 0 auto;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row .nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row .dc-add {
+  color: var(--jx-success);
+  flex: 0 0 auto;
+  font-size: var(--jx-fs-caption);
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .ft-row .dc-del {
+  color: var(--jx-error);
+  flex: 0 0 auto;
+  font-size: var(--jx-fs-caption);
+}
+
+/* —— diff 区：.dl 行块（add 绿底浅绿字 / del 红底浅红字 / ctx 灰，行号+符号+代码）—— */
+[data-theme="jiangxiao"] [data-component="review-panel"] .rv-diff {
+  border-top: 1px solid var(--jx-border-deco);
+  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--jx-space-2) 0;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .dl {
+  display: grid;
+  grid-template-columns: 36px 36px var(--jx-space-4) minmax(0, 1fr);
+  padding: 0 var(--jx-space-2);
+  min-width: 0;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .dl > span {
+  padding: 0 var(--jx-space-1);
+  white-space: pre;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .dl .no {
+  color: var(--jx-text-weak);
+  opacity: 0.55;
+  text-align: right;
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  user-select: none;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .dl .sg {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .dl .code {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-small);
+  line-height: 1.7;
+  color: var(--syntax-comment);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .dl.add {
+  background: color-mix(in srgb, var(--jx-success) 10%, transparent);
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .dl.add .code {
+  color: var(--syntax-diff-add);
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .dl.add .sg {
+  color: var(--jx-success);
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .dl.del {
+  background: color-mix(in srgb, var(--jx-error) 10%, transparent);
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .dl.del .code {
+  color: var(--syntax-diff-delete);
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .dl.del .sg {
+  color: var(--jx-error);
+}
+
+[data-theme="jiangxiao"] [data-component="review-panel"] .dl.ctx .sg {
+  color: var(--jx-text-weak);
+}
+
+/* 空 / 加载占位 */
+[data-theme="jiangxiao"] [data-component="review-panel"] .rv-placeholder {
+  padding: var(--jx-space-3) var(--jx-space-4);
+  color: var(--jx-text-weak);
+  font-size: var(--jx-fs-small);
+  font-family: var(--jx-font-ui);
+  letter-spacing: 0.06em;
+}
+
+/* —— 收起态：session-body.no-review（网格变单列、面板隐藏）——
+   收起钮点击后由 ReviewPanelV2 切换 view().reviewPanel，本规则与布局行
+   的 .no-review 类配套，供视觉比对断言（面板本身按打开状态卸载）。 */
+[data-theme="jiangxiao"] .session-body.no-review [data-component="review-panel"] {
+  display: none;
+}

@@ -1,0 +1,463 @@
+/* ============================================================
+   姜晓·墨染 分包 4/6：home（首页双列布局，工单 08）
+   ============================================================
+   本文件由 jiangxiao.css 拆分而来（纯移动，未改规则）。
+   ============================================================ */
+/* ============================================================
+   工单 08：首页双列高保真布局（组件级复刻，方案 B）
+   参考 docs/image/产出/jiangxiao-ui-home.html 的 DOM 结构：
+   .home-grid(280px + minmax(0,720px)) / .proj-card / .proj-item /
+   .utility-nav / .home-sessions-head(.search-wrap + .gold-btn) /
+   .sess-row(.busy-dots / .sess-avatar / .sess-title / .sess-snip / .sess-time)
+   严格用 --jx-* 规范名；不影响其他主题（作用域限定 jiangxiao）。
+   ============================================================ */
+
+/* --- 首页双列容器 --- */
+[data-theme="jiangxiao"] .jx-home-grid {
+  --jx-home-grid-py: 154px; /* padding-top(64) + padding-bottom(90)，供 aside 高度 calc 使用 */
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr); /* 会话列吃满剩余宽度 */
+  grid-template-rows: minmax(0, 1fr); /* ADR-011: 高度链——外层行撑满，aside 高度才有效 */
+  height: 100%; /* 固定高度=viewport，防止 grid row 1fr 膨胀撑出外层滚动条 */
+  gap: 40px;
+  padding: 64px var(--jx-space-6) 90px;
+  position: relative;
+  z-index: 2;
+  font-family: var(--jx-font-ui);
+}
+@media (max-width: 1280px) {
+  [data-theme="jiangxiao"] .jx-home-grid {
+    --jx-home-grid-py: 120px; /* 48 + 72 */
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: var(--jx-space-6);
+    padding: var(--jx-space-12) var(--jx-space-4) 72px;
+  }
+}
+@media (max-width: 1024px) {
+  [data-theme="jiangxiao"] .jx-home-grid {
+    --jx-home-grid-py: 88px; /* 32 + 56 */
+    grid-template-columns: 1fr;
+    grid-template-rows: auto; /* ADR-011: 单列时恢复自然排布，子项（项目/会话/工具导航）依次堆叠 */
+    height: auto; /* 小屏允许自然高度，外层 scroll-view 可滚动 */
+    min-height: 100%;
+    gap: var(--jx-space-6);
+    padding: var(--jx-space-8) var(--jx-space-4) 56px;
+  }
+}
+
+/* --- 项目栏容器 --- */
+[data-theme="jiangxiao"] .jx-projects-aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jx-space-1);
+  min-height: 0;
+  min-width: 0;
+}
+[data-theme="jiangxiao"] .jx-projects-aside-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jx-space-1);
+  margin-top: var(--jx-space-2);
+  flex: 1; /* ADR-011: 撑满 aside 剩余高度，列表区才能滚动而非塌缩成一行 */
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* --- 项目卡片（avatar + name + path）--- */
+[data-theme="jiangxiao"] .jx-proj-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px var(--jx-space-3);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  background: var(--jx-surface-1);
+}
+[data-theme="jiangxiao"] .jx-proj-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--jx-radius-md);
+  background: linear-gradient(135deg, var(--jx-surface-3), var(--jx-surface-1));
+  border: 1px solid var(--jx-border-deco);
+  color: var(--jx-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  font-family: inherit;
+}
+[data-theme="jiangxiao"] .jx-proj-avatar svg {
+  width: var(--jx-icon-l);
+  height: var(--jx-icon-l);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: var(--jx-icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+[data-theme="jiangxiao"] .jx-proj-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.4;
+}
+[data-theme="jiangxiao"] .jx-proj-name {
+  color: var(--jx-text-base);
+  font-weight: 600;
+  font-size: var(--jx-fs-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-theme="jiangxiao"] .jx-proj-path {
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-weak);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- 项目列表项 --- */
+[data-theme="jiangxiao"] .jx-proj-item {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-2);
+  width: 100%;
+  text-align: left;
+  padding: 7px var(--jx-space-3);
+  border-radius: var(--jx-radius-md);
+  color: color-mix(in srgb, var(--jx-text-base) 70%, transparent);
+  font-size: var(--jx-fs-body);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background-color var(--jx-dur-fast) var(--jx-ease),
+    color var(--jx-dur-fast) var(--jx-ease);
+  min-width: 0;
+}
+[data-theme="jiangxiao"] .jx-proj-item:hover {
+  background: color-mix(in srgb, var(--jx-gold-deep) 12%, transparent);
+  color: var(--jx-text-base);
+}
+[data-theme="jiangxiao"] .jx-proj-item.on {
+  background: var(--jx-selection);
+  color: var(--jx-gold-bright);
+}
+[data-theme="jiangxiao"] .jx-proj-item:focus-visible {
+  outline: none;
+  background: color-mix(in srgb, var(--jx-gold-deep) 18%, transparent);
+}
+[data-theme="jiangxiao"] .jx-proj-item-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- 工具导航（设置 / 帮助）--- */
+/* 不设 display：让 Tailwind 的 hidden/flex/lg:hidden/lg:flex 正确生效，
+   避免主题 CSS 覆盖响应式可见性（曾导致大屏同时显示两套 utility-nav）。 */
+[data-theme="jiangxiao"] .jx-utility-nav {
+  margin-top: 28px;
+  gap: var(--jx-space-2);
+  flex-wrap: wrap;
+}
+[data-theme="jiangxiao"] .jx-ghost-btn {
+  /* 12px 小字禁用 gold-dim（≈4.0:1，AA 失败），用 gold-deep ≈6:1（a11y 修复） */
+  color: var(--jx-gold-deep);
+  font-size: var(--jx-fs-small);
+  letter-spacing: 0.1em;
+  padding: 3px var(--jx-space-2);
+  min-height: var(--jx-space-8, 32px);
+  border-bottom: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    color var(--jx-dur-fast) var(--jx-ease),
+    border-bottom-color var(--jx-dur-fast) var(--jx-ease);
+}
+[data-theme="jiangxiao"] .jx-ghost-btn:hover {
+  color: var(--jx-gold-bright);
+  border-bottom-color: var(--jx-gold-dim);
+}
+[data-theme="jiangxiao"] .jx-ghost-btn:focus-visible {
+  outline: none;
+  color: var(--jx-gold-bright);
+  border-bottom-color: var(--jx-gold);
+}
+[data-theme="jiangxiao"] .jx-ghost-btn svg {
+  width: var(--jx-icon-s);
+  height: var(--jx-icon-s);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: var(--jx-icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+
+/* --- 会话列头部：搜索 + 新会话金钮 --- */
+[data-theme="jiangxiao"] .jx-home-sessions-head {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  margin-bottom: 14px;
+}
+[data-theme="jiangxiao"] .jx-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+[data-theme="jiangxiao"] .jx-search-wrap .jx-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--jx-text-weak);
+  pointer-events: none;
+}
+[data-theme="jiangxiao"] .jx-search-wrap .jx-search-icon svg {
+  width: var(--jx-icon-s);
+  height: var(--jx-icon-s);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: var(--jx-icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+[data-theme="jiangxiao"] .jx-search-input {
+  width: 100%;
+  background: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-md);
+  color: var(--jx-text-base);
+  font-size: var(--jx-fs-body);
+  padding: var(--jx-space-2) var(--jx-space-3) var(--jx-space-2) var(--jx-space-8);
+  outline: none;
+  font-family: inherit;
+  -webkit-text-fill-color: var(--jx-text-base);
+}
+[data-theme="jiangxiao"] .jx-search-input::placeholder {
+  color: var(--jx-text-weak);
+  -webkit-text-fill-color: var(--jx-text-weak);
+}
+[data-theme="jiangxiao"] .jx-search-input:focus {
+  border-color: var(--jx-gold-deep);
+  box-shadow: var(--jx-gold-rim);
+}
+
+/* --- 新会话金钮（gold-btn）--- */
+[data-theme="jiangxiao"] .jx-gold-btn {
+  background: var(--jx-surface-3);
+  border: 1px solid var(--jx-border-deco);
+  color: var(--jx-gold-bright);
+  font-size: var(--jx-fs-small);
+  letter-spacing: 0.06em;
+  padding: 7px 14px;
+  border-radius: var(--jx-radius-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  -webkit-text-fill-color: var(--jx-gold-bright);
+  transition:
+    border-color var(--jx-dur-fast) var(--jx-ease),
+    box-shadow var(--jx-dur-fast) var(--jx-ease);
+}
+[data-theme="jiangxiao"] .jx-gold-btn:hover:not(:disabled) {
+  border-color: var(--jx-gold-deep);
+  box-shadow: var(--jx-gold-rim);
+}
+[data-theme="jiangxiao"] .jx-gold-btn:focus-visible {
+  outline: none;
+  border-color: var(--jx-gold-deep);
+  box-shadow: var(--jx-gold-rim);
+}
+[data-theme="jiangxiao"] .jx-gold-btn:active:not(:disabled) {
+  transform: translateY(0.5px);
+}
+[data-theme="jiangxiao"] .jx-gold-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+[data-theme="jiangxiao"] .jx-gold-btn svg {
+  width: var(--jx-icon-s);
+  height: var(--jx-icon-s);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: var(--jx-icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+
+/* --- 会话行（sess-row）--- */
+[data-theme="jiangxiao"] .jx-sess-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--jx-space-3);
+  align-items: center;
+  padding: 10px var(--jx-space-3);
+  border-radius: var(--jx-radius-lg);
+  border-left: 2px solid transparent;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background-color var(--jx-dur-fast) var(--jx-ease),
+    border-left-color var(--jx-dur-fast) var(--jx-ease);
+  margin-bottom: var(--jx-space-1);
+}
+[data-theme="jiangxiao"] .jx-sess-row:hover {
+  background: color-mix(in srgb, var(--jx-gold-deep) 8%, transparent);
+}
+[data-theme="jiangxiao"] .jx-sess-row.on {
+  background: var(--jx-selection);
+  border-left-color: var(--jx-gold);
+}
+[data-theme="jiangxiao"] .jx-sess-row:focus-visible {
+  outline: none;
+  border-left-color: var(--jx-gold);
+  /* 仅 2px 左缘变金在快速 Tab 时难以察觉，叠加浅金底提升可辨识度（a11y） */
+  background: color-mix(in srgb, var(--jx-gold-deep) 10%, transparent);
+}
+
+[data-theme="jiangxiao"] .jx-sess-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--jx-radius-md);
+  background: var(--jx-surface-2);
+  border: 1px solid var(--jx-border-deco);
+  color: var(--jx-gold-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+[data-theme="jiangxiao"] .jx-sess-avatar svg {
+  width: var(--jx-icon-s);
+  height: var(--jx-icon-s);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: var(--jx-icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+
+/* --- busy-dots 三点动画（当前会话指示）--- */
+[data-theme="jiangxiao"] .jx-busy-dots {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--jx-radius-md);
+  background: var(--jx-surface-2);
+  border: 1px solid var(--jx-border-deco);
+  flex: 0 0 auto;
+}
+[data-theme="jiangxiao"] .jx-busy-dots i {
+  width: var(--jx-space-1);
+  height: var(--jx-space-1);
+  border-radius: var(--jx-radius-seal);
+  background: var(--jx-gold-bright);
+  animation: jx-bpulse 1.2s ease-in-out infinite;
+  display: block;
+}
+[data-theme="jiangxiao"] .jx-busy-dots i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+[data-theme="jiangxiao"] .jx-busy-dots i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes jx-bpulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* --- 会话文本（title + snippet）--- */
+[data-theme="jiangxiao"] .jx-sess-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.4;
+}
+[data-theme="jiangxiao"] .jx-sess-title {
+  font-size: var(--jx-fs-body);
+  color: var(--jx-text-base);
+  -webkit-text-fill-color: var(--jx-text-base);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-theme="jiangxiao"] .jx-sess-snip {
+  font-size: var(--jx-fs-small);
+  color: var(--jx-text-weak);
+  -webkit-text-fill-color: var(--jx-text-weak);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-theme="jiangxiao"] .jx-sess-time {
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-weak);
+  -webkit-text-fill-color: var(--jx-text-weak);
+  flex: 0 0 auto;
+}
+
+/* --- 会话列滚动容器 --- */
+[data-theme="jiangxiao"] .jx-sessions-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+/* --- 搜索下拉面板（在 jx-search-wrap 内绝对定位，保持现有功能 + 深底样式）--- */
+[data-theme="jiangxiao"] .jx-search-dropdown {
+  background: var(--jx-surface-1) !important;
+  border: 1px solid var(--jx-border-deco) !important;
+  box-shadow: var(--jx-shadow-2), var(--jx-gold-rim) !important;
+  color: var(--jx-text-base);
+}
+[data-theme="jiangxiao"] .jx-search-dropdown [data-component="home-session-search-row"] {
+  color: var(--jx-text-base);
+}
+[data-theme="jiangxiao"] .jx-search-dropdown [data-component="home-session-search-row"]:hover,
+[data-theme="jiangxiao"] .jx-search-dropdown [data-component="home-session-search-row"][aria-selected="true"] {
+  background: var(--jx-selection) !important;
+  color: var(--jx-gold-bright) !important;
+}

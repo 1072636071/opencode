@@ -34,6 +34,7 @@ import {
   buildMcpConfig,
   extractPermissionRules,
   buildPermissionConfig,
+  formatSubdirNodeLabel,
   type ConfigFileKind,
   type ConfigFormFields,
   type AgentBinding,
@@ -57,7 +58,6 @@ const [importPhase, setImportPhase] = createSignal<string>("")
 
 export { setSidecarStatus, sidecarStatus }
 export type { OpencodeStatus }
-
 
 const rollbackPhaseLabel: Record<string, string> = {
   idle: "",
@@ -201,11 +201,7 @@ function ControlPanel() {
         {/* 次按钮行：安全模式启动 / 打开界面 / 停止 / 重启 */}
         <div class="launcher-stage__actions">
           <Show when={!isRunning() && !isBusy()}>
-            <button
-              class="launcher-btn launcher-btn--small"
-              aria-label="安全模式启动 OpenCode"
-              onClick={safeStart}
-            >
+            <button class="launcher-btn launcher-btn--small" aria-label="安全模式启动 OpenCode" onClick={safeStart}>
               安全模式启动
             </button>
           </Show>
@@ -239,7 +235,13 @@ function ControlPanel() {
 // 状态信息行：从 launcherGetStatus() 拉取端口/PID/版本/工作目录/运行时长。
 // main 端 status 只含 status+error，扩展信息按需读取（不破坏既有契约）。
 function StatusInfoRow() {
-  const [info, setInfo] = createSignal<{ port?: number; pid?: number; version?: string; cwd?: string; uptimeMs?: number }>({})
+  const [info, setInfo] = createSignal<{
+    port?: number
+    pid?: number
+    version?: string
+    cwd?: string
+    uptimeMs?: number
+  }>({})
   onMount(() => {
     void window.api.launcherGetStatus().then((res) => {
       // 既有契约只保证 status+error；扩展字段按需读取，缺失则不显示。
@@ -683,12 +685,7 @@ function SafeModePanel() {
   )
 }
 
-const STAGE_ORDER: LauncherPluginLoadEntry["stages"][number]["stage"][] = [
-  "install",
-  "entry",
-  "compatibility",
-  "load",
-]
+const STAGE_ORDER: LauncherPluginLoadEntry["stages"][number]["stage"][] = ["install", "entry", "compatibility", "load"]
 
 const stageLabel: Record<string, string> = {
   install: "安装",
@@ -777,9 +774,7 @@ function buildDiagnosticReport(): string {
   const snippetsBody = errorSnippets()
     .map((s) => {
       const loc = s.path ? `${s.path}${s.line !== null ? `:${s.line}` : ""}` : "?"
-      const ctx = [s.spec ? `spec=${s.spec}` : "", s.stage ? `stage=${s.stage}` : ""]
-        .filter(Boolean)
-        .join(" ")
+      const ctx = [s.spec ? `spec=${s.spec}` : "", s.stage ? `stage=${s.stage}` : ""].filter(Boolean).join(" ")
       return `  - ${loc}${ctx ? ` (${ctx})` : ""}: ${s.message}`
     })
     .join("\n")
@@ -929,10 +924,7 @@ function ConfigEditPanel() {
                           {expandedPaths().has(file.path) ? "▼" : "▶"}
                         </button>
                         <span class="launcher-configedit__filename">{file.name}</span>
-                        <button
-                          class="launcher-btn launcher-btn--small"
-                          onClick={() => openConfigFile(file.path)}
-                        >
+                        <button class="launcher-btn launcher-btn--small" onClick={() => openConfigFile(file.path)}>
                           打开源文件
                         </button>
                       </div>
@@ -1026,7 +1018,7 @@ function ConfigEditPanel() {
               </button>
             </div>
           </div>
-         </div>
+        </div>
       </Show>
     </div>
   )
@@ -1197,16 +1189,12 @@ function McpServerForm(props: {
 
   const updateArg = (name: string, idx: number, value: string) => {
     setServers((list) =>
-      list.map((s) =>
-        s.name === name ? { ...s, args: s.args.map((a, i) => (i === idx ? value : a)) } : s,
-      ),
+      list.map((s) => (s.name === name ? { ...s, args: s.args.map((a, i) => (i === idx ? value : a)) } : s)),
     )
   }
 
   const removeArg = (name: string, idx: number) => {
-    setServers((list) =>
-      list.map((s) => (s.name === name ? { ...s, args: s.args.filter((_, i) => i !== idx) } : s)),
-    )
+    setServers((list) => list.map((s) => (s.name === name ? { ...s, args: s.args.filter((_, i) => i !== idx) } : s)))
   }
 
   const addEnv = (name: string) => {
@@ -1215,24 +1203,18 @@ function McpServerForm(props: {
 
   const updateEnvKey = (name: string, idx: number, key: string) => {
     setServers((list) =>
-      list.map((s) =>
-        s.name === name ? { ...s, env: s.env.map((e, i) => (i === idx ? { ...e, key } : e)) } : s,
-      ),
+      list.map((s) => (s.name === name ? { ...s, env: s.env.map((e, i) => (i === idx ? { ...e, key } : e)) } : s)),
     )
   }
 
   const updateEnvValue = (name: string, idx: number, value: string) => {
     setServers((list) =>
-      list.map((s) =>
-        s.name === name ? { ...s, env: s.env.map((e, i) => (i === idx ? { ...e, value } : e)) } : s,
-      ),
+      list.map((s) => (s.name === name ? { ...s, env: s.env.map((e, i) => (i === idx ? { ...e, value } : e)) } : s)),
     )
   }
 
   const removeEnv = (name: string, idx: number) => {
-    setServers((list) =>
-      list.map((s) => (s.name === name ? { ...s, env: s.env.filter((_, i) => i !== idx) } : s)),
-    )
+    setServers((list) => list.map((s) => (s.name === name ? { ...s, env: s.env.filter((_, i) => i !== idx) } : s)))
   }
 
   const save = () => void props.onSave("mcp", buildMcpConfig(servers(), props.config?.mcp))
@@ -1430,11 +1412,7 @@ function PermissionRuleForm(props: {
               <option value="deny">deny</option>
               <option value="ask">ask</option>
             </select>
-            <button
-              class="launcher-btn launcher-btn--small"
-              onClick={() => removeRule(idx())}
-              aria-label="删除规则"
-            >
+            <button class="launcher-btn launcher-btn--small" onClick={() => removeRule(idx())} aria-label="删除规则">
               删除
             </button>
           </div>
@@ -1482,6 +1460,8 @@ function PermissionRuleForm(props: {
 function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
   const kind: ConfigFileKind = detectConfigFileKind(props.file.name)
   const [config, setConfig] = createSignal<Record<string, unknown> | null>(null)
+  // 工单 10（O4 联动）：读失败判别式，UI 区分「读失败 vs 文件为空」，解析失败引导打开源文件。
+  const [readError, setReadError] = createSignal<"not-found" | "parse-failed" | "not-object" | null>(null)
   const [saving, setSaving] = createSignal(false)
   const [message, setMessage] = createSignal<{ kind: "ok" | "err"; text: string } | null>(null)
   // opencode.json 表单字段输入
@@ -1494,10 +1474,12 @@ function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
   const fields = (): ConfigFormFields => pickFormFields(config())
 
   const refresh = async () => {
-    const cfg = await window.api.launcherReadConfigFile(props.file.path)
-    setConfig(cfg)
-    if (cfg && typeof cfg.model === "string") setModelValue(cfg.model)
-    if (cfg && Array.isArray(cfg.plugins)) setPluginsValue((cfg.plugins as unknown[]).join(", "))
+    const result = await window.api.launcherReadConfigFile(props.file.path)
+    setConfig(result.config)
+    setReadError(result.error ?? null)
+    if (result.config && typeof result.config.model === "string") setModelValue(result.config.model)
+    if (result.config && Array.isArray(result.config.plugins))
+      setPluginsValue((result.config.plugins as unknown[]).join(", "))
   }
   onMount(() => void refresh())
 
@@ -1507,8 +1489,8 @@ function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
     setSaving(true)
     setMessage(null)
     try {
-      const current = await window.api.launcherReadConfigFile(props.file.path)
-      const merged = mergeConfigField(current, key, value)
+      const result = await window.api.launcherReadConfigFile(props.file.path)
+      const merged = mergeConfigField(result.config, key, value)
       await window.api.launcherSaveConfigFile(props.file.path, merged)
       // 不调 refresh()，避免重置其他字段未保存编辑
       // 只更新 config signal（用于 fields() 计算）
@@ -1526,9 +1508,9 @@ function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
     const trimmed = modelValue().trim()
     if (!trimmed) {
       // 删除 model 字段
-      const current = await window.api.launcherReadConfigFile(props.file.path)
-      if (current) {
-        const merged = { ...current }
+      const result = await window.api.launcherReadConfigFile(props.file.path)
+      if (result.config) {
+        const merged = { ...result.config }
         delete merged.model
         setSaving(true)
         try {
@@ -1639,7 +1621,11 @@ function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
           <button class="launcher-btn launcher-btn--primary" disabled={saving()} onClick={saveAuthKey}>
             {saving() ? "保存中…" : "保存"}
           </button>
-          <button class="launcher-btn launcher-btn--small launcher-btn--danger" disabled={saving()} onClick={deleteAuthKey}>
+          <button
+            class="launcher-btn launcher-btn--small launcher-btn--danger"
+            disabled={saving()}
+            onClick={deleteAuthKey}
+          >
             删除 API Key
           </button>
         </Match>
@@ -1653,7 +1639,16 @@ function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
         {/* opencode.json/opencode.jsonc/config.json：按实际有的字段渲染 */}
         <Match when={kind === "opencode"}>
           <Show when={!config()}>
-            <p class="launcher-configedit__empty">文件为空或解析失败</p>
+            {/* 工单 10（O4 联动）：解析失败引导打开源文件；空文件/不存在显示简短提示 */}
+            <Show when={readError() === "parse-failed" || readError() === "not-object"}>
+              <p class="launcher-configedit__empty">文件解析失败——建议打开源文件检查语法</p>
+              <button class="launcher-btn launcher-btn--small" onClick={openSource}>
+                打开源文件
+              </button>
+            </Show>
+            <Show when={readError() !== "parse-failed" && readError() !== "not-object"}>
+              <p class="launcher-configedit__empty">文件为空或不存在</p>
+            </Show>
           </Show>
           <Show when={config()}>
             <Show when={fields().model}>
@@ -1665,11 +1660,7 @@ function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
                   onInput={(e) => setModelValue(e.currentTarget.value)}
                   placeholder="如: deepseek-chat"
                 />
-                <button
-                  class="launcher-btn launcher-btn--small"
-                  disabled={saving()}
-                  onClick={saveModel}
-                >
+                <button class="launcher-btn launcher-btn--small" disabled={saving()} onClick={saveModel}>
                   保存 model
                 </button>
               </label>
@@ -1683,11 +1674,7 @@ function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
                   onInput={(e) => setPluginsValue(e.currentTarget.value)}
                   placeholder="如: @opencode-ai/plugin-x, ./local-plugin"
                 />
-                <button
-                  class="launcher-btn launcher-btn--small"
-                  disabled={saving()}
-                  onClick={savePlugins}
-                >
+                <button class="launcher-btn launcher-btn--small" disabled={saving()} onClick={savePlugins}>
                   保存 plugins
                 </button>
               </label>
@@ -1723,9 +1710,7 @@ function ConfigFileForm(props: { file: LauncherConfigFileInfo }) {
             </Show>
             {/* 保留其他字段提示 */}
             <Show when={fields().instructions || fields().theme}>
-              <p class="launcher-configedit__empty">
-                instructions/theme 等字段保留不变（保存只改对应字段）
-              </p>
+              <p class="launcher-configedit__empty">instructions/theme 等字段保留不变（保存只改对应字段）</p>
             </Show>
           </Show>
         </Match>
@@ -1770,14 +1755,13 @@ function OpencodeSubdirNode(props: {
         >
           {props.expanded ? "▼" : "▶"}
         </button>
-        <span class="launcher-configedit__filename">{props.name}/</span>
+        <span class="launcher-configedit__filename">
+          {formatSubdirNodeLabel(props.name, props.expanded, entries().length)}
+        </span>
       </div>
       <Show when={props.expanded}>
         <div class="launcher-configedit__expand-content">
-          <Show
-            when={entries().length > 0}
-            fallback={<p class="launcher-configedit__placeholder">空目录</p>}
-          >
+          <Show when={entries().length > 0} fallback={<p class="launcher-configedit__placeholder">空目录</p>}>
             <ul class="launcher-configedit__subdir-list">
               <For each={entries()}>
                 {(entry) => (
@@ -1786,10 +1770,7 @@ function OpencodeSubdirNode(props: {
                       {entry.isDirectory ? `${entry.name}/` : entry.name}
                     </span>
                     <Show when={!entry.isDirectory}>
-                      <button
-                        class="launcher-btn launcher-btn--small"
-                        onClick={() => props.onOpenFile(entry.path)}
-                      >
+                      <button class="launcher-btn launcher-btn--small" onClick={() => props.onOpenFile(entry.path)}>
                         打开源文件
                       </button>
                     </Show>
@@ -2109,9 +2090,7 @@ function AtmosphereLayer() {
       <div class="launcher-atmosphere__mountains" />
       <div class="launcher-atmosphere__moon" />
       <div class="launcher-atmosphere__particles">
-        <For each={Array.from({ length: 12 })}>
-          {() => <span class="launcher-atmosphere__particle" />}
-        </For>
+        <For each={Array.from({ length: 12 })}>{() => <span class="launcher-atmosphere__particle" />}</For>
       </div>
     </div>
   )

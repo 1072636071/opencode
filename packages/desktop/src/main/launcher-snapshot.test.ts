@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { mkdtemp, mkdir, rm, writeFile, readFile } from "node:fs/promises"
+import { mkdtemp, mkdir, rm, writeFile, readFile, stat } from "node:fs/promises"
 import { existsSync } from "node:fs"
 import { tmpdir, homedir } from "node:os"
 import { join } from "node:path"
+import { Global } from "@opencode-ai/core/global"
 import {
   findConfigFilesGrouped,
   createConfigFile,
@@ -12,11 +13,17 @@ import {
   findOpencodeSubdirs,
   isConfigPathAllowed,
   isDirectoryPathAllowed,
+  createSnapshot,
+  exportBundle,
+  restoreSnapshotConfig,
+  importBundle,
+  migrateRedactOldSnapshots,
+  REDACTED_PLACEHOLDER,
 } from "./launcher-snapshot"
 
-// 工单 01 主 seam 单测：配置发现对齐本体。
-// 验证 findConfigFilesGrouped 覆盖 findUp `.opencode` / `~/.opencode` / OPENCODE_CONFIG_DIR，
-// 不含 `~/.config/opencode`，候选名含 tui.json / auth.json。
+// 工单 01 主 seam 单测：配置发现对齐本体 Global.Path.config（ADR-028）。
+// 验证 findConfigFilesGrouped 覆盖 xdg 全局目录（= Global.Path.config）/ findUp `.opencode` / `~/.opencode` / OPENCODE_CONFIG_DIR，
+// 候选名含 tui.json / auth.json。
 // 工单 03 主 seam 单测：readConfigFileAtPath / saveConfigFileAtPath 按文件分别读写。
 // 工单 04 主 seam 单测：findOpencodeSubdirs / listDirectoryEntries 目录节点展开。
 // 工单 05 主 seam 单测：createConfigFile 在指定位置创建文件，不覆盖已存在文件。
@@ -131,20 +138,22 @@ describe("findConfigFilesGrouped（工单 01 配置发现对齐本体）", () =>
     expect(files.some((f) => f.name === "tui.json")).toBe(true)
   })
 
-  test("不含 `~/.config/opencode` 路径（本体也不读）", async () => {
-    const projectPath = await tempRoot()
-    await touch(join(projectPath, ".opencode"))
-    await writeFile(join(projectPath, ".opencode", "opencode.jsonc"), "{}")
+  test("不设 OPENCODE_CONFIG_DIR 时 global 分组路径对齐本体 Global.Path.config（ADR-028）", async () => {
+    // ADR-028：Launcher 配置发现复用本体 Global.Path.config（xdg-basedir），
+    // 不再自行用 APPDATA。不设 OPENCODE_CONFIG_DIR 时 opencodeConfigDir() === Global.Path.config。
+    setEnv("OPENCODE_CONFIG_DIR", undefined)
+    setEnv("OPENCODE_DATA_DIR", undefined)
 
-    const emptyConfig = await tempRoot()
-    const emptyData = await tempRoot()
-    setEnv("OPENCODE_CONFIG_DIR", emptyConfig)
-    setEnv("OPENCODE_DATA_DIR", emptyData)
-
-    const files = findConfigFilesGrouped(projectPath)
-    // 返回的路径都不应包含 `.config/opencode` 子串（本体不读 ~/.config/opencode）
-    for (const file of files) {
-      expect(file.path).not.toContain(".config/opencode")
+    const files = findConfigFilesGrouped(undefined)
+    const globalFiles = files.filter((f) => f.group === "global" && f.name !== "auth.json")
+    // global 分组的非 auth 文件都应位于 Global.Path.config 下
+    for (const f of globalFiles) {
+      expect(f.path.startsWith(Global.Path.config)).toBe(true)
+    }
+    // 反向断言：不再用旧的 APPDATA 路径（Windows bug 源）
+    for (const f of globalFiles) {
+      expect(f.path).not.toContain("AppData\\Roaming")
+      expect(f.path).not.toContain("AppData/Roaming")
     }
   })
 
@@ -345,10 +354,11 @@ describe("readConfigFileAtPath / saveConfigFileAtPath（工单 03 按文件分�
     const filePath = join(root, "opencode.json")
     await writeFile(filePath, JSON.stringify({ model: "deepseek-chat", instructions: "保留我" }), "utf8")
 
-    const cfg = await readConfigFileAtPath(filePath)
-    expect(cfg).not.toBeNull()
-    expect(cfg?.model).toBe("deepseek-chat")
-    expect(cfg?.instructions).toBe("保留我")
+    const result = await readConfigFileAtPath(filePath)
+    expect(result.config).not.toBeNull()
+    expect(result.error).toBeUndefined()
+    expect(result.config?.model).toBe("deepseek-chat")
+    expect(result.config?.instructions).toBe("保留我")
   })
 
   test("readConfigFileAtPath 去 BOM", async () => {
@@ -356,22 +366,24 @@ describe("readConfigFileAtPath / saveConfigFileAtPath（工单 03 按文件分�
     const filePath = join(root, "opencode.json")
     await writeFile(filePath, `\uFEFF{"model": "deepseek-chat"}`, "utf8")
 
-    const cfg = await readConfigFileAtPath(filePath)
-    expect(cfg?.model).toBe("deepseek-chat")
+    const result = await readConfigFileAtPath(filePath)
+    expect(result.config?.model).toBe("deepseek-chat")
   })
 
-  test("readConfigFileAtPath 文件不存在返回 null", async () => {
-    const cfg = await readConfigFileAtPath("/nonexistent/path/opencode.json")
-    expect(cfg).toBeNull()
+  test("readConfigFileAtPath 文件不存在返回 { config: null, error: 'not-found' }", async () => {
+    const result = await readConfigFileAtPath("/nonexistent/path/opencode.json")
+    expect(result.config).toBeNull()
+    expect(result.error).toBe("not-found")
   })
 
-  test("readConfigFileAtPath 解析失败返回 null", async () => {
+  test("readConfigFileAtPath 解析失败返回 { config: null, error: 'parse-failed' }", async () => {
     const root = await tempRoot()
     const filePath = join(root, "opencode.json")
     await writeFile(filePath, "not json", "utf8")
 
-    const cfg = await readConfigFileAtPath(filePath)
-    expect(cfg).toBeNull()
+    const result = await readConfigFileAtPath(filePath)
+    expect(result.config).toBeNull()
+    expect(result.error).toBe("parse-failed")
   })
 
   test("saveConfigFileAtPath 写入指定路径", async () => {
@@ -403,35 +415,31 @@ describe("readConfigFileAtPath / saveConfigFileAtPath（工单 03 按文件分�
     }
     await saveConfigFileAtPath(filePath, config)
 
-    const cfg = await readConfigFileAtPath(filePath)
-    expect(cfg?.model).toBe("deepseek-chat")
-    expect(cfg?.plugins).toEqual(["@opencode-ai/plugin-x"])
-    expect(cfg?.instructions).toBe("保留我")
-    expect(cfg?.theme).toBe("dark")
+    const result = await readConfigFileAtPath(filePath)
+    expect(result.config?.model).toBe("deepseek-chat")
+    expect(result.config?.plugins).toEqual(["@opencode-ai/plugin-x"])
+    expect(result.config?.instructions).toBe("保留我")
+    expect(result.config?.theme).toBe("dark")
   })
 
   test("读全量 → 改字段 → 写全量：保留其他字段", async () => {
     const root = await tempRoot()
     const filePath = join(root, "opencode.json")
     // 初始文件含 model + instructions + theme
-    await writeFile(
-      filePath,
-      JSON.stringify({ model: "old-model", instructions: "保留我", theme: "dark" }),
-      "utf8",
-    )
+    await writeFile(filePath, JSON.stringify({ model: "old-model", instructions: "保留我", theme: "dark" }), "utf8")
 
     // 读全量
-    const current = await readConfigFileAtPath(filePath)
-    expect(current).not.toBeNull()
+    const result = await readConfigFileAtPath(filePath)
+    expect(result.config).not.toBeNull()
     // 改 model 字段，保留其他字段
-    const merged = { ...(current as Record<string, unknown>), model: "new-model" }
+    const merged = { ...(result.config as Record<string, unknown>), model: "new-model" }
     await saveConfigFileAtPath(filePath, merged)
 
     // 验证：model 改了，instructions/theme 保留
-    const cfg = await readConfigFileAtPath(filePath)
-    expect(cfg?.model).toBe("new-model")
-    expect(cfg?.instructions).toBe("保留我")
-    expect(cfg?.theme).toBe("dark")
+    const after = await readConfigFileAtPath(filePath)
+    expect(after.config?.model).toBe("new-model")
+    expect(after.config?.instructions).toBe("保留我")
+    expect(after.config?.theme).toBe("dark")
   })
 
   test("改 model 不碰其他文件", async () => {
@@ -442,14 +450,224 @@ describe("readConfigFileAtPath / saveConfigFileAtPath（工单 03 按文件分�
     await writeFile(fileB, JSON.stringify({ theme: "theme-b" }), "utf8")
 
     // 改 fileA 的 model
-    const currentA = await readConfigFileAtPath(fileA)
-    const mergedA = { ...(currentA as Record<string, unknown>), model: "new-model-a" }
+    const resultA = await readConfigFileAtPath(fileA)
+    const mergedA = { ...(resultA.config as Record<string, unknown>), model: "new-model-a" }
     await saveConfigFileAtPath(fileA, mergedA)
 
     // fileB 不受影响
-    const cfgB = await readConfigFileAtPath(fileB)
-    expect(cfgB?.theme).toBe("theme-b")
-    expect(cfgB?.model).toBeUndefined()
+    const resultB = await readConfigFileAtPath(fileB)
+    expect(resultB.config?.theme).toBe("theme-b")
+    expect(resultB.config?.model).toBeUndefined()
+  })
+})
+
+describe("readConfigFileAtPath / saveConfigFileAtPath（工单 10 jsonc 容错解析 + 最小编辑写回）", () => {
+  test("带行注释的 opencode.jsonc 可正常解析", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.jsonc")
+    await writeFile(
+      filePath,
+      `{
+  // 这是模型配置
+  "model": "deepseek-chat",
+  "instructions": "保留我"
+}`,
+      "utf8",
+    )
+
+    const result = await readConfigFileAtPath(filePath)
+    expect(result.error).toBeUndefined()
+    expect(result.config?.model).toBe("deepseek-chat")
+    expect(result.config?.instructions).toBe("保留我")
+  })
+
+  test("带块注释的 opencode.jsonc 可正常解析", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.jsonc")
+    await writeFile(
+      filePath,
+      `{
+  /* 块注释
+     多行 */
+  "model": "deepseek-chat"
+}`,
+      "utf8",
+    )
+
+    const result = await readConfigFileAtPath(filePath)
+    expect(result.error).toBeUndefined()
+    expect(result.config?.model).toBe("deepseek-chat")
+  })
+
+  test("带尾逗号的 opencode.jsonc 可正常解析", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.jsonc")
+    await writeFile(
+      filePath,
+      `{
+  "model": "deepseek-chat",
+  "instructions": "保留我",
+}`,
+      "utf8",
+    )
+
+    const result = await readConfigFileAtPath(filePath)
+    expect(result.error).toBeUndefined()
+    expect(result.config?.model).toBe("deepseek-chat")
+  })
+
+  test("保存后 .jsonc 行注释保留", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.jsonc")
+    const original = `{
+  // 模型注释
+  "model": "old-model",
+  "instructions": "保留我"
+}`
+    await writeFile(filePath, original, "utf8")
+
+    const result = await readConfigFileAtPath(filePath)
+    const merged = { ...(result.config as Record<string, unknown>), model: "new-model" }
+    await saveConfigFileAtPath(filePath, merged)
+
+    const written = await readFile(filePath, "utf8")
+    expect(written).toContain("// 模型注释")
+    expect(written).toContain('"model": "new-model"')
+    expect(written).toContain('"instructions": "保留我"')
+  })
+
+  test("保存后 .jsonc 块注释保留", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.jsonc")
+    const original = `{
+  /* 顶部块注释 */
+  "model": "old-model",
+  "instructions": "保留我"
+}`
+    await writeFile(filePath, original, "utf8")
+
+    const result = await readConfigFileAtPath(filePath)
+    const merged = { ...(result.config as Record<string, unknown>), model: "new-model" }
+    await saveConfigFileAtPath(filePath, merged)
+
+    const written = await readFile(filePath, "utf8")
+    expect(written).toContain("/* 顶部块注释 */")
+    expect(written).toContain('"model": "new-model"')
+  })
+
+  test("保存后 .jsonc 字段顺序保留（$schema 仍在首位）", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.jsonc")
+    const original = `{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "old-model",
+  "instructions": "保留我",
+  "theme": "dark"
+}`
+    await writeFile(filePath, original, "utf8")
+
+    const result = await readConfigFileAtPath(filePath)
+    const merged = { ...(result.config as Record<string, unknown>), model: "new-model" }
+    await saveConfigFileAtPath(filePath, merged)
+
+    const written = await readFile(filePath, "utf8")
+    const schemaIdx = written.indexOf("$schema")
+    const modelIdx = written.indexOf('"model"')
+    const instrIdx = written.indexOf('"instructions"')
+    const themeIdx = written.indexOf('"theme"')
+    expect(schemaIdx).toBeLessThan(modelIdx)
+    expect(modelIdx).toBeLessThan(instrIdx)
+    expect(instrIdx).toBeLessThan(themeIdx)
+  })
+
+  test("删除字段后 .jsonc 文件有效且其他字段保留", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.jsonc")
+    const original = `{
+  // 模型注释
+  "model": "old-model",
+  "instructions": "保留我"
+}`
+    await writeFile(filePath, original, "utf8")
+
+    const result = await readConfigFileAtPath(filePath)
+    const merged = { ...(result.config as Record<string, unknown>) }
+    delete merged.model
+    await saveConfigFileAtPath(filePath, merged)
+
+    // 删除字段后文件仍可解析，其他字段值保留
+    const after = await readConfigFileAtPath(filePath)
+    expect(after.error).toBeUndefined()
+    expect(after.config?.model).toBeUndefined()
+    expect(after.config?.instructions).toBe("保留我")
+  })
+
+  test("新增字段时 .jsonc 原有注释保留", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.jsonc")
+    const original = `{
+  // 模型注释
+  "model": "old-model"
+}`
+    await writeFile(filePath, original, "utf8")
+
+    const result = await readConfigFileAtPath(filePath)
+    const merged = { ...(result.config as Record<string, unknown>), instructions: "新增的" }
+    await saveConfigFileAtPath(filePath, merged)
+
+    const written = await readFile(filePath, "utf8")
+    expect(written).toContain("// 模型注释")
+    expect(written).toContain('"instructions": "新增的"')
+  })
+
+  test("readConfigFileAtPath 非对象（数组）返回 { config: null, error: 'not-object' }", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.json")
+    await writeFile(filePath, "[1, 2, 3]", "utf8")
+
+    const result = await readConfigFileAtPath(filePath)
+    expect(result.config).toBeNull()
+    expect(result.error).toBe("not-object")
+  })
+
+  test("readConfigFileAtPath 空文件返回 parse-failed", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.json")
+    await writeFile(filePath, "", "utf8")
+
+    const result = await readConfigFileAtPath(filePath)
+    expect(result.config).toBeNull()
+    expect(result.error).toBe("parse-failed")
+  })
+
+  test(".json 文件行为不回归——纯 json 正常解析", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.json")
+    await writeFile(filePath, JSON.stringify({ model: "deepseek-chat", instructions: "保留我" }), "utf8")
+
+    const result = await readConfigFileAtPath(filePath)
+    expect(result.error).toBeUndefined()
+    expect(result.config?.model).toBe("deepseek-chat")
+    expect(result.config?.instructions).toBe("保留我")
+  })
+
+  test(".json 文件保存用整体 stringify（不回归）", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.json")
+    await writeFile(filePath, JSON.stringify({ model: "old" }), "utf8")
+
+    await saveConfigFileAtPath(filePath, { model: "new" })
+    const written = await readFile(filePath, "utf8")
+    expect(written).toBe(JSON.stringify({ model: "new" }, null, 2))
+  })
+
+  test(".jsonc 文件不存在时 saveConfigFileAtPath 整体写入", async () => {
+    const root = await tempRoot()
+    const filePath = join(root, "opencode.jsonc")
+    await saveConfigFileAtPath(filePath, { model: "new-model" })
+
+    const result = await readConfigFileAtPath(filePath)
+    expect(result.config?.model).toBe("new-model")
   })
 })
 
@@ -649,9 +867,9 @@ describe("createConfigFile 枚举校验（C2 路径遍历防护）", () => {
     setEnv("OPENCODE_DATA_DIR", emptyData)
 
     // 使用 as 绕过编译期类型检查，模拟 IPC 传入恶意 type
-    await expect(
-      createConfigFile({ location: "global", type: "malicious.json" as "opencode.json" }),
-    ).rejects.toThrow("不支持的配置文件类型")
+    await expect(createConfigFile({ location: "global", type: "malicious.json" as "opencode.json" })).rejects.toThrow(
+      "不支持的配置文件类型",
+    )
   })
 
   test("拒绝未知的 location", async () => {
@@ -661,9 +879,9 @@ describe("createConfigFile 枚举校验（C2 路径遍历防护）", () => {
     setEnv("OPENCODE_DATA_DIR", emptyData)
 
     // 使用 as 绕过编译期类型检查，模拟 IPC 传入恶意 location
-    await expect(
-      createConfigFile({ location: "/etc" as "global", type: "opencode.json" }),
-    ).rejects.toThrow("不支持的位置")
+    await expect(createConfigFile({ location: "/etc" as "global", type: "opencode.json" })).rejects.toThrow(
+      "不支持的位置",
+    )
   })
 
   test("拒绝 type 含路径分隔符的遍历尝试", async () => {
@@ -675,5 +893,281 @@ describe("createConfigFile 枚举校验（C2 路径遍历防护）", () => {
     await expect(
       createConfigFile({ location: "global", type: "../../../etc/passwd" as "opencode.json" }),
     ).rejects.toThrow("不支持的配置文件类型")
+  })
+})
+
+describe("createSnapshot / exportBundle / restoreSnapshotConfig（工单 09 auth.json 脱敏 + 快照 0600）", () => {
+  test("createSnapshot 对 auth.json 脱敏——快照内容是占位，不含明文 key", async () => {
+    const configDir = await tempRoot()
+    const dataDir = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", dataDir)
+
+    const authPath = join(dataDir, "auth.json")
+    const secretKey = "sk-secret-12345"
+    await writeFile(authPath, JSON.stringify({ openai: { type: "api", key: secretKey } }), "utf8")
+    await writeFile(join(configDir, "opencode.json"), JSON.stringify({ model: "x" }), "utf8")
+
+    const snap = await createSnapshot({ type: "auto" })
+
+    // 快照中 auth.json 内容是占位，不是明文
+    expect(snap.configContents[authPath]).toBe(REDACTED_PLACEHOLDER)
+    // 快照整体 JSON 不含明文 key
+    expect(JSON.stringify(snap)).not.toContain(secretKey)
+  })
+
+  test("快照文件权限 0o600（非 Windows 平台）", async () => {
+    const configDir = await tempRoot()
+    const dataDir = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", dataDir)
+
+    await writeFile(join(dataDir, "auth.json"), "{}", "utf8")
+    await writeFile(join(configDir, "opencode.json"), "{}", "utf8")
+
+    const snap = await createSnapshot({ type: "auto" })
+    const snapFile = join(configDir, "launcher", "snapshots", `${snap.id}.json`)
+    expect(existsSync(snapFile)).toBe(true)
+
+    // Windows 不支持 Unix 权限位，仅非 Windows 断言 0o600
+    if (process.platform !== "win32") {
+      const s = await stat(snapFile)
+      expect(s.mode & 0o777).toBe(0o600)
+    }
+  })
+
+  test("exportBundle 对 auth.json 脱敏——bundle 不含明文 key", async () => {
+    const configDir = await tempRoot()
+    const dataDir = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", dataDir)
+
+    const secretKey = "sk-export-secret-67890"
+    await writeFile(join(dataDir, "auth.json"), JSON.stringify({ openai: { type: "api", key: secretKey } }), "utf8")
+    await writeFile(join(configDir, "opencode.json"), JSON.stringify({ model: "x" }), "utf8")
+
+    const snap = await createSnapshot({ type: "auto" })
+    const bundleJson = await exportBundle(snap.id)
+
+    expect(bundleJson).not.toContain(secretKey)
+    const bundle = JSON.parse(bundleJson) as { configContents: Record<string, string> }
+    expect(bundle.configContents["auth.json"]).toBe(REDACTED_PLACEHOLDER)
+  })
+
+  test("restoreSnapshotConfig 不覆盖现有 auth.json", async () => {
+    const configDir = await tempRoot()
+    const dataDir = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", dataDir)
+
+    const authPath = join(dataDir, "auth.json")
+    await writeFile(authPath, JSON.stringify({ openai: { type: "api", key: "sk-old-key" } }), "utf8")
+    await writeFile(join(configDir, "opencode.json"), JSON.stringify({ model: "x" }), "utf8")
+
+    const snap = await createSnapshot({ type: "auto" })
+
+    // 用户后来改了 auth.json
+    const newAuthContent = JSON.stringify({ openai: { type: "api", key: "sk-new-key" } })
+    await writeFile(authPath, newAuthContent, "utf8")
+
+    // 恢复快照——不应覆盖 auth.json（占位跳过）
+    await restoreSnapshotConfig(snap)
+
+    const after = await readFile(authPath, "utf8")
+    expect(after).toBe(newAuthContent)
+  })
+
+  test("importBundle 跳过 auth.json 占位——不覆盖现有 auth.json，不在 configDir 创建 auth.json", async () => {
+    const configDir = await tempRoot()
+    const dataDir = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", dataDir)
+
+    const authPath = join(dataDir, "auth.json")
+    await writeFile(authPath, JSON.stringify({ openai: { type: "api", key: "sk-old-key" } }), "utf8")
+    await writeFile(join(configDir, "opencode.json"), JSON.stringify({ model: "x" }), "utf8")
+    // 预置 package.json 避免 importBundle 触发 npm init
+    await writeFile(join(configDir, "package.json"), '{"name":"test"}', "utf8")
+
+    const snap = await createSnapshot({ type: "auto" })
+    const bundleJson = await exportBundle(snap.id)
+
+    // 用户后来改了 auth.json
+    const newAuthContent = JSON.stringify({ openai: { type: "api", key: "sk-new-key" } })
+    await writeFile(authPath, newAuthContent, "utf8")
+
+    // 导入 bundle——不应覆盖 dataDir 的 auth.json，也不应在 configDir 创建 auth.json
+    await importBundle(bundleJson)
+
+    const after = await readFile(authPath, "utf8")
+    expect(after).toBe(newAuthContent)
+    expect(existsSync(join(configDir, "auth.json"))).toBe(false)
+  })
+})
+
+describe("migrateRedactOldSnapshots（M2 旧快照迁移脱敏 + 收紧 0600）", () => {
+  test("旧快照含 auth.json 明文——迁移后脱敏为占位 + 权限 0o600", async () => {
+    const configDir = await tempRoot()
+    const dataDir = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", dataDir)
+
+    const authPath = join(dataDir, "auth.json")
+    const secretKey = "sk-old-plaintext-key-12345"
+
+    // 手动构造旧快照（工单09 前的格式：含 auth.json 明文，默认权限）
+    const oldSnap = {
+      id: "snap-old-001",
+      timestamp: Date.now(),
+      type: "auto",
+      tag: null,
+      projectHash: null,
+      pluginCount: 0,
+      configFiles: [authPath],
+      configContents: {
+        [authPath]: JSON.stringify({ openai: { type: "api", key: secretKey } }),
+      },
+      plugins: [],
+    }
+    const snapshotsDir = join(configDir, "launcher", "snapshots")
+    await mkdir(snapshotsDir, { recursive: true })
+    const snapFile = join(snapshotsDir, `${oldSnap.id}.json`)
+    // 默认权限写入（不传 mode）——模拟旧快照未收紧
+    await writeFile(snapFile, JSON.stringify(oldSnap, null, 2), "utf8")
+
+    const migrated = await migrateRedactOldSnapshots()
+    expect(migrated).toBe(1)
+
+    const after = await readFile(snapFile, "utf8")
+    expect(after).not.toContain(secretKey)
+    const afterSnap = JSON.parse(after) as { configContents: Record<string, string> }
+    expect(afterSnap.configContents[authPath]).toBe(REDACTED_PLACEHOLDER)
+
+    // 非 Windows 断言权限 0o600
+    if (process.platform !== "win32") {
+      const s = await stat(snapFile)
+      expect(s.mode & 0o777).toBe(0o600)
+    }
+  })
+
+  test("已是脱敏 + 0o600 的快照——不重写，返回 0", async () => {
+    const configDir = await tempRoot()
+    const dataDir = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", dataDir)
+
+    const authPath = join(dataDir, "auth.json")
+    const cleanSnap = {
+      id: "snap-clean-001",
+      timestamp: Date.now(),
+      type: "auto",
+      tag: null,
+      projectHash: null,
+      pluginCount: 0,
+      configFiles: [authPath],
+      configContents: { [authPath]: REDACTED_PLACEHOLDER },
+      plugins: [],
+    }
+    const snapshotsDir = join(configDir, "launcher", "snapshots")
+    await mkdir(snapshotsDir, { recursive: true })
+    const snapFile = join(snapshotsDir, `${cleanSnap.id}.json`)
+    await writeFile(snapFile, JSON.stringify(cleanSnap, null, 2), { encoding: "utf8", mode: 0o600 })
+
+    const migrated = await migrateRedactOldSnapshots()
+    expect(migrated).toBe(0)
+  })
+
+  test("无快照时返回 0", async () => {
+    const configDir = await tempRoot()
+    const dataDir = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", dataDir)
+
+    const migrated = await migrateRedactOldSnapshots()
+    expect(migrated).toBe(0)
+  })
+
+  test("损坏的快照文件跳过——不抛异常，返回 0", async () => {
+    const configDir = await tempRoot()
+    const dataDir = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", dataDir)
+
+    const snapshotsDir = join(configDir, "launcher", "snapshots")
+    await mkdir(snapshotsDir, { recursive: true })
+    await writeFile(join(snapshotsDir, "snap-broken-001.json"), "not json", "utf8")
+
+    const migrated = await migrateRedactOldSnapshots()
+    expect(migrated).toBe(0)
+  })
+
+  test("多个快照——只迁移含明文的，已脱敏的不动", async () => {
+    const configDir = await tempRoot()
+    const dataDir = await tempRoot()
+    setEnv("OPENCODE_CONFIG_DIR", configDir)
+    setEnv("OPENCODE_DATA_DIR", dataDir)
+
+    const authPath = join(dataDir, "auth.json")
+    const secretKey = "sk-multi-migrate-key"
+    const snapshotsDir = join(configDir, "launcher", "snapshots")
+    await mkdir(snapshotsDir, { recursive: true })
+
+    // 旧快照 1：含明文
+    const oldSnap1 = {
+      id: "snap-multi-old-1",
+      timestamp: Date.now(),
+      type: "auto",
+      tag: null,
+      projectHash: null,
+      pluginCount: 0,
+      configFiles: [authPath],
+      configContents: { [authPath]: JSON.stringify({ openai: { type: "api", key: secretKey } }) },
+      plugins: [],
+    }
+    await writeFile(join(snapshotsDir, `${oldSnap1.id}.json`), JSON.stringify(oldSnap1, null, 2), "utf8")
+
+    // 旧快照 2：含明文
+    const oldSnap2 = {
+      id: "snap-multi-old-2",
+      timestamp: Date.now(),
+      type: "auto",
+      tag: null,
+      projectHash: null,
+      pluginCount: 0,
+      configFiles: [authPath],
+      configContents: { [authPath]: JSON.stringify({ anthropic: { type: "api", key: secretKey } }) },
+      plugins: [],
+    }
+    await writeFile(join(snapshotsDir, `${oldSnap2.id}.json`), JSON.stringify(oldSnap2, null, 2), "utf8")
+
+    // 干净快照：已脱敏 + 0o600
+    const cleanSnap = {
+      id: "snap-multi-clean",
+      timestamp: Date.now(),
+      type: "auto",
+      tag: null,
+      projectHash: null,
+      pluginCount: 0,
+      configFiles: [authPath],
+      configContents: { [authPath]: REDACTED_PLACEHOLDER },
+      plugins: [],
+    }
+    await writeFile(join(snapshotsDir, `${cleanSnap.id}.json`), JSON.stringify(cleanSnap, null, 2), {
+      encoding: "utf8",
+      mode: 0o600,
+    })
+
+    const migrated = await migrateRedactOldSnapshots()
+    expect(migrated).toBe(2)
+
+    // 两个旧快照都脱敏了
+    const after1 = JSON.parse(await readFile(join(snapshotsDir, `${oldSnap1.id}.json`), "utf8")) as {
+      configContents: Record<string, string>
+    }
+    const after2 = JSON.parse(await readFile(join(snapshotsDir, `${oldSnap2.id}.json`), "utf8")) as {
+      configContents: Record<string, string>
+    }
+    expect(after1.configContents[authPath]).toBe(REDACTED_PLACEHOLDER)
+    expect(after2.configContents[authPath]).toBe(REDACTED_PLACEHOLDER)
   })
 })

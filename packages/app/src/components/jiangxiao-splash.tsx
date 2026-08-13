@@ -56,9 +56,23 @@ export function JiangxiaoSplash() {
   // loading → CTA：1.8s 后切换，splash 保持显示等待用户点击「进入终端」
   onMount(() => {
     const el = document.getElementById("jiangxiao-splash")
-    if (!el) return
+    // Esc 跳过 splash：键盘流冷启动不必等 1.8s loading（a11y 补齐）
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") dismiss()
+    }
+    document.addEventListener("keydown", onKey)
+    if (!el) return () => document.removeEventListener("keydown", onKey)
     const t = setTimeout(() => setState("showCta", true), CTA_DELAY_MS)
-    return () => clearTimeout(t)
+    return () => {
+      clearTimeout(t)
+      document.removeEventListener("keydown", onKey)
+    }
+  })
+
+  // CTA 淡入后把焦点交给「进入终端」：Enter/Space 即可进入，无需摸鼠标（a11y 补齐）
+  createEffect(() => {
+    if (!state.showCta) return
+    document.querySelector<HTMLButtonElement>(".jiangxiao-splash-seal-btn")?.focus()
   })
 
   let dismissed = false
@@ -183,7 +197,7 @@ export function JiangxiaoSplash() {
             inset: 0;
             z-index: var(--jx-z-splash, 200);
             overflow: hidden;
-            background: var(--jx-ink-950, #0b090d);
+            background: var(--jx-surface-0, #0b090d);
             transition: opacity ${FADE_MS}ms ease;
           }
           .jiangxiao-splash-root.jiangxiao-splash-hidden {
@@ -254,7 +268,7 @@ export function JiangxiaoSplash() {
             }
           }
           .jiangxiao-splash-subtitle {
-            color: var(--jx-cream, #f2ead8);
+            color: var(--jx-text-base, #f2ead8);
             font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
             font-size: var(--jx-fs-body);
             font-weight: 400;
@@ -266,7 +280,7 @@ export function JiangxiaoSplash() {
             align-items: center;
             gap: 10px;
             margin-top: 0;
-            color: var(--jx-cream-dim, #a99c8a);
+            color: var(--jx-text-weak, #a99c8a);
             font-size: var(--jx-fs-small, 12px);
             letter-spacing: 0.1em;
           }
@@ -311,7 +325,7 @@ export function JiangxiaoSplash() {
             justify-content: center;
             background: var(--jx-cinnabar, #C3272B);
             border-radius: var(--jx-radius-sm, 4px);
-            color: var(--jx-cream, #f2ead8);
+            color: var(--jx-text-base, #f2ead8);
             font-family: "Ma Shan Zheng", "TangKai", "KaiTi", "STKaiti", serif;
             font-size: var(--jx-fs-body, 14px);
             font-weight: 700;
@@ -336,7 +350,7 @@ export function JiangxiaoSplash() {
             height: 44px;
             border-radius: var(--jx-radius-seal, 50%);
             background: var(--jx-cinnabar, #C3272B);
-            color: var(--jx-cream, #f2ead8);
+            color: var(--jx-text-base, #f2ead8);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -352,8 +366,10 @@ export function JiangxiaoSplash() {
             height: 18px;
             stroke-width: 2;
           }
-          .jiangxiao-splash-seal-btn:hover {
+          .jiangxiao-splash-seal-btn:hover,
+          .jiangxiao-splash-seal-btn:focus-visible {
             box-shadow: inset 0 0 0 1px rgba(242, 234, 216, 0.5), 0 0 12px rgba(195, 39, 43, 0.45);
+            outline: none;
           }
           .jiangxiao-splash-seal-btn:active {
             transform: scale(0.96);
@@ -364,10 +380,11 @@ export function JiangxiaoSplash() {
             letter-spacing: 0.14em;
           }
           .jiangxiao-splash-ghost-btn {
-            color: var(--jx-gold-dim, #996515);
+            color: var(--jx-gold-deep, #B8860B);
             font-size: var(--jx-fs-small);
             letter-spacing: 0.1em;
             padding: 6px 10px;
+            min-height: var(--jx-space-8, 32px);
             border: none;
             border-bottom: 1px solid transparent;
             display: inline-flex;
@@ -377,14 +394,16 @@ export function JiangxiaoSplash() {
             cursor: pointer;
             font-family: inherit;
           }
-          .jiangxiao-splash-ghost-btn:hover {
+          .jiangxiao-splash-ghost-btn:hover,
+          .jiangxiao-splash-ghost-btn:focus-visible {
             color: var(--jx-gold-bright, #F6D365);
-            border-bottom-color: var(--jx-gold-dim, #996515);
+            border-bottom-color: var(--jx-gold-bright, #F6D365);
+            outline: none;
           }
           .jiangxiao-splash-status {
             margin-top: 30px; /* 44 - 14（flex gap），对齐基准 .splash-status 的 margin-top: 44 */
             font-size: var(--jx-fs-small, 12px);
-            color: var(--jx-cream-dim, #a99c8a);
+            color: var(--jx-text-weak, #a99c8a);
             display: flex;
             align-items: center;
             gap: var(--jx-space-2, 8px);
@@ -416,6 +435,16 @@ export function JiangxiaoSplash() {
           @keyframes jiangxiao-splash-blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.35; }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .jiangxiao-splash-seal-spinner,
+            .jiangxiao-splash-status-dot.connecting,
+            .jiangxiao-splash-cta-group {
+              animation: none;
+            }
+            .jiangxiao-splash-root {
+              transition: none;
+            }
           }
         `}</style>
       </div>

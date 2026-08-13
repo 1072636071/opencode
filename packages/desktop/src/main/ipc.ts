@@ -33,6 +33,12 @@ const pickerFilters = (ext?: string[]) => {
 
 const pickedFiles = createPickedFileAuthorizations()
 
+// Allowlist + RCE guard for the open-path IPC handler live in ./open-app-allowlist so
+// they are unit-testable without loading Electron IPC or node:sqlite transitively.
+// Re-exported here to keep the public surface of this module stable.
+import { ALLOWED_OPEN_APPS, resolveOpenApp } from "./open-app-allowlist"
+export { ALLOWED_OPEN_APPS, resolveOpenApp }
+
 type Deps = {
   killSidecar: () => Promise<void> | void
   relaunch: () => void
@@ -141,10 +147,8 @@ export function registerIpcHandlers(deps: Deps) {
     const store = getStore(name)
     return Object.keys(store.store).length
   })
-  ipcMain.handle(
-    "omo-config-write",
-    (_event: IpcMainInvokeEvent, name: string, model: string | null) =>
-      writeOmoAgentModel(name, model ?? undefined),
+  ipcMain.handle("omo-config-write", (_event: IpcMainInvokeEvent, name: string, model: string | null) =>
+    writeOmoAgentModel(name, model ?? undefined),
   )
   ipcMain.handle("draft-get", (_event, key: string) => drafts.get(key))
   ipcMain.handle("draft-set", (_event, key: string, value: string) => drafts.set(key, value))
@@ -223,10 +227,14 @@ export function registerIpcHandlers(deps: Deps) {
   })
 
   ipcMain.handle("open-path", async (_event: IpcMainInvokeEvent, path: string, app?: string) => {
-    if (!app) return shell.openPath(path)
+    const resolution = resolveOpenApp(app)
+    if (resolution.kind === "shell") return shell.openPath(path)
+    if (resolution.kind === "reject") throw new Error(`open-path: app not in allowlist: ${resolution.app}`)
     await new Promise<void>((resolve, reject) => {
       const [cmd, args] =
-        process.platform === "darwin" ? (["open", ["-a", app, path]] as const) : ([app, [path]] as const)
+        process.platform === "darwin"
+          ? (["open", ["-a", resolution.app, path]] as const)
+          : ([resolution.app, [path]] as const)
       execFile(cmd, args, (err) => (err ? reject(err) : resolve()))
     })
   })

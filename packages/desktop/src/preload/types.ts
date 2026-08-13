@@ -203,7 +203,11 @@ export type ElectronAPI = {
   launcherSaveConfig: (config: Record<string, unknown>) => Promise<string>
   launcherSaveAuthKey: (providerID: string, key: string | null) => Promise<string>
   // 工单 03：按文件分别读写。renderer 端读全量 → 改字段 → 写全量保留其他字段。
-  launcherReadConfigFile: (path: string) => Promise<Record<string, unknown> | null>
+  // 工单 10（O4 联动）：返回判别式，UI 区分读失败/空文件，解析失败引导打开源文件。
+  launcherReadConfigFile: (path: string) => Promise<{
+    config: Record<string, unknown> | null
+    error?: "not-found" | "parse-failed" | "not-object"
+  }>
   launcherSaveConfigFile: (path: string, config: Record<string, unknown>) => Promise<string>
   // 工单 04：.opencode/ 下目录节点可展开 + 内部文件打开。
   launcherListOpencodeSubdirs: () => Promise<LauncherOpencodeSubdirInfo[]>

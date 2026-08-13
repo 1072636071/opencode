@@ -32,7 +32,7 @@ import {
 
 /**
  * 姜晓角色悬浮层（唐风二次元主题）
- * - 固定于界面左边缘的悬浮层（position:fixed + inset-inline-start:0），纵向铺满，不占布局空间
+ * - 固定于界面右下边缘的悬浮层（position:fixed + inset-inline-end），纵向铺满，不占布局空间
  * - 10 状态 WebP 动画由 character-state reducer 驱动，全局会话事件归一化后喂入
  * - 交叉淡入淡出切换（0.1s），高优先级打断低优先级
  * - 点击角色弹气泡 + 提示音
@@ -591,7 +591,36 @@ export function JiangxiaoCharacterSidebar() {
     window.addEventListener("resize", syncPosition)
   })
 
-  // 右键菜单「重置位置」：回左下默认并清空存储
+  // 键盘拖动（a11y 补齐）：手柄聚焦时方向键移动 24px（Shift=4px 微调），与指针拖动共用 clamp 与持久化
+  function handleDragKeyDown(e: KeyboardEvent) {
+    if (!asideEl || isNarrowViewport(window.innerWidth)) return
+    const step = e.shiftKey ? 4 : 24
+    const delta =
+      e.key === "ArrowUp"
+        ? { x: 0, y: -step }
+        : e.key === "ArrowDown"
+          ? { x: 0, y: step }
+          : e.key === "ArrowLeft"
+            ? { x: -step, y: 0 }
+            : e.key === "ArrowRight"
+              ? { x: step, y: 0 }
+              : undefined
+    if (!delta) return
+    e.preventDefault()
+    const rect = asideEl.getBoundingClientRect()
+    const clamped = clampPosition(
+      { x: rect.left + delta.x, y: rect.top + delta.y },
+      getViewport(),
+      { width: rect.width, height: rect.height },
+    )
+    // 与 handleDragMove 同一语义：偏移始终相对 CSS 基准
+    const cssX = rect.left - dragOffset().x
+    const cssY = rect.top - dragOffset().y
+    setDragOffset({ x: clamped.x - cssX, y: clamped.y - cssY })
+    savePosition({ x: clamped.x, y: clamped.y }, localStorage)
+  }
+
+  // 右键菜单「重置位置」：回右下默认并清空存储
   function resetPosition() {
     setDragOffset({ x: 0, y: 0 })
     clearPosition(localStorage)
@@ -626,9 +655,11 @@ export function JiangxiaoCharacterSidebar() {
         <div
           data-slot="character-drag-handle"
           onPointerDown={handleDragStart}
+          onKeyDown={handleDragKeyDown}
           role="button"
-          aria-label="拖动移动姜晓"
-          title="拖动移动姜晓"
+          tabIndex={0}
+          aria-label="拖动移动姜晓（聚焦后可用方向键移动，Shift 微调）"
+          title="拖动移动姜晓（方向键微调）"
         >
           <JiangxiaoIcon name="move" size={16} />
         </div>
@@ -687,14 +718,14 @@ export function JiangxiaoCharacterSidebar() {
               "inset-inline-start": "50%",
               transform: "translateX(-50%)",
               "max-width": "200px",
-              padding: "8px 12px",
-              background: "var(--jx-ink-950)",
+              padding: "var(--jx-space-2) var(--jx-space-3)",
+              background: "var(--jx-surface-0)",
               border: "1px solid var(--jx-gold-deep)",
-              "border-radius": "10px",
-              color: "var(--jx-cream)",
+              "border-radius": "var(--jx-radius-xl)",
+              color: "var(--jx-text-base)",
               "font-size": "var(--jx-fs-small)",
               "text-align": "center",
-              "box-shadow": "0 4px 16px rgba(0,0,0,0.6)",
+              "box-shadow": "var(--jx-shadow-2)",
               "pointer-events": "none",
               "user-select": "none",
               "z-index": 3,

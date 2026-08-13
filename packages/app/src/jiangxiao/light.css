@@ -1,0 +1,261 @@
+/* ============================================================
+   姜晓·墨染 分包 6/6：light（浅色变体，ADR-019 原梅花主题合并）
+   ============================================================
+   本文件由 jiangxiao.css 拆分而来（纯移动，未改规则）。
+   作用域 [data-theme="jiangxiao"][data-color-scheme="light"]。
+   保持最后引入：reduced-motion 覆盖块在文件末尾，须压过各分包的动画声明。
+   ============================================================ */
+/* ============================================================
+   姜晓浅色变体（ADR-019，原梅花主题 ADR-016 合并）
+   米白底 + 粉梅 + 金。深色姜晓跟随系统浅色自动切换到此变体。
+   作用域 [data-theme="jiangxiao"][data-color-scheme="light"]。
+   ============================================================ */
+
+/* ---------- 浅色 token 块（语义 token 浅色取值，覆盖深色默认） ---------- */
+[data-theme="jiangxiao"][data-color-scheme="light"] {
+  /* Surface 表面色阶（0 最深/底、3 最浅/raised；浅色=米白系，整体反转浅底） */
+  --jx-surface-0: #faf5ee;
+  --jx-surface-1: #f5eddf;
+  --jx-surface-2: #efe3d0;
+  --jx-surface-3: #e8dcc8;
+  /* Text 文字色阶（strong 最强调、faint 最弱；浅色=深色字） */
+  --jx-text-strong: #2a241a;
+  --jx-text-base: #5d4a42;
+  --jx-text-weak: #8d7a70;
+  --jx-text-faint: #b3a296;
+  /* Gold 金族（米白底上用深金保证对比度） */
+  --jx-gold-bright: #9c7a1e;
+  --jx-gold: #b8860b;
+  --jx-gold-deep: #8a6508;
+  --jx-gold-dim: #6f5306;
+  --jx-ginkgo: #b8860b;
+  --jx-gold-foil: linear-gradient(135deg, #b8860b 0%, #d97a8e 50%, #8a6508 100%);
+  /* Seal 印章族（梅红印章） */
+  --jx-seal: #b24a5c;
+  --jx-seal-deep: #8e3a49;
+  --jx-seal-bright: #d97a8e;
+  --jx-seal-ink: #fff8f6;
+  /* Atmosphere 氛围族（粉梅点缀） */
+  --jx-mist: #c9b8b4;
+  --jx-mountain: #b3a49a;
+  --jx-water: #a9a9b4;
+  --jx-cloud: #f0e4e2;
+  --jx-moon: #f3e2e2;
+  --jx-hair: #dcc4ca;
+  --jx-wisteria: #b85c74;
+  /* 朱红强调色（浅色下梅红） */
+  --jx-cinnabar: #b24a5c;
+  /* 高亮变体（浅底上用深色，保证对比度） */
+  --jx-hl-file: #2c6a7a;
+  --jx-hl-agent: #9c7a1e;
+  --jx-success: #3d7a3d;
+  --jx-warn: #9c6b1e;
+  --jx-error: #a83a3a;
+  --jx-border-deco: #d9c9b5;
+  --jx-selection: rgba(178, 74, 92, 0.14);
+  --jx-scroll-track: #ece0d0;
+  --jx-scroll-thumb: #d97a8e;
+  /* 金边阴影（浅底版：淡褐金边框 + 粉梅微光晕） */
+  --jx-gold-rim: 0 0 0 1px var(--jx-border-deco), 0 0 14px color-mix(in srgb, var(--jx-seal-bright) 10%, transparent);
+}
+
+/* ---------- 顶栏：米白底 + 梅花纹样 ---------- */
+[data-theme="jiangxiao"][data-color-scheme="light"] [data-slot="titlebar-v2"] {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='36' viewBox='0 0 220 36'%3E%3Cg fill='none' stroke='%23b24a5c' stroke-opacity='0.12' stroke-width='1'%3E%3Ccircle cx='16' cy='18' r='4'/%3E%3Ccircle cx='16' cy='11.5' r='3.6'/%3E%3Ccircle cx='16' cy='24.5' r='3.6'/%3E%3Ccircle cx='9.5' cy='18' r='3.6'/%3E%3Ccircle cx='22.5' cy='18' r='3.6'/%3E%3Cpath d='M16 12c1.5-2 4-2 5-4'/%3E%3Cpath d='M16 24c1.5 2 4 2 5 4'/%3E%3Ccircle cx='64' cy='18' r='2.4'/%3E%3Ccircle cx='120' cy='14' r='2'/%3E%3Ccircle cx='176' cy='20' r='2.6'/%3E%3C/g%3E%3Cpath d='M40 30c10-8 24-10 36-5' fill='none' stroke='%23b8860b' stroke-opacity='0.10' stroke-width='1'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, var(--jx-surface-1), var(--jx-surface-0));
+  border-bottom: 1px solid color-mix(in srgb, var(--jx-border-deco) 70%, transparent);
+}
+
+/* ---------- 顶栏文字/图标：暖墨色（浅底深字） ---------- */
+[data-theme="jiangxiao"][data-color-scheme="light"]
+  [data-slot="titlebar-v2"]
+  [data-component="icon-button-v2"][data-variant="ghost-muted"],
+[data-theme="jiangxiao"][data-color-scheme="light"]
+  [data-slot="titlebar-v2"]
+  [data-component="icon-button-v2"][data-variant="ghost-muted"]
+  [data-slot="icon-svg"],
+[data-theme="jiangxiao"][data-color-scheme="light"] [data-slot="titlebar-v2"] [data-slot="tab-link"],
+[data-theme="jiangxiao"][data-color-scheme="light"] [data-slot="titlebar-v2"] [data-slot="tab-title"] {
+  color: var(--jx-text-base);
+  -webkit-text-fill-color: var(--jx-text-base);
+}
+
+[data-theme="jiangxiao"][data-color-scheme="light"]
+  [data-slot="titlebar-v2"]
+  [data-component="icon-button-v2"][data-variant="ghost-muted"]:hover,
+[data-theme="jiangxiao"][data-color-scheme="light"]
+  [data-slot="titlebar-v2"]
+  [data-component="icon-button-v2"][data-variant="ghost-muted"]:hover
+  [data-slot="icon-svg"] {
+  color: var(--jx-cinnabar);
+  -webkit-text-fill-color: var(--jx-cinnabar);
+}
+
+/* ---------- 顶栏 tabs fade 遮罩：米白渐变 ---------- */
+[data-theme="jiangxiao"][data-color-scheme="light"] [data-slot="titlebar-v2"] [data-slot="titlebar-tabs-fade-left"] {
+  background-image: linear-gradient(to right, var(--jx-surface-0), transparent);
+}
+
+[data-theme="jiangxiao"][data-color-scheme="light"] [data-slot="titlebar-v2"] [data-slot="titlebar-tabs-fade-right"] {
+  background-image: linear-gradient(to left, var(--jx-surface-0), transparent);
+}
+
+/* ---------- 窗口控制按钮：红金配色（浅底上用深绯红，保证对比度 ≥ 4.5:1） ---------- */
+[data-theme="jiangxiao"][data-color-scheme="light"] [data-slot="window-control-button"] {
+  color: var(--jx-seal-deep);
+  -webkit-text-fill-color: var(--jx-seal-deep);
+}
+
+[data-theme="jiangxiao"][data-color-scheme="light"] [data-slot="window-control-button"]:hover,
+[data-theme="jiangxiao"][data-color-scheme="light"] [data-slot="window-control-button"]:focus-visible {
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
+  background-color: color-mix(in srgb, var(--jx-gold-deep) 12%, transparent);
+}
+
+[data-theme="jiangxiao"][data-color-scheme="light"] [data-slot="window-control-button"]:last-child:hover,
+[data-theme="jiangxiao"][data-color-scheme="light"] [data-slot="window-control-button"]:last-child:focus-visible {
+  color: var(--jx-seal-ink);
+  -webkit-text-fill-color: var(--jx-seal-ink);
+  background-color: var(--jx-cinnabar);
+}
+
+/* ---------- 全局浅色背景变量重写（浅底深字，覆盖深色默认的工单 07 块） ---------- */
+[data-theme="jiangxiao"][data-color-scheme="light"] {
+  --v2-background-bg-deep: var(--jx-surface-0);
+  --v2-background-bg-base: var(--jx-surface-1);
+  --v2-background-bg-layer-01: var(--jx-surface-1);
+  --v2-background-bg-layer-02: var(--jx-surface-2);
+  --v2-background-bg-layer-03: var(--jx-surface-0);
+  --background-base: var(--jx-surface-0);
+  --background-surface-base: var(--jx-surface-1);
+  --surface-base: var(--jx-surface-1);
+  --surface-raised-base: var(--jx-surface-1);
+  --surface-raised-base-hover: color-mix(in srgb, var(--jx-surface-1) 85%, var(--jx-cinnabar) 15%);
+
+  /* 文字：浅底深字（语义 token 自动适配） */
+  --v2-text-text-base: var(--jx-text-base);
+  --v2-text-text-faint: var(--jx-text-weak);
+  --v2-text-text-muted: var(--jx-text-weak);
+  --v2-text-text-strong: var(--jx-text-strong);
+  --v2-text-text-accent: var(--jx-cinnabar);
+  --v2-text-text-accent-hover: var(--jx-seal-deep);
+  --text-base: var(--jx-text-base);
+  --text-strong: var(--jx-text-strong);
+  --text-weak: var(--jx-text-weak);
+
+  /* 边框：淡褐金 */
+  --v2-border-border-base: color-mix(in srgb, var(--jx-border-deco) 80%, transparent);
+  --v2-border-border-muted: color-mix(in srgb, var(--jx-border-deco) 55%, transparent);
+  --v2-border-border-strong: var(--jx-gold-deep);
+  --v2-border-border-focus: var(--jx-cinnabar);
+  --border-weak-base: var(--jx-border-deco);
+  --border-weaker-base: color-mix(in srgb, var(--jx-border-deco) 50%, transparent);
+
+  /* 图标：暖墨色（文字色阶） */
+  --v2-icon-icon-base: var(--jx-text-weak);
+  --v2-icon-icon-muted: var(--jx-text-faint);
+  --v2-icon-icon-accent: var(--jx-cinnabar);
+}
+
+/* ---------- 标题：梅金渐变（浅底上深色渐变，对比度达标） ---------- */
+[data-theme="jiangxiao"][data-color-scheme="light"] :is(h1, h2, h3, h4) {
+  color: var(--jx-gold-deep);
+  -webkit-text-fill-color: var(--jx-gold-deep);
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  [data-theme="jiangxiao"][data-color-scheme="light"] :is(h1, h2, h3, h4) {
+    background: var(--jx-gold-foil);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+[data-theme="jiangxiao"][data-color-scheme="light"] :is(strong, b) {
+  color: var(--jx-cinnabar);
+  -webkit-text-fill-color: var(--jx-cinnabar);
+}
+
+/* ---------- 浅色背景装饰叶/瓣差异覆盖（ADR-018/024） ----------
+   浅底上深金叶像污渍，覆盖为粉梅瓣（五瓣写实形，--jx-seal-bright 系）。
+   - 动态飘落 → 粉梅瓣 3 款变体（不同朝向/色阶），多背景图层叠加
+   - 静态构图 → 浅金叶/瓣（工单03 处理）
+   复用深色段布局/mask，覆盖 background-image + size + opacity（浅色粉梅在米白底上稍高透明度更柔和）。
+   独立 keyframe jiangxiao-petal-fall：浅色 size 更小（70×100 vs 深色 80×120），按比例缩放像素位移，步幅与 size 匹配。
+   SVG 内色值硬编码（粉梅 #d97a8e/#e89aa8/#b24a5c/#8e3a49），与现有装饰 SVG 一致。 */
+[data-theme="jiangxiao"][data-color-scheme="light"][data-oc-deco="dynamic"] #root::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23d97a8e'%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(72 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(144 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(216 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(288 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='5' fill='%23b24a5c'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23e89aa8' transform='rotate(36 50 50)'%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(72 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(144 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(216 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(288 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='5' fill='%23b24a5c'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23b24a5c'%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z'/%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z' transform='rotate(72 50 50)'/%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z' transform='rotate(144 50 50)'/%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z' transform='rotate(216 50 50)'/%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z' transform='rotate(288 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='4' fill='%238e3a49'/%3E%3C/svg%3E");
+  background-size:
+    70px 100px,
+    95px 130px,
+    55px 80px;
+  animation: jiangxiao-petal-fall 28s linear infinite;
+  opacity: 0.5;
+}
+
+@keyframes jiangxiao-petal-fall {
+  0% {
+    background-position:
+      170px -100px,
+      220px -130px,
+      135px -80px;
+  }
+  100% {
+    background-position:
+      -170px 100vh,
+      -220px 100vh,
+      -135px 100vh;
+  }
+}
+
+[data-theme="jiangxiao"][data-color-scheme="light"][data-oc-deco="static"] #root::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23d97a8e'%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(72 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(144 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(216 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(288 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='5' fill='%23b24a5c'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23e89aa8' transform='rotate(36 50 50)'%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(72 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(144 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(216 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(288 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='5' fill='%23b24a5c'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23b24a5c'%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z'/%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z' transform='rotate(72 50 50)'/%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z' transform='rotate(144 50 50)'/%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z' transform='rotate(216 50 50)'/%3E%3Cpath d='M50 50 C42 42 42 28 50 25 C58 28 58 42 50 50 Z' transform='rotate(288 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='4' fill='%238e3a49'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23e89aa8' transform='rotate(36 50 50)'%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(72 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(144 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(216 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(288 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='5' fill='%23b24a5c'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23d97a8e'%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(72 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(144 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(216 50 50)'/%3E%3Cpath d='M50 50 C40 40 40 25 50 22 C60 25 60 40 50 50 Z' transform='rotate(288 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='5' fill='%23b24a5c'/%3E%3C/svg%3E");
+  background-size:
+    240px 320px,
+    300px 400px,
+    180px 240px,
+    260px 340px,
+    150px 200px;
+  background-position:
+    top right,
+    bottom left,
+    top left,
+    bottom right,
+    92% 65%;
+  background-repeat: no-repeat;
+  opacity: 0.18;
+}
+
+/* ---------- 无障碍：prefers-reduced-motion 强制关动态 ----------
+   放文件末尾，确保来源顺序在所有 animation 声明（深色动态 ~178、浅色动态 ~2033、keyframe 定义）之后。
+   相同特异性 (1,3,1) 时后出现胜出，深浅两变体下都能关闭飘落动画（B1 修复）。 */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="jiangxiao"] .jx-busy-dots i {
+    animation: none;
+  }
+  [data-theme="jiangxiao"][data-oc-deco="dynamic"] #root::before {
+    animation: none;
+  }
+  [data-theme="jiangxiao"][data-color-scheme="light"][data-oc-deco="dynamic"] #root::before {
+    animation: none;
+  }
+  /* 角色状态切换 crossfade 与拖动反馈也属于持续动效，一并关闭（B1 补齐） */
+  [data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-video"] img,
+  [data-theme="jiangxiao"] [data-component="jiangxiao-character"][data-dragging="true"] [data-slot="character-video"],
+  [data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-toggle"],
+  [data-theme="jiangxiao"] [data-component="jiangxiao-character"] [data-slot="character-drag-handle"] {
+    transition: none;
+  }
+}

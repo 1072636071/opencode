@@ -175,9 +175,7 @@ export function extractAgentBindings(agentConfig: unknown): AgentBinding[] {
 // 同时保留原 config 中不在 bindings 里的 agent（用户可能在源文件中添加了新 agent）。
 export function buildAgentConfig(bindings: AgentBinding[], origAgentConfig?: unknown): Record<string, unknown> {
   const orig =
-    typeof origAgentConfig === "object" && origAgentConfig !== null
-      ? (origAgentConfig as Record<string, unknown>)
-      : {}
+    typeof origAgentConfig === "object" && origAgentConfig !== null ? (origAgentConfig as Record<string, unknown>) : {}
   const result: Record<string, unknown> = {}
   for (const { name, model } of bindings) {
     const origEntry =
@@ -299,8 +297,21 @@ export function extractPermissionRules(permissionConfig: unknown): PermissionRul
 export function buildPermissionConfig(rules: PermissionRule[], origPermissionConfig?: unknown): unknown[] {
   const orig = Array.isArray(origPermissionConfig) ? (origPermissionConfig as unknown[]) : []
   return rules.map(({ glob, mode }, i) => {
-    const origRule =
-      typeof orig[i] === "object" && orig[i] !== null ? (orig[i] as Record<string, unknown>) : {}
+    const origRule = typeof orig[i] === "object" && orig[i] !== null ? (orig[i] as Record<string, unknown>) : {}
     return { ...origRule, glob, mode }
   })
+}
+
+/**
+ * 工单 12 次 seam：.opencode/ 目录节点标签格式化。
+ *
+ * - 未展开：只显示目录名 + 斜杠（如 `agents/`）。
+ * - 展开：显示目录名 + 文件数（如 `agents/（3）`），N = 目录内条目数。
+ *
+ * 文件数仅在展开后显示——展开前 entries 未加载，避免无数据闪烁。
+ * 全角括号与现有中文 UI 风格一致（launcher.tsx 中"空目录"等均为硬编码中文）。
+ */
+export function formatSubdirNodeLabel(name: string, expanded: boolean, entriesCount: number): string {
+  if (!expanded) return `${name}/`
+  return `${name}/（${entriesCount}）`
 }

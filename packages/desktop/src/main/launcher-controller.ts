@@ -14,6 +14,7 @@ import { createPluginLoadTracker, parsePathAndLine, type PluginLoadEntry } from 
 import {
   createSnapshot,
   pruneAutoSnapshots,
+  migrateRedactOldSnapshots,
   getSnapshot,
   restoreSnapshotConfig,
   opencodeConfigDir,
@@ -134,6 +135,8 @@ export async function startOpencode(opts: StartOptions = {}): Promise<void> {
     // 启动 sidecar 前自动 snapshot（ADR-021 D9：启动前必有回滚点）。失败不阻止启动。
     await createSnapshot({ type: "auto" }).catch((err) => logger.warn("auto snapshot failed", { error: String(err) }))
     await pruneAutoSnapshots().catch((err) => logger.warn("prune snapshots failed", { error: String(err) }))
+    // M2（审计 S1 拖留泄露面）：迁移旧快照脱敏 + 收紧 0600。失败不阻止启动。
+    await migrateRedactOldSnapshots().catch((err) => logger.warn("snapshot migration failed", { error: String(err) }))
     serverDataPromise = new Promise<ServerReadyData>((resolve) => {
       serverDataResolver = resolve
     })

@@ -76,6 +76,7 @@ import {
 } from "./launcher-controller"
 import {
   createSnapshot,
+  pruneAutoSnapshots,
   listSnapshots,
   tagSnapshot,
   untagSnapshot,
@@ -426,7 +427,13 @@ const main = Effect.gen(function* () {
   )
   ipcMain.handle("launcher:save-config", async (_event, config: Record<string, unknown>) => {
     const path = await saveConfigObject(config, process.cwd())
-    await createSnapshot({ type: "auto", projectPath: process.cwd() }).catch((err) => console.warn("post-save snapshot failed", err))
+    await createSnapshot({ type: "auto", projectPath: process.cwd() }).catch((err) =>
+      console.warn("post-save snapshot failed", err),
+    )
+    // 工单 09 M4 联动：保存路径建快照后顺带裁剪，防止快照无界增长放大 S1 暴露面。
+    await pruneAutoSnapshots(undefined, process.cwd()).catch((err) =>
+      console.warn("post-save prune snapshots failed", err),
+    )
     return path
   })
   ipcMain.handle("launcher:save-auth-key", (_event, providerID: string, key: string | null) =>
@@ -444,6 +451,10 @@ const main = Effect.gen(function* () {
     const path = await saveConfigFileAtPath(filePath, config)
     await createSnapshot({ type: "auto", projectPath: process.cwd() }).catch((err) =>
       console.warn("post-save-file snapshot failed", err),
+    )
+    // 工单 09 M4 联动：保存路径建快照后顺带裁剪，防止快照无界增长放大 S1 暴露面。
+    await pruneAutoSnapshots(undefined, process.cwd()).catch((err) =>
+      console.warn("post-save-file prune snapshots failed", err),
     )
     return path
   })

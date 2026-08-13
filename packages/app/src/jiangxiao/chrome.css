@@ -1,0 +1,317 @@
+/* ============================================================
+   姜晓·墨染 分包 2/6：chrome（全局框架）
+   ============================================================
+   本文件由 jiangxiao.css 拆分而来（纯移动，未改规则）。
+   覆盖：body/#root 底色与梧桐叶装饰、titlebar、窗口控制钮、
+   滚动条、::selection、工单 07 全局 v2/legacy 变量重写、标题烫金箔。
+   ============================================================ */
+/* ---------- 全局背景：body 持页面底色，#root 透明化让装饰层可见 ----------
+   ADR-024：页面背景色从 #root 迁至 body，#root 背景透明化。
+   装饰层 #root::before（z-index:0）在 #root 内、内容（#root > *，z-index:var(--jx-z-fx)=1）之下；
+   #root 透明后 body 底色透出，装饰层不再被不透明 #root 遮挡，叶/瓣可见且仍压在内容之下。
+   依赖核查：splash 自带背景（z-index:200）、Portal/弹窗 mount 到 body、角色区/消息卷轴自带容器背景，均不依赖 #root 不透明底，无破坏。 */
+[data-theme="jiangxiao"] body {
+  background-color: var(--jx-surface-0);
+}
+
+[data-theme="jiangxiao"] #root {
+  background-color: transparent;
+}
+
+/* 梧桐叶固定构图（静态装饰，ADR-024），通过 data-oc-deco="static" 开关控制
+   弃云纹点阵水印，改 5 片大金叶四角/边缘斜铺，居中留白不动画。
+   复用工单02 的掌状五裂梧桐叶 SVG（leaf-a/b/c），更大尺寸，background-position 固定四角/边缘。
+   低透明度、pointer-events: none，不干扰内容阅读。 */
+[data-theme="jiangxiao"][data-oc-deco="static"] #root::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.14;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 96 L50 72 C44 70 36 64 30 54 C26 46 20 40 14 30 C24 32 32 38 38 46 C36 38 32 26 34 14 C40 24 44 36 48 48 C50 36 50 24 50 12 C50 24 50 36 52 48 C56 36 60 24 66 14 C68 26 64 38 62 46 C68 38 76 32 86 30 C80 40 74 46 70 54 C64 64 56 70 50 72 Z' fill='%23b8860b'/%3E%3Cpath d='M50 72 L14 30 M50 72 L34 14 M50 72 L50 12 M50 72 L66 14 M50 72 L86 30' fill='none' stroke='%23996515' stroke-width='1.2' stroke-opacity='0.6'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg transform='rotate(-12 50 50)'%3E%3Cpath d='M50 96 L50 72 C44 70 36 64 30 54 C26 46 20 40 14 30 C24 32 32 38 38 46 C36 38 32 26 34 14 C40 24 44 36 48 48 C50 36 50 24 50 12 C50 24 50 36 52 48 C56 36 60 24 66 14 C68 26 64 38 62 46 C68 38 76 32 86 30 C80 40 74 46 70 54 C64 64 56 70 50 72 Z' fill='%23d6b34a'/%3E%3Cpath d='M50 72 L14 30 M50 72 L34 14 M50 72 L50 12 M50 72 L66 14 M50 72 L86 30' fill='none' stroke='%23996515' stroke-width='1.2' stroke-opacity='0.6'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg transform='rotate(20 50 50)'%3E%3Cpath d='M50 96 L50 72 C44 70 36 64 30 54 C26 46 20 40 14 30 C24 32 32 38 38 46 C36 38 32 26 34 14 C40 24 44 36 48 48 C50 36 50 24 50 12 C50 24 50 36 52 48 C56 36 60 24 66 14 C68 26 64 38 62 46 C68 38 76 32 86 30 C80 40 74 46 70 54 C64 64 56 70 50 72 Z' fill='%23dfb793'/%3E%3Cpath d='M50 72 L14 30 M50 72 L34 14 M50 72 L50 12 M50 72 L66 14 M50 72 L86 30' fill='none' stroke='%23b8860b' stroke-width='1.2' stroke-opacity='0.6'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg transform='rotate(-12 50 50)'%3E%3Cpath d='M50 96 L50 72 C44 70 36 64 30 54 C26 46 20 40 14 30 C24 32 32 38 38 46 C36 38 32 26 34 14 C40 24 44 36 48 48 C50 36 50 24 50 12 C50 24 50 36 52 48 C56 36 60 24 66 14 C68 26 64 38 62 46 C68 38 76 32 86 30 C80 40 74 46 70 54 C64 64 56 70 50 72 Z' fill='%23d6b34a'/%3E%3Cpath d='M50 72 L14 30 M50 72 L34 14 M50 72 L50 12 M50 72 L66 14 M50 72 L86 30' fill='none' stroke='%23996515' stroke-width='1.2' stroke-opacity='0.6'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 96 L50 72 C44 70 36 64 30 54 C26 46 20 40 14 30 C24 32 32 38 38 46 C36 38 32 26 34 14 C40 24 44 36 48 48 C50 36 50 24 50 12 C50 24 50 36 52 48 C56 36 60 24 66 14 C68 26 64 38 62 46 C68 38 76 32 86 30 C80 40 74 46 70 54 C64 64 56 70 50 72 Z' fill='%23b8860b'/%3E%3Cpath d='M50 72 L14 30 M50 72 L34 14 M50 72 L50 12 M50 72 L66 14 M50 72 L86 30' fill='none' stroke='%23996515' stroke-width='1.2' stroke-opacity='0.6'/%3E%3C/svg%3E");
+  background-size:
+    280px 380px,
+    340px 440px,
+    220px 300px,
+    300px 400px,
+    180px 240px;
+  background-position:
+    top right,
+    bottom left,
+    top left,
+    bottom right,
+    92% 65%;
+  background-repeat: no-repeat;
+}
+
+/* 梧桐叶飘落（动态特效，ADR-024），通过 data-oc-deco="dynamic" 开关控制
+   弃金粉圆点，改金色梧桐叶（掌状五裂写实形）斜向飘落。
+   3 款不同朝向/色阶叶形 SVG data-URI 多背景图层叠加，各层 size/起始偏移/位移量错开，
+   消除"每片完全相同"平铺感。斜向右上→左下 keyframe 驱动 background-position。
+   SVG 内色值硬编码（金族 #b8860b/#d6b34a/#dfb793/#996515），与现有装饰 SVG 一致。 */
+[data-theme="jiangxiao"][data-oc-deco="dynamic"] #root::before {
+  content: "";
+  position: fixed;
+  inset: -40px 0 0 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 96 L50 72 C44 70 36 64 30 54 C26 46 20 40 14 30 C24 32 32 38 38 46 C36 38 32 26 34 14 C40 24 44 36 48 48 C50 36 50 24 50 12 C50 24 50 36 52 48 C56 36 60 24 66 14 C68 26 64 38 62 46 C68 38 76 32 86 30 C80 40 74 46 70 54 C64 64 56 70 50 72 Z' fill='%23b8860b'/%3E%3Cpath d='M50 72 L14 30 M50 72 L34 14 M50 72 L50 12 M50 72 L66 14 M50 72 L86 30' fill='none' stroke='%23996515' stroke-width='1.2' stroke-opacity='0.6'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg transform='rotate(-12 50 50)'%3E%3Cpath d='M50 96 L50 72 C44 70 36 64 30 54 C26 46 20 40 14 30 C24 32 32 38 38 46 C36 38 32 26 34 14 C40 24 44 36 48 48 C50 36 50 24 50 12 C50 24 50 36 52 48 C56 36 60 24 66 14 C68 26 64 38 62 46 C68 38 76 32 86 30 C80 40 74 46 70 54 C64 64 56 70 50 72 Z' fill='%23d6b34a'/%3E%3Cpath d='M50 72 L14 30 M50 72 L34 14 M50 72 L50 12 M50 72 L66 14 M50 72 L86 30' fill='none' stroke='%23996515' stroke-width='1.2' stroke-opacity='0.6'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg transform='rotate(20 50 50)'%3E%3Cpath d='M50 92 L50 70 C44 68 36 62 30 52 C26 44 20 38 16 32 C24 34 32 40 38 44 C36 36 32 24 36 16 C40 22 44 34 48 46 C50 34 50 22 50 14 C50 22 50 34 52 46 C56 34 60 22 64 16 C68 24 64 36 62 44 C68 40 76 34 84 32 C80 38 74 44 70 52 C64 62 56 68 50 70 Z' fill='%23dfb793'/%3E%3Cpath d='M50 70 L16 32 M50 70 L36 16 M50 70 L50 14 M50 70 L64 16 M50 70 L84 32' fill='none' stroke='%23b8860b' stroke-width='1.2' stroke-opacity='0.6'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:
+    80px 120px,
+    110px 150px,
+    65px 95px;
+  background-repeat: repeat;
+  animation: jiangxiao-leaf-fall 28s linear infinite;
+  opacity: 0.42;
+  mask-image: linear-gradient(to bottom, black, transparent 88%);
+}
+
+@keyframes jiangxiao-leaf-fall {
+  0% {
+    background-position:
+      200px -120px,
+      260px -150px,
+      160px -95px;
+  }
+  100% {
+    background-position:
+      -200px 100vh,
+      -260px 100vh,
+      -160px 100vh;
+  }
+}
+
+/* 确保应用内容位于装饰层之上 */
+[data-theme="jiangxiao"][data-oc-deco] #root > * {
+  position: relative;
+  z-index: var(--jx-z-fx);
+}
+
+/* ---------- 顶部栏：深色底 + 金色标题 + 云纹 ---------- */
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"] {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='48' viewBox='0 0 180 48'%3E%3Cpath d='M20 24c6-10 18-12 26-6 6 4 14 4 20-2 4-4 10-6 16-4' fill='none' stroke='%23B8860B' stroke-opacity='0.16' stroke-width='1'/%3E%3Cpath d='M10 38c8-8 20-8 30-4 6 2 14 1 20-4 6-5 14-6 22-3' fill='none' stroke='%23B8860B' stroke-opacity='0.10' stroke-width='1'/%3E%3Ccircle cx='150' cy='12' r='2' fill='%23B8860B' fill-opacity='0.14'/%3E%3Ccircle cx='70' cy='14' r='1.4' fill='%23B8860B' fill-opacity='0.12'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, var(--jx-surface-1), var(--jx-surface-0));
+  border-bottom: 1px solid color-mix(in srgb, var(--jx-gold-deep) 22%, transparent);
+}
+
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="tab-title"],
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-titlebar-tab-title] {
+  color: var(--jx-gold-bright);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+/* 标题栏金色端饰（唐风纹样感） */
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"] {
+  position: relative;
+}
+
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"]::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: linear-gradient(to bottom, transparent, var(--jx-gold-deep), transparent);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* 顶栏内文字：深底浅字惯例（ADR-004/006）
+   顶栏内 text-v2-text-text-base（light=#161616）/text-v2-text-text-faint（#808080）
+   在 light color-scheme 下会深字配深底，须逐一配套浅色 */
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="tab-link"],
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-titlebar-tab-link] {
+  color: var(--jx-text-base);
+  -webkit-text-fill-color: var(--jx-text-base);
+}
+
+[data-theme="jiangxiao"]
+  [data-slot="titlebar-v2"]
+  [data-slot="titlebar-tab-item"][data-active="true"]
+  [data-slot="tab-link"],
+[data-theme="jiangxiao"]
+  [data-slot="titlebar-v2"]
+  [data-slot="titlebar-tab-item"][data-state="pressed"]
+  [data-slot="tab-link"] {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+}
+
+/* 顶栏内 ghost-muted 按钮（Home/NewTab/Update 等）：图标和文字浅色 */
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"],
+[data-theme="jiangxiao"]
+  [data-slot="titlebar-v2"]
+  [data-component="icon-button-v2"][data-variant="ghost-muted"]
+  [data-slot="icon-svg"] {
+  color: var(--jx-text-base);
+  -webkit-text-fill-color: var(--jx-text-base);
+}
+
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-component="icon-button-v2"][data-variant="ghost-muted"]:hover,
+[data-theme="jiangxiao"]
+  [data-slot="titlebar-v2"]
+  [data-component="icon-button-v2"][data-variant="ghost-muted"]:hover
+  [data-slot="icon-svg"] {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+}
+
+/* 自绘窗口控制按钮（ADR-016）：红金配色。默认朱红图标，hover 亮金；
+   关闭按钮 hover 朱红底 + 亮金图标（呼应 Windows 关闭高亮惯例，用品牌朱红）。 */
+[data-theme="jiangxiao"] [data-slot="window-control-button"] {
+  color: var(--jx-cinnabar);
+  -webkit-text-fill-color: var(--jx-cinnabar);
+}
+
+[data-theme="jiangxiao"] [data-slot="window-control-button"]:hover,
+[data-theme="jiangxiao"] [data-slot="window-control-button"]:focus-visible {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+  background-color: color-mix(in srgb, var(--jx-cinnabar) 16%, transparent);
+}
+
+[data-theme="jiangxiao"] [data-slot="window-control-button"]:last-child:hover,
+[data-theme="jiangxiao"] [data-slot="window-control-button"]:last-child:focus-visible {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+  background-color: var(--jx-cinnabar);
+}
+
+/* 顶栏 Update 按钮文字（text-v2-text-text-accent）浅色 */
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-update-loader"],
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"] .text-v2-text-text-accent {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+}
+
+/* 顶栏 tabs fade 遮罩：用深底色渐变（原 var(--v2-background-bg-deep) 在 light 下是浅色） */
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-tabs-fade-left"] {
+  background-image: linear-gradient(to right, var(--jx-surface-0), transparent);
+}
+
+[data-theme="jiangxiao"] [data-slot="titlebar-v2"] [data-slot="titlebar-tabs-fade-right"] {
+  background-image: linear-gradient(to left, var(--jx-surface-0), transparent);
+}
+
+
+/* ---------- 自定义滚动条：金边细条 ---------- */
+[data-theme="jiangxiao"] *::-webkit-scrollbar {
+  width: var(--jx-space-2);
+  height: var(--jx-space-2);
+}
+
+[data-theme="jiangxiao"] *::-webkit-scrollbar-track {
+  background: var(--jx-scroll-track);
+}
+
+[data-theme="jiangxiao"] *::-webkit-scrollbar-thumb {
+  background: var(--jx-gold-deep);
+  border-radius: var(--jx-radius-lg);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+[data-theme="jiangxiao"] *::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--jx-gold-bright) 50%, var(--jx-gold-deep));
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+
+/* ---------- 选择高亮：暗金半透明（ADR-006 决策 1） ---------- */
+[data-theme="jiangxiao"] ::selection {
+  background: var(--jx-selection);
+}
+
+
+/* ============================================================
+   工单 07：全局其他页面深底烫金 + 验收补齐（ADR-006 决策 1）
+   ============================================================
+   策略：在 [data-theme="jiangxiao"] 作用域内重写 v2/legacy 设计 token
+   变量（背景/文字/边框/图标），让所有未被工单 02-06 精细覆盖的页面容器
+   （首页/草稿页/设置模态/侧边栏/错误页/main 容器等）自动深底烫金，
+   避免逐一加规则且杜绝 light 下深 token 黑字黑底遗漏。
+
+   安全性：工单 01-06 的局部精细调整均用直接色值（var(--jx-*)）+
+   -webkit-text-fill-color + !important，特异性高于纯 tailwind class
+   （.text-v2-text-text-base 等编译为 color:var(--v2-text-text-base)），
+   故不受本块变量重写影响。代码语法高亮用 .shiki span token 直接色值，
+   亦不受影响。 */
+[data-theme="jiangxiao"] {
+  /* —— 背景变量：所有页面容器自动深底（首页/layout-new/设置模态/侧边栏等）—— */
+  --v2-background-bg-deep: var(--jx-surface-0);
+  --v2-background-bg-base: var(--jx-surface-1);
+  --v2-background-bg-layer-01: var(--jx-surface-1);
+  --v2-background-bg-layer-02: var(--jx-surface-1);
+  --v2-background-bg-layer-03: var(--jx-surface-0);
+  --background-base: var(--jx-surface-0);
+  --background-surface-base: var(--jx-surface-1);
+  --surface-base: var(--jx-surface-1);
+  --surface-raised-base: var(--jx-surface-1);
+  --surface-raised-base-hover: color-mix(in srgb, var(--jx-surface-1) 85%, var(--jx-gold-deep) 15%);
+
+  /* —— 文字变量：普通正文暗金（#B8860B vs #0a0a0a 对比度 6.1:1，达 WCAG AA，
+         柔和不刺眼，符合唐风暗金调性）；强调/标题亮金（#F6D365，13.6:1，AAA）。
+         覆盖 light 下深色 text token（#161616/#808080）避免黑字黑底 —— */
+  --v2-text-text-base: var(--jx-gold-deep);
+  --v2-text-text-faint: var(--jx-gold-deep);
+  --v2-text-text-muted: var(--jx-gold-deep);
+  --v2-text-text-strong: var(--jx-gold-bright);
+  --v2-text-text-accent: var(--jx-gold-bright);
+  --v2-text-text-accent-hover: var(--jx-gold-bright);
+  --text-base: var(--jx-gold-deep);
+  --text-strong: var(--jx-gold-bright);
+  --text-weak: var(--jx-gold-deep);
+
+  /* —— 边框变量：棕金描边，融入唐风深底 —— */
+  --v2-border-border-base: color-mix(in srgb, var(--jx-gold-deep) 30%, transparent);
+  --v2-border-border-muted: color-mix(in srgb, var(--jx-gold-deep) 20%, transparent);
+  --v2-border-border-strong: color-mix(in srgb, var(--jx-gold-deep) 45%, transparent);
+  --v2-border-border-focus: var(--jx-gold-bright);
+  --border-weak-base: color-mix(in srgb, var(--jx-gold-deep) 30%, transparent);
+  --border-weaker-base: color-mix(in srgb, var(--jx-gold-deep) 20%, transparent);
+
+  /* —— 图标变量：暗金，呼应烫金文字 —— */
+  --v2-icon-icon-base: var(--jx-gold-deep);
+  --v2-icon-icon-muted: var(--jx-gold-deep);
+  --v2-icon-icon-accent: var(--jx-gold-bright);
+}
+
+/* —— 烫金箔光泽流动感（PRD 验收标准 5，ADR-006 决策 1）——
+   标题 h1-h4 用金色渐变 background-clip:text 呈现烫金箔流动质感。
+   @supports 兜底：不支持 background-clip:text 的浏览器回退到亮金纯色。
+   助手消息内标题（工单 04 [data-component="text-part"] markdown h1-h6）
+   特异性 (0,3,2) 高于本规则 (0,1,2)，保持工单 04 亮金纯色不冲突。 */
+[data-theme="jiangxiao"] :is(h1, h2, h3, h4) {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  [data-theme="jiangxiao"] :is(h1, h2, h3, h4) {
+    background: var(--jx-gold-foil);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* —— 全局 strong/b 强调元素：亮金纯色（烫金系，不叠加渐变避免正文斑驳）—— */
+[data-theme="jiangxiao"] :is(strong, b) {
+  color: var(--jx-gold-bright);
+  -webkit-text-fill-color: var(--jx-gold-bright);
+}
