@@ -1295,6 +1295,90 @@ body {
   color: var(--jx-text-weak);
 }
 
+/* 内置工具一键安装（工单 10 / ADR-033） */
+.launcher-tools {
+  margin-top: var(--jx-space-6);
+  padding: var(--jx-space-6);
+  background-color: var(--jx-surface-1);
+  border: 1px solid var(--jx-border-deco);
+  border-radius: var(--jx-radius-lg);
+  box-shadow: var(--jx-shadow-1);
+}
+
+.launcher-tools__title {
+  margin: 0 0 var(--jx-space-2);
+  font-family: var(--jx-font-display);
+  font-size: var(--jx-fs-h2);
+  color: var(--jx-gold);
+}
+
+.launcher-tools__hint {
+  margin: 0 0 var(--jx-space-4);
+  color: var(--jx-text-faint);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-tools__item {
+  padding: var(--jx-space-4) 0;
+  border-top: 1px solid var(--jx-border-deco);
+}
+
+.launcher-tools__item:first-of-type {
+  border-top: none;
+}
+
+.launcher-tools__head {
+  display: flex;
+  align-items: center;
+  gap: var(--jx-space-3);
+  margin-bottom: var(--jx-space-2);
+}
+
+.launcher-tools__name {
+  flex: 1;
+  font-weight: 600;
+  color: var(--jx-text-base);
+}
+
+.launcher-tools__state {
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-weak);
+}
+
+.launcher-tools__state--ok {
+  color: var(--jx-success);
+}
+
+.launcher-tools__desc {
+  margin: 0 0 var(--jx-space-3);
+  color: var(--jx-text-weak);
+  font-size: var(--jx-fs-small);
+}
+
+.launcher-tools__desc code {
+  font-family: var(--jx-font-code);
+  background-color: var(--jx-surface-0);
+  padding: 0 var(--jx-space-1);
+  border-radius: var(--jx-radius-sm);
+}
+
+.launcher-tools__usage {
+  margin: var(--jx-space-3) 0 0;
+  padding: var(--jx-space-3);
+  background-color: var(--jx-surface-0);
+  border-radius: var(--jx-radius-sm);
+  font-family: var(--jx-font-code);
+  font-size: var(--jx-fs-caption);
+  color: var(--jx-text-faint);
+  white-space: pre-wrap;
+}
+
+.launcher-tools__msg {
+  margin: var(--jx-space-3) 0 0;
+  color: var(--jx-text-base);
+  font-size: var(--jx-fs-small);
+}
+
 /* 插件加载详情（工单 07） */
 .launcher-pluginload {
   margin-top: var(--jx-space-4);

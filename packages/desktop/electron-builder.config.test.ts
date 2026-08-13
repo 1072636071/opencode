@@ -57,6 +57,20 @@ test("keeps a hidden prod launcher for old Linux pins", async () => {
   expect(desktop).toContain("NoDisplay=true")
 })
 
+test("bundles omos-jx dist into packaged resources (工单 09)", async () => {
+  const previous = process.env.OPENCODE_CHANNEL
+  process.env.OPENCODE_CHANNEL = "prod"
+  const module = await import("./electron-builder.config.ts?omos-jx-resource")
+  const config = module.default as Configuration
+  if (previous === undefined) delete process.env.OPENCODE_CHANNEL
+  else process.env.OPENCODE_CHANNEL = previous
+
+  expect(config.extraResources).toContainEqual({
+    from: "../../oh-my-opencode-slim/dist",
+    to: "omos-jx",
+  })
+})
+
 test("bundles the CLI outside the dev app archive", async () => {
   const previous = process.env.OPENCODE_CHANNEL
   process.env.OPENCODE_CHANNEL = "dev"

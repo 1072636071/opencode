@@ -11,6 +11,7 @@ import { startBackgroundCli } from "./background-cli"
 import { restoreMainWindows } from "./windows"
 import { getLauncherWindow } from "./launcher-window"
 import { createPluginLoadTracker, parsePathAndLine, type PluginLoadEntry } from "./launcher-plugin-loads"
+import { OMOS_JX_DEV_RELATIVE_PATH, resolveOmosJxPluginPath, type OmosJxPluginResolution } from "./launcher-plugin-path"
 import {
   createSnapshot,
   pruneAutoSnapshots,
@@ -124,10 +125,44 @@ function applyStartEnv(opts: StartOptions): () => void {
   }
 }
 
+// 工单 09：打包场景把 omos-jx 插件路径注入 opencode 配置（OPENCODE_CONFIG_CONTENT）。
+// 仅当安装包内 `resources/omos-jx` 存在时注入；dev 场景沿用 fork 预置配置（工单 08），
+// 不注入，避免与 fork preset 的 `../oh-my-opencode-slim` 重复加载。返回还原函数。
+function applyOmosJxPackagedEnv(logger: Logger): () => void {
+  let resolution: OmosJxPluginResolution
+  try {
+    resolution = resolveOmosJxPluginPath({
+      isPackaged: app.isPackaged,
+      resourcesPath: process.resourcesPath,
+      devPluginPath: join(process.cwd(), OMOS_JX_DEV_RELATIVE_PATH),
+    })
+  } catch {
+    return () => {}
+  }
+  if (!resolution.viaResources || !resolution.pluginPath) return () => {}
+
+  const existing = process.env.OPENCODE_CONFIG_CONTENT
+  let existingObj: Record<string, unknown>
+  try {
+    existingObj = existing ? (JSON.parse(existing) as Record<string, unknown>) : {}
+  } catch {
+    existingObj = {}
+  }
+  const plugin = Array.isArray(existingObj.plugin) ? [...(existingObj.plugin as unknown[])] : []
+  if (!plugin.includes(resolution.pluginPath)) plugin.push(resolution.pluginPath)
+  process.env.OPENCODE_CONFIG_CONTENT = JSON.stringify({ ...existingObj, plugin })
+  logger.log("omos-jx plugin injected from packaged resources", { pluginPath: resolution.pluginPath })
+  return () => {
+    if (existing === undefined) delete process.env.OPENCODE_CONFIG_CONTENT
+    else process.env.OPENCODE_CONFIG_CONTENT = existing
+  }
+}
+
 export async function startOpencode(opts: StartOptions = {}): Promise<void> {
   if (status === "starting" || status === "running") return
   setStatus("starting")
   const restoreEnv = applyStartEnv(opts)
+  const restoreOmosJx = applyOmosJxPackagedEnv(logger)
   try {
     clearPluginLogs()
     clearPluginLoads()
@@ -148,6 +183,7 @@ export async function startOpencode(opts: StartOptions = {}): Promise<void> {
     setStatus("failed", detail)
   } finally {
     restoreEnv()
+    restoreOmosJx()
   }
 }
 

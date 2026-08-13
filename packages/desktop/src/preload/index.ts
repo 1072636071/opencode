@@ -135,6 +135,9 @@ const api: ElectronAPI = {
   launcherTogglePlugin: (spec, enabled) => ipcRenderer.invoke("launcher:toggle-plugin", spec, enabled),
   launcherExportBundle: (id) => ipcRenderer.invoke("launcher:export-bundle", id),
   launcherImportBundle: (content) => ipcRenderer.invoke("launcher:import-bundle", content),
+  launcherGetTools: () => ipcRenderer.invoke("launcher:get-tools"),
+  launcherInstallRtk: () => ipcRenderer.invoke("launcher:install-rtk"),
+  launcherInstallCodemap: () => ipcRenderer.invoke("launcher:install-codemap"),
   onLauncherImportProgress: (cb) => {
     const handler = (_: unknown, phase: string) => cb(phase)
     ipcRenderer.on("launcher:import-progress", handler)
