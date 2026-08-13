@@ -425,7 +425,7 @@ const main = Effect.gen(function* () {
   })
   ipcMain.handle("launcher:get-settings", () => getLauncherSettings())
   ipcMain.handle("launcher:set-settings", (_event, s: { autoStart?: boolean }) => setLauncherSettings(s))
-  ipcMain.handle("launcher:list-plugins", () => readCurrentPlugins())
+  ipcMain.handle("launcher:list-plugins", () => readCurrentPlugins(process.cwd()))
   ipcMain.handle("launcher:get-plugin-logs", () => getPluginLogs())
   ipcMain.handle("launcher:export-logs", async (_event, path: string, content: string) => {
     const { writeFile } = await import("node:fs/promises")
@@ -506,9 +506,9 @@ const main = Effect.gen(function* () {
     switchTheme(themeName, process.cwd()),
   )
   ipcMain.handle("launcher:read-current-theme", () => readCurrentTheme(process.cwd()))
-  ipcMain.handle("launcher:install-plugin", (_event, spec: string) => installPlugin(spec))
-  ipcMain.handle("launcher:uninstall-plugin", (_event, spec: string) => uninstallPlugin(spec))
-  ipcMain.handle("launcher:toggle-plugin", (_event, spec: string, enabled: boolean) => togglePlugin(spec, enabled))
+  ipcMain.handle("launcher:install-plugin", (_event, spec: string) => installPlugin(spec, process.cwd()))
+  ipcMain.handle("launcher:uninstall-plugin", (_event, spec: string) => uninstallPlugin(spec, process.cwd()))
+  ipcMain.handle("launcher:toggle-plugin", (_event, spec: string, enabled: boolean) => togglePlugin(spec, enabled, process.cwd()))
   ipcMain.handle("launcher:export-bundle", (_event, id: string) => exportBundle(id))
   ipcMain.handle("launcher:import-bundle", async (_event, content: string) => {
     const launcher = getLauncherWindow()

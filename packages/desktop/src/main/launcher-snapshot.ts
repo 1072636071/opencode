@@ -217,10 +217,66 @@ function extractPluginSpecs(configContents: Record<string, string>): PluginSpec[
       seen.add(spec)
       specs.push({
         spec,
-        source: spec.startsWith(".") || spec.startsWith("/") || spec.startsWith("file:") ? "file" : "npm",
+        source: pluginSource(spec),
       })
     }
   }
+  return specs
+}
+
+// 工单 07：判定插件来源——file 前缀（./、/、file:）为 file，否则 npm。
+function pluginSource(spec: string): "npm" | "file" {
+  return spec.startsWith(".") || spec.startsWith("/") || spec.startsWith("file:") ? "file" : "npm"
+}
+
+// 工单 07：从 spec 提取 npm 包名（去掉 @version 后缀和 file: 前缀）。
+// "@scope/pkg@1.0.0" → "@scope/pkg"；"pkg@1.0.0" → "pkg"；"file:./local" → "file:./local"。
+function npmPackageName(spec: string): string {
+  // file: 前缀或路径形式不是 npm 包名
+  if (pluginSource(spec) === "file") return spec
+  // 去掉 file: 前缀（防御性，虽然上面已排除）
+  const cleaned = spec.startsWith("file:") ? spec.slice(5) : spec
+  // scoped 包：@scope/pkg@version → @scope/pkg
+  if (cleaned.startsWith("@")) {
+    const lastAt = cleaned.lastIndexOf("@")
+    return lastAt === 0 ? cleaned : cleaned.slice(0, lastAt)
+  }
+  // 普通包：pkg@version → pkg
+  const atIdx = cleaned.indexOf("@")
+  return atIdx === -1 ? cleaned : cleaned.slice(0, atIdx)
+}
+
+// 工单 07：尝试读取插件 version——npm 从 node_modules/<pkg>/package.json，file 从 <path>/package.json。
+// 读失败返回 undefined（UI 容错不显示）。
+async function readPluginVersion(spec: string, configDir: string): Promise<string | undefined> {
+  try {
+    if (pluginSource(spec) === "file") {
+      // file: 前缀去掉，解析为绝对路径
+      const cleaned = spec.startsWith("file:") ? spec.slice(5) : spec
+      const resolved = isAbsolute(cleaned) ? cleaned : resolve(configDir, cleaned)
+      const pkgPath = join(resolved, "package.json")
+      if (!existsSync(pkgPath)) return undefined
+      const pkg = JSON.parse(stripBom(await readFile(pkgPath, "utf8"))) as { version?: string }
+      return typeof pkg.version === "string" ? pkg.version : undefined
+    }
+    // npm：从 node_modules/<pkg>/package.json 读
+    const pkgName = npmPackageName(spec)
+    const pkgPath = join(configDir, "node_modules", pkgName, "package.json")
+    if (!existsSync(pkgPath)) return undefined
+    const pkg = JSON.parse(stripBom(await readFile(pkgPath, "utf8"))) as { version?: string }
+    return typeof pkg.version === "string" ? pkg.version : undefined
+  } catch {
+    return undefined
+  }
+}
+
+// 工单 07：为 PluginSpec[] 填充 version 字段（从 node_modules 或 file 路径读 package.json）。
+async function enrichPluginVersions(specs: PluginSpec[], configDir: string): Promise<PluginSpec[]> {
+  await Promise.all(
+    specs.map(async (s) => {
+      s.version = await readPluginVersion(s.spec, configDir)
+    }),
+  )
   return specs
 }
 
@@ -237,7 +293,7 @@ export async function createSnapshot(opts: { type: SnapshotType; projectPath?: s
       continue
     }
   }
-  const plugins = extractPluginSpecs(configContents)
+  const plugins = await enrichPluginVersions(extractPluginSpecs(configContents), opencodeConfigDir())
   const snapshot: Snapshot = {
     id,
     timestamp,
@@ -399,6 +455,7 @@ export async function restoreSnapshotConfig(snapshot: Snapshot): Promise<void> {
 }
 
 // 读当前 config 的插件 spec 列表（不创建 snapshot）。供安全模式 UI 列出可禁用插件。
+// 工单 07：传入 projectPath 对齐 ADR-026 D1（传 projectPath 匹配本体 findUp）。
 export async function readCurrentPlugins(projectPath?: string): Promise<PluginSpec[]> {
   const configFiles = findConfigFiles(projectPath)
   const configContents: Record<string, string> = {}
@@ -409,7 +466,7 @@ export async function readCurrentPlugins(projectPath?: string): Promise<PluginSp
       continue
     }
   }
-  return extractPluginSpecs(configContents)
+  return enrichPluginVersions(extractPluginSpecs(configContents), opencodeConfigDir())
 }
 
 // 返回第一个存在的 config 文件路径（供"打开配置文件"按钮）。
@@ -473,27 +530,29 @@ export async function writeAuthKey(providerID: string, key: string | null): Prom
 }
 
 // 安装插件：npm i spec + 加到 config.plugins + 保存 + snapshot。
-export async function installPlugin(spec: string): Promise<void> {
+// 工单 07：传入 projectPath 对齐 ADR-026 D1（传 projectPath 匹配本体 findUp）。
+export async function installPlugin(spec: string, projectPath?: string): Promise<void> {
   const cwd = opencodeConfigDir()
   const npm = process.platform === "win32" ? "npm.cmd" : "npm"
   if (!existsSync(join(cwd, "package.json"))) {
     await execFileAsync(npm, ["init", "-y"], { cwd })
   }
   await execFileAsync(npm, ["i", spec], { cwd })
-  const config = (await readConfigObject()) ?? {}
+  const config = (await readConfigObject(projectPath)) ?? {}
   const plugins = Array.isArray(config.plugins) ? (config.plugins as unknown[]) : []
   if (!plugins.includes(spec)) plugins.push(spec)
   config.plugins = plugins
-  await saveConfigObject(config)
-  await createSnapshot({ type: "auto" }).catch(() => {})
+  await saveConfigObject(config, projectPath)
+  await createSnapshot({ type: "auto", projectPath: projectPath ?? process.cwd() }).catch(() => {})
 }
 
 // 卸载插件：npm rm + 从 config.plugins 移除 + 从 plugin_enabled 移除 + 保存 + snapshot。
-export async function uninstallPlugin(spec: string): Promise<void> {
+// 工单 07：传入 projectPath 对齐 ADR-026 D1（传 projectPath 匹配本体 findUp）。
+export async function uninstallPlugin(spec: string, projectPath?: string): Promise<void> {
   const cwd = opencodeConfigDir()
   const npm = process.platform === "win32" ? "npm.cmd" : "npm"
   await execFileAsync(npm, ["rm", spec], { cwd }).catch(() => {})
-  const config = (await readConfigObject()) ?? {}
+  const config = (await readConfigObject(projectPath)) ?? {}
   if (Array.isArray(config.plugins)) {
     config.plugins = (config.plugins as unknown[]).filter((p) => p !== spec)
   }
@@ -502,17 +561,18 @@ export async function uninstallPlugin(spec: string): Promise<void> {
     delete enabled[spec]
     config.plugin_enabled = enabled
   }
-  await saveConfigObject(config)
-  await createSnapshot({ type: "auto" }).catch(() => {})
+  await saveConfigObject(config, projectPath)
+  await createSnapshot({ type: "auto", projectPath: projectPath ?? process.cwd() }).catch(() => {})
 }
 
 // 启用/禁用插件：设 config.plugin_enabled[spec] = enabled + 保存。
-export async function togglePlugin(spec: string, enabled: boolean): Promise<void> {
-  const config = (await readConfigObject()) ?? {}
+// 工单 07：传入 projectPath 对齐 ADR-026 D1（传 projectPath 匹配本体 findUp）。
+export async function togglePlugin(spec: string, enabled: boolean, projectPath?: string): Promise<void> {
+  const config = (await readConfigObject(projectPath)) ?? {}
   const map = (config.plugin_enabled as Record<string, unknown> | undefined) ?? {}
   map[spec] = enabled
   config.plugin_enabled = map
-  await saveConfigObject(config)
+  await saveConfigObject(config, projectPath)
 }
 
 // 导出整包：把 snapshot 的 config + 插件 spec + 元数据打包为可移植 JSON。
