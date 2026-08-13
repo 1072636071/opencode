@@ -1,13 +1,16 @@
 import { existsSync } from "node:fs"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname, join } from "node:path"
+import { app } from "electron"
 import { opencodeConfigDir, stripBom } from "./launcher-snapshot"
 
 export type LauncherSettings = {
   autoStart: boolean
 }
 
-const DEFAULT: LauncherSettings = { autoStart: false }
+// 工单 10 日常形态：打包后默认自动启动 sidecar+renderer 并最小化到托盘；
+// dev 模式默认 false 防"一闪而过"（经验文档坑3：launcher 窗口闪一下就 hide）。
+const DEFAULT: LauncherSettings = { autoStart: app.isPackaged }
 
 function settingsFile(): string {
   return join(opencodeConfigDir(), "launcher", "settings.json")
