@@ -8,9 +8,10 @@ export type LauncherSettings = {
   autoStart: boolean
 }
 
-// 工单 10 日常形态：打包后默认自动启动 sidecar+renderer 并最小化到托盘；
-// dev 模式默认 false 防"一闪而过"（经验文档坑3：launcher 窗口闪一下就 hide）。
-const DEFAULT: LauncherSettings = { autoStart: app.isPackaged }
+// 默认 autoStart=false：进 Launcher 后窗口停留，由用户在面板手动点「启动 OpenCode」。
+// 打包版（默认进 Launcher，见 index.ts isLauncherMode）不自动启动主应用；dev 模式同样停留。
+// 若需「进 Launcher 即自动启动主应用」，写 ~/.config/opencode/launcher/settings.json 为 { "autoStart": true }。
+const DEFAULT: LauncherSettings = { autoStart: false }
 
 function settingsFile(): string {
   return join(opencodeConfigDir(), "launcher", "settings.json")

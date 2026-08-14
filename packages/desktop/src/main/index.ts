@@ -132,9 +132,12 @@ const APP_IDS: Record<string, string> = {
 }
 const TEST_ONBOARDING = process.env.OPENCODE_TEST_ONBOARDING === "1"
 const SIDECAR_VERSION = process.env.OPENCODE_SIDECAR_V2 === "1" ? "v2" : "v1"
-// launcher 模式：--launcher 参数或 OPENCODE_LAUNCHER=1 启动。只开 launcher 窗口，
-// 不启动 sidecar、不开 renderer 主窗口。控制平面与数据平面分离（ADR-020）。
-const isLauncherMode = app.commandLine.hasSwitch("launcher") || process.env.OPENCODE_LAUNCHER === "1"
+// launcher 模式：打包版默认进 launcher（只开 launcher 窗口，不启动 sidecar、不开 renderer 主窗口，
+// 控制平面与数据平面分离 ADR-020）；用 `--no-launcher` 或 OPENCODE_SKIP_LAUNCHER=1 可退出 launcher 直接进主应用。
+// dev 模式维持显式触发：--launcher 参数或 OPENCODE_LAUNCHER=1。
+const isLauncherMode = app.isPackaged
+  ? !app.commandLine.hasSwitch("no-launcher") && process.env.OPENCODE_SKIP_LAUNCHER !== "1"
+  : app.commandLine.hasSwitch("launcher") || process.env.OPENCODE_LAUNCHER === "1"
 const jsCallStackFeature = "DocumentPolicyIncludeJSCallStacksInCrashReports"
 
 let logger: ReturnType<typeof initLogging>
