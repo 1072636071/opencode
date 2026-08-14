@@ -1,6 +1,7 @@
 import { test, expect, describe } from "bun:test"
 import path from "path"
 import { pathToFileURL } from "url"
+import { parse } from "jsonc-parser"
 import { ConfigPlugin } from "@/config/plugin"
 import { loadPluginConfig } from "../../../../../oh-my-opencode-slim/src/config/loader"
 
@@ -8,20 +9,20 @@ import { loadPluginConfig } from "../../../../../oh-my-opencode-slim/src/config/
 const forkRoot = path.resolve(__dirname, "../../../..") // test/config -> packages/opencode -> packages -> opencode/
 const monorepoRoot = path.resolve(forkRoot, "..")
 const pluginDir = path.join(monorepoRoot, "oh-my-opencode-slim")
+const projectConfigFile = path.join(forkRoot, ".opencode", "opencode.jsonc")
+const devPluginSpec = "../../oh-my-opencode-slim"
 
 describe("fork preset default plugin (dev scenario)", () => {
-  test("opencode.json declares the omos-jx plugin via relative path", async () => {
-    const configFile = path.join(forkRoot, "opencode.json")
-    // The opencode project config at the fork root declares the plugin.
-    const raw = await import("fs/promises").then((fs) => fs.readFile(configFile, "utf-8"))
-    const parsed = JSON.parse(raw)
-    expect(Array.isArray(parsed.plugin)).toBe(true)
-    expect(parsed.plugin[0]).toBe("../oh-my-opencode-slim")
+  test("project config declares the omos-jx plugin via relative path", async () => {
+    const raw = await import("fs/promises").then((fs) => fs.readFile(projectConfigFile, "utf-8"))
+    const parsed = parse(raw) as Record<string, unknown>
+    const plugin = parsed.plugin
+    expect(Array.isArray(plugin)).toBe(true)
+    expect((plugin as unknown[])[0]).toBe(devPluginSpec)
   })
 
   test("relative plugin path resolves to the monorepo plugin directory", async () => {
-    const configFile = path.join(forkRoot, "opencode.json")
-    const hit = await ConfigPlugin.resolvePluginSpec("../oh-my-opencode-slim", configFile)
+    const hit = await ConfigPlugin.resolvePluginSpec(devPluginSpec, projectConfigFile)
     expect(ConfigPlugin.pluginSpecifier(hit)).toBe(pathToFileURL(pluginDir).href)
   })
 
