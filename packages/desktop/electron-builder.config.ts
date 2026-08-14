@@ -14,6 +14,8 @@ const signScript = path.join(rootDir, "script", "sign-windows.ps1")
 // pins still resolve after the canonical app id changes back to ai.opencode.desktop.
 const legacyDesktopEntry = path.join(packageDir, "resources", "linux", "opencode-desktop.desktop")
 const legacyDesktopEntryFpm = `${legacyDesktopEntry}=/usr/share/applications/opencode-desktop.desktop`
+// 仓库根：packages/desktop 的三级上级（opencode/ → 仓库根）。用 __dirname 拼接避免硬编码层级（曾因少一级 .. 静默丢失）。
+const repoRootDir = path.resolve(packageDir, "../../..")
 
 const metainfoFpm = (appId: string) =>
   `${path.join(packageDir, "resources", `${appId}.metainfo.xml`)}=/usr/share/metainfo/${appId}.metainfo.xml`
@@ -72,9 +74,10 @@ const getBase = (appId: string): Configuration => ({
       filter: ["index.js", "index.d.ts", "build/Release/mac_window.node", "swift-build/**"],
     },
     // 工单 09：把 omos-jx 编译产物（dist）打进安装包 resources/omos-jx。
-    // 相对本配置文件目录（packages/desktop）解析；启动时探测并注入（ADR-032，launcher-plugin-path.ts）。
+    // 启动时探测并注入（ADR-032，launcher-plugin-path.ts）。from 用基于 __dirname 的绝对路径，
+    // 避免相对层级写错导致 electron-builder 静默跳过（曾少一级 .. 导致打包丢失）。
     {
-      from: "../../oh-my-opencode-slim/dist",
+      from: path.join(repoRootDir, "oh-my-opencode-slim", "dist"),
       to: "omos-jx",
     },
   ],
