@@ -2,9 +2,15 @@ import { execFile } from "node:child_process"
 import { existsSync } from "node:fs"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
-import { dirname, join } from "node:path"
+import { delimiter, dirname, join } from "node:path"
 import { promisify } from "node:util"
-import { applyEdits, modify, type FormattingOptions, type ModificationOptions } from "jsonc-parser"
+import {
+  applyEdits,
+  modify,
+  parse,
+  type FormattingOptions,
+  type ModificationOptions,
+} from "jsonc-parser"
 import { opencodeConfigDir, stripBom, getConfigFilePath } from "./launcher-snapshot"
 
 /**
@@ -39,6 +45,43 @@ export function codemapBinaryPath(): string {
   const localAppData =
     process.env.LOCALAPPDATA || join(homedir(), "AppData", "Local")
   return join(localAppData, "Programs", "codebase-memory-mcp", "codebase-memory-mcp.exe")
+}
+
+/**
+ * 在 PATH 中查找可执行文件，返回首个命中的绝对路径；未命中返回 null。
+ * 纯函数：`pathEnv` 默认取 `process.env.PATH`，测试可注入假 PATH。
+ * Windows 按 `PATHEXT` 顺序补扩展名（`.exe`/`.cmd`/`.bat`），非 Windows 直接用原名。
+ */
+export function findInPath(binaryName: string, pathEnv: string = process.env.PATH ?? ""): string | null {
+  const exts =
+    process.platform === "win32"
+      ? [".exe", ".cmd", ".bat", ".com"]
+      : [""]
+  const extFromPathExt = (process.env.PATHEXT ?? "")
+    .split(";")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+  const candidates = exts.length > 1 ? [...extFromPathExt, ...exts] : exts
+  for (const dir of pathEnv.split(delimiter)) {
+    if (!dir) continue
+    for (const ext of candidates) {
+      const candidate = join(dir, binaryName + ext)
+      if (existsSync(candidate)) return candidate
+    }
+  }
+  return null
+}
+
+/**
+ * 解析工具实际路径：固定路径命中优先；否则回退到 PATH 探测；都没有则回退固定路径（用于报错提示）。
+ */
+export function resolveToolPath(
+  fixedPath: string,
+  binaryName: string,
+  pathEnv: string = process.env.PATH ?? "",
+): string {
+  if (existsSync(fixedPath)) return fixedPath
+  return findInPath(binaryName, pathEnv) ?? fixedPath
 }
 
 /** 从中取 `$PROFILE` 对应路径：PowerShell 7 用 Documents/PowerShell，Windows PowerShell 5.1 用 Documents/WindowsPowerShell。 */
@@ -88,16 +131,52 @@ export function parseVersion(output: string): string | null {
 const formattingOptions: FormattingOptions = { insertSpaces: true, tabSize: 2, eol: "\n" }
 const modifyOptions: ModificationOptions = { formattingOptions }
 
+type McpLocalConfig = { type: "local"; command: string[]; enabled: boolean }
+
+/**
+ * 纯函数：解析 opencode 配置文本，读取现有 `mcp.<name>` 值。
+ * 不存在或类型不匹配返回 undefined。jsonc-parser parseTree 容错注释/尾逗号。
+ */
+export function readExistingMcpConfig(text: string, name: string): unknown {
+  const parsed = parse(text, undefined, { allowTrailingComma: true })
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return undefined
+  const mcp = (parsed as Record<string, unknown>)["mcp"]
+  if (typeof mcp !== "object" || mcp === null || Array.isArray(mcp)) return undefined
+  return (mcp as Record<string, unknown>)[name]
+}
+
+/**
+ * 纯函数：合并期望配置与现有 `mcp.<name>`。
+ * 现有值为对象时：保留其全部字段（含 `enabled` 与额外字段），仅对齐 `type` 与二进制 `command` 路径。
+ * 现有值非对象（字符串/数组等）或无现有项：直接用期望配置。
+ */
+export function mergeMcpConfig(
+  existing: unknown,
+  desired: McpLocalConfig,
+): McpLocalConfig & Record<string, unknown> {
+  if (existing && typeof existing === "object" && !Array.isArray(existing)) {
+    const existingObj = existing as Record<string, unknown>
+    return {
+      ...existingObj,
+      type: desired.type,
+      command: desired.command,
+      enabled: typeof existingObj.enabled === "boolean" ? existingObj.enabled : desired.enabled,
+    }
+  }
+  return { ...desired }
+}
+
 /**
  * 纯函数：对 opencode.jsonc 文本设置 `mcp.<name>`，保留注释与其它字段（jsonc-parser modify）。
- * 复用 `omo-config.ts` 的 jsonc 编辑 seam。返回新文本。
+ * 写入前读取现有同名项并与期望配置合并，避免静默覆盖用户已有配置（如不同 enabled 或额外字段）。
  */
 export function applyMcpConfigEdit(
   text: string,
   name: string,
-  config: { type: "local"; command: string[]; enabled: boolean },
+  config: McpLocalConfig,
 ): string {
-  const edits = modify(text, ["mcp", name], config, modifyOptions)
+  const merged = mergeMcpConfig(readExistingMcpConfig(text, name), config)
+  const edits = modify(text, ["mcp", name], merged, modifyOptions)
   return applyEdits(text, edits)
 }
 
@@ -160,7 +239,7 @@ export type InstallRtkResult = {
  * hook 写入幂等：已包含该行则跳过追加。
  */
 export async function installRtk(): Promise<InstallRtkResult> {
-  const binaryPath = rtkBinaryPath()
+  const binaryPath = resolveToolPath(rtkBinaryPath(), "rtk")
   const detection = await detectTool(binaryPath)
   const hookLine = buildRtkProfileHookLine()
   const profilePath = powershellProfilePath()
@@ -228,7 +307,7 @@ export type InstallCodemapResult = {
 
 /** codebase-memory-mcp 一键安装 = 装二进制 + 写入 opencode mcp 配置。 */
 export async function installCodemap(): Promise<InstallCodemapResult> {
-  const binaryPath = codemapBinaryPath()
+  const binaryPath = resolveToolPath(codemapBinaryPath(), "codebase-memory-mcp")
   const detection = await detectTool(binaryPath)
   if (!detection.present) {
     return {
@@ -267,22 +346,24 @@ export async function installCodemap(): Promise<InstallCodemapResult> {
 
 /** 返回两个工具的检测状态（存在 + 版本），供「扩展/工具」页展示安装入口。 */
 export async function getToolStatuses(): Promise<ToolStatus[]> {
-  const rtk = await detectTool(rtkBinaryPath())
-  const codemap = await detectTool(codemapBinaryPath())
+  const rtkPath = resolveToolPath(rtkBinaryPath(), "rtk")
+  const codemapPath = resolveToolPath(codemapBinaryPath(), "codebase-memory-mcp")
+  const rtk = await detectTool(rtkPath)
+  const codemap = await detectTool(codemapPath)
   return [
     {
       name: "rtk",
       displayName: "RTK",
       present: rtk.present,
       version: rtk.version,
-      binaryPath: rtkBinaryPath(),
+      binaryPath: rtkPath,
     },
     {
       name: "codebase-memory-mcp",
       displayName: "codebase-memory-mcp",
       present: codemap.present,
       version: codemap.version,
-      binaryPath: codemapBinaryPath(),
+      binaryPath: codemapPath,
     },
   ]
 }

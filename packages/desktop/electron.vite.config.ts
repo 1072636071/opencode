@@ -51,7 +51,7 @@ const require = __cjs_mod__.createRequire(import.meta.url);
 `,
         },
       },
-      externalizeDeps: { include: [nodePtyPkg] },
+      externalizeDeps: { include: [nodePtyPkg], exclude: ["@opencode-ai/core"] },
     },
     plugins: [
       {
@@ -59,9 +59,16 @@ const require = __cjs_mod__.createRequire(import.meta.url);
         renderChunk(code: string) {
           const m = code.match(/^import\s+(?:(\w+)\s*,\s*)?\{([^}]*)\}\s+from\s+["']electron["'];\s*$/m)
           if (!m) return null
+          // Rollup may alias imported bindings (e.g. `app as app$1`) when merging
+          // imports across bundled modules; map `x as y` to object shorthand `x: y`.
+          const specifiers = m[2]
+            .split(",")
+            .map(s => s.trim())
+            .filter(Boolean)
+            .map(s => s.replace(/\bas\s+([A-Za-z_$][\w$]*)\s*$/g, ": $1"))
           const parts = ['const __opencode_electron__ = __cjs_mod__.createRequire(import.meta.url)("electron");']
           if (m[1]) parts.push(`const ${m[1]} = __opencode_electron__;`)
-          if (m[2].trim()) parts.push(`const { ${m[2].trim()} } = __opencode_electron__;`)
+          if (specifiers.length) parts.push(`const { ${specifiers.join(", ")} } = __opencode_electron__;`)
           return code.replace(m[0], parts.join(" "))
         },
       },

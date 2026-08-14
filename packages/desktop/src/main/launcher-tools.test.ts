@@ -9,7 +9,10 @@ import {
   buildMcpLocalConfig,
   buildRtkManualUsage,
   buildRtkProfileHookLine,
+  findInPath,
+  mergeMcpConfig,
   parseVersion,
+  readExistingMcpConfig,
 } from "./launcher-tools"
 
 const parse = (text: string): unknown => parseJsonc(text, undefined, { disallowComments: false })
@@ -64,6 +67,63 @@ describe("工单 10 内置工具一键安装 — 纯逻辑", () => {
         "codebase-memory-mcp": { type: "local", command: ["/usr/bin/cm"], enabled: true },
       },
     })
+  })
+
+  test("readExistingMcpConfig 读取现有同名项；不存在返回 undefined", () => {
+    const text = `{
+  "mcp": {
+    "codebase-memory-mcp": { "type": "local", "command": ["C:\\\\old\\\\cm.exe"], "enabled": false }
+  }
+}`
+    const existing = readExistingMcpConfig(text, "codebase-memory-mcp") as { enabled: boolean }
+    expect(existing.enabled).toBe(false)
+    expect(readExistingMcpConfig(text, "rtk")).toBeUndefined()
+    expect(readExistingMcpConfig("{}", "codebase-memory-mcp")).toBeUndefined()
+  })
+
+  test("mergeMcpConfig 保留现有 enabled 与额外字段，仅对齐 command 路径", () => {
+    const existing = { type: "local", command: ["C:\\old\\cm.exe"], enabled: false, extra: 42 }
+    const merged = mergeMcpConfig(existing, buildMcpLocalConfig("C:\\new\\cm.exe"))
+    expect(merged).toEqual({
+      type: "local",
+      command: ["C:\\new\\cm.exe"],
+      enabled: false,
+      extra: 42,
+    })
+  })
+
+  test("mergeMcpConfig 现有值非对象时直接用期望配置", () => {
+    const merged = mergeMcpConfig("string-value", buildMcpLocalConfig("/usr/bin/cm"))
+    expect(merged).toEqual({ type: "local", command: ["/usr/bin/cm"], enabled: true })
+  })
+
+  test("applyMcpConfigEdit 合并现有同名项：enabled 不被静默覆盖", () => {
+    const input = `{
+  "mcp": {
+    "codebase-memory-mcp": { "type": "local", "command": ["C:\\\\old\\\\cm.exe"], "enabled": false }
+  }
+}`
+    const out = applyMcpConfigEdit(input, "codebase-memory-mcp", buildMcpLocalConfig("C:\\new\\cm.exe"))
+    expect(parse(out)).toEqual({
+      mcp: {
+        "codebase-memory-mcp": { type: "local", command: ["C:\\new\\cm.exe"], enabled: false },
+      },
+    })
+  })
+
+  test("findInPath 固定路径缺失时命中 PATH 中的可执行文件", () => {
+    const dir = mkdtempSync(join(tmpdir(), "rtk-path-"))
+    const binPath = join(dir, "rtk.exe")
+    writeFileSync(binPath, "")
+    try {
+      // 固定路径目录里没有 rtk，但 PATH 目录里有 → 命中
+      const found = findInPath("rtk", `C:\\nonexistent;${dir}`)
+      expect(found).toBe(binPath)
+      // PATH 里也没有 → null
+      expect(findInPath("rtk", "C:\\nonexistent")).toBeNull()
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
   test("appendHookToProfile 幂等：已含 hook 行不重复追加", async () => {
