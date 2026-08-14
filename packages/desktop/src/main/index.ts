@@ -111,6 +111,7 @@ import {
 } from "./launcher-snapshot"
 import { createLauncherTray } from "./launcher-tray"
 import { getLauncherSettings, setLauncherSettings } from "./launcher-settings"
+import { getToolStatuses, installCodemap, installRtk } from "./launcher-tools"
 import { createWslServersController } from "./wsl/servers"
 import { registerWslIpcHandlers } from "./wsl/ipc"
 import { spawnWslSidecar } from "./wsl/sidecar"
@@ -509,6 +510,9 @@ const main = Effect.gen(function* () {
   ipcMain.handle("launcher:install-plugin", (_event, spec: string) => installPlugin(spec, process.cwd()))
   ipcMain.handle("launcher:uninstall-plugin", (_event, spec: string) => uninstallPlugin(spec, process.cwd()))
   ipcMain.handle("launcher:toggle-plugin", (_event, spec: string, enabled: boolean) => togglePlugin(spec, enabled, process.cwd()))
+  ipcMain.handle("launcher:get-tools", () => getToolStatuses())
+  ipcMain.handle("launcher:install-rtk", () => installRtk())
+  ipcMain.handle("launcher:install-codemap", () => installCodemap())
   ipcMain.handle("launcher:export-bundle", (_event, id: string) => exportBundle(id))
   ipcMain.handle("launcher:import-bundle", async (_event, content: string) => {
     const launcher = getLauncherWindow()

@@ -17,6 +17,7 @@ import type {
   LauncherExtensionResourceInfo,
   LauncherExtensionResourceKind,
   LauncherExtensionCreateLocation,
+  LauncherToolStatus,
 } from "../preload/types"
 import { mergeProviderConfig, validateLlmApiForm, type LlmApiFormState } from "./llm-api-form"
 import {
@@ -2097,6 +2098,98 @@ function PluginManagementPanel() {
   )
 }
 
+// 工单 10：内置工具一键安装（RTK + codebase-memory-mcp，ADR-033）。
+// 两者均不随安装包分发，由启动器检测二进制存在 + 版本，并提供安装入口。
+function ToolsPanel() {
+  const [tools, setTools] = createSignal<LauncherToolStatus[]>([])
+  const [busy, setBusy] = createSignal(false)
+  const [rtkMsg, setRtkMsg] = createSignal<string | null>(null)
+  const [codemapMsg, setCodemapMsg] = createSignal<string | null>(null)
+  const refresh = async () => {
+    try {
+      setTools(await window.api.launcherGetTools())
+    } catch {
+      setTools([])
+    }
+  }
+  onMount(() => void refresh())
+  const installRtk = async () => {
+    setBusy(true)
+    setRtkMsg(null)
+    try {
+      const res = await window.api.launcherInstallRtk()
+      setRtkMsg(res.ok ? `已安装到 ${res.binaryPath}，$PROFILE hook 已写入（${res.profilePath}）` : res.error ?? "安装失败")
+      await refresh()
+    } catch (err) {
+      setRtkMsg(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+  const installCodemap = async () => {
+    setBusy(true)
+    setCodemapMsg(null)
+    try {
+      const res = await window.api.launcherInstallCodemap()
+      setCodemapMsg(
+        res.ok
+          ? `已写入 mcp 配置 ${res.mcpName} → ${res.configPath ?? "opencode.json"}（重启 OpenCode 后生效）`
+          : res.error ?? "安装失败",
+      )
+      await refresh()
+    } catch (err) {
+      setCodemapMsg(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const rtk = tools().find((t) => t.name === "rtk")
+  const codemap = tools().find((t) => t.name === "codebase-memory-mcp")
+
+  return (
+    <div class="launcher-tools">
+      <h2 class="launcher-tools__title">内置工具</h2>
+      <p class="launcher-tools__hint">RTK 与 codebase-memory-mcp 为外部二进制，不随安装包分发，在此一键安装（ADR-033）。</p>
+
+      <div class="launcher-tools__item">
+        <div class="launcher-tools__head">
+          <span class="launcher-tools__name">RTK（命令行输出精简器）</span>
+          <span class={`launcher-tools__state ${rtk?.present ? "launcher-tools__state--ok" : ""}`}>
+            {rtk?.present ? (rtk.version ? `已安装 v${rtk.version}` : "已安装") : "未安装"}
+          </span>
+        </div>
+        <p class="launcher-tools__desc">
+          过滤进度条/重复日志，实测省 75%–90% token。安装 = 装二进制 + 写入 <code>$PROFILE</code> hook。
+        </p>
+        <button class="launcher-btn launcher-btn--small" disabled={busy()} onClick={installRtk}>
+          {rtk?.present ? "重新安装" : "一键安装"}
+        </button>
+        <pre class="launcher-tools__usage">{`# 手动管道用法（hook 仅对手动命令生效，agent 输出不一定经过）：
+git status | rtk
+npm test 2>&1 | rtk`}</pre>
+        {rtkMsg() && <p class="launcher-tools__msg">{rtkMsg()}</p>}
+      </div>
+
+      <div class="launcher-tools__item">
+        <div class="launcher-tools__head">
+          <span class="launcher-tools__name">codebase-memory-mcp（代码知识图谱）</span>
+          <span class={`launcher-tools__state ${codemap?.present ? "launcher-tools__state--ok" : ""}`}>
+            {codemap?.present ? (codemap.version ? `已安装 v${codemap.version}` : "已安装") : "未安装"}
+          </span>
+        </div>
+        <p class="launcher-tools__desc">
+          158 语言 AST 索引、调用链追踪。安装 = 装二进制 + 写入 opencode 原生 mcp 配置。
+        </p>
+        <button class="launcher-btn launcher-btn--small" disabled={busy()} onClick={installCodemap}>
+          {codemap?.present ? "重新安装" : "一键安装"}
+        </button>
+        {codemapMsg() && <p class="launcher-tools__msg">{codemapMsg()}</p>}
+      </div>
+    </div>
+  )
+}
+
 function UpdatePanel() {
   const [updateState, setUpdateState] = createSignal<{ status: string; version?: string }>({ status: "idle" })
   const [updating, setUpdating] = createSignal(false)
@@ -2467,6 +2560,7 @@ function ExtensionsPage() {
         </Match>
         <Match when={tab() === "plugins"}>
           <PluginManagementPanel />
+          <ToolsPanel />
         </Match>
       </Switch>
     </div>
@@ -2894,7 +2988,6 @@ function ThemeSwitchPanel() {
           )}
         </For>
       </div>
-    </div>
   )
 }
 

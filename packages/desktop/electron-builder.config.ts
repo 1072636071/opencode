@@ -71,6 +71,12 @@ const getBase = (appId: string): Configuration => ({
       to: "native/",
       filter: ["index.js", "index.d.ts", "build/Release/mac_window.node", "swift-build/**"],
     },
+    // 工单 09：把 omos-jx 编译产物（dist）打进安装包 resources/omos-jx。
+    // 相对本配置文件目录（packages/desktop）解析；启动时探测并注入（ADR-032，launcher-plugin-path.ts）。
+    {
+      from: "../../oh-my-opencode-slim/dist",
+      to: "omos-jx",
+    },
   ],
   mac: {
     category: "public.app-category.developer-tools",

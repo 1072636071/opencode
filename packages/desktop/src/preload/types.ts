@@ -149,6 +149,35 @@ export type LauncherErrorSnippet = {
   ts: number
 }
 
+export type LauncherToolStatus = {
+  name: string
+  displayName: string
+  present: boolean
+  version: string | null
+  binaryPath: string
+}
+
+export type LauncherInstallRtkResult = {
+  ok: boolean
+  binaryPath: string
+  present: boolean
+  version: string | null
+  profilePath: string
+  hookLine: string
+  manualUsage: string
+  error?: string
+}
+
+export type LauncherInstallCodemapResult = {
+  ok: boolean
+  binaryPath: string
+  present: boolean
+  version: string | null
+  mcpName: string
+  configPath: string | null
+  error?: string
+}
+
 export type WslServersAPI = WslServersPlatform
 export type UpdaterAPI = {
   subscribe: (cb: (state: UpdaterState) => void) => Promise<() => void>
@@ -260,6 +289,9 @@ export type ElectronAPI = {
   launcherExportBundle: (id: string) => Promise<string>
   launcherImportBundle: (content: string) => Promise<{ failedPlugins: string[] }>
   onLauncherImportProgress: (cb: (phase: string) => void) => () => void
+  launcherGetTools: () => Promise<LauncherToolStatus[]>
+  launcherInstallRtk: () => Promise<LauncherInstallRtkResult>
+  launcherInstallCodemap: () => Promise<LauncherInstallCodemapResult>
 
   getWindowID: () => Promise<string>
   onMenuCommand: (cb: (id: string) => void) => () => void
