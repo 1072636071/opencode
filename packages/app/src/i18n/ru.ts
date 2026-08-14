@@ -958,12 +958,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.description":
     "Показывать переключатель агентов в редакторе запросов. Если он скрыт, по умолчанию используется агент Build.",
   "settings.general.row.skillCommands.title": "Skill commands",
-  "settings.general.row.backgroundDeco.title": "Фоновое украшение",
-  "settings.general.row.backgroundDeco.description":
-    "Показывать декоративные эффекты на фоне. Уважает системную настройку уменьшения движения.",
-  "settings.general.row.backgroundDeco.off": "Выкл.",
-  "settings.general.row.backgroundDeco.static": "Статично",
-  "settings.general.row.backgroundDeco.dynamic": "Динамично",
   "settings.general.row.reasoningSummaries.title": "Показывать сводки рассуждений",
   "settings.general.row.reasoningSummaries.description": "Отображать сводки рассуждений модели в ленте",
 

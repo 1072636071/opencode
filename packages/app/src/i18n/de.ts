@@ -784,12 +784,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "Agent anzeigen",
   "settings.general.row.showCustomAgents.description":
     "Im Eingabebereich zwischen Agenten wechseln. Ist die Auswahl ausgeblendet, wird standardmäßig der Build-Agent verwendet.",
-  "settings.general.row.backgroundDeco.title": "Hintergrunddekoration",
-  "settings.general.row.backgroundDeco.description":
-    "Dekorative Effekte im Hintergrund anzeigen. Berücksichtigt die Systemeinstellung für reduzierte Bewegung.",
-  "settings.general.row.backgroundDeco.off": "Aus",
-  "settings.general.row.backgroundDeco.static": "Statisch",
-  "settings.general.row.backgroundDeco.dynamic": "Dynamisch",
   "settings.general.row.reasoningSummaries.title": "Reasoning-Zusammenfassungen anzeigen",
   "settings.general.row.reasoningSummaries.description":
     "Zusammenfassungen des Modell-Reasonings in der Timeline anzeigen",

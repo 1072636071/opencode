@@ -978,12 +978,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "Toon agent",
   "settings.general.row.showCustomAgents.description":
     "Schakel tussen agenten in het invoerveld. Indien verborgen wordt standaard de Build-agent gebruikt.",
-  "settings.general.row.backgroundDeco.title": "Achtergronddecoratie",
-  "settings.general.row.backgroundDeco.description":
-    "Decoratieve effecten op de achtergrond tonen. Respecteert de systeemvoorkeur voor verminderde beweging.",
-  "settings.general.row.backgroundDeco.off": "Uit",
-  "settings.general.row.backgroundDeco.static": "Statisch",
-  "settings.general.row.backgroundDeco.dynamic": "Dynamisch",
   "settings.general.row.reasoningSummaries.title": "Toon redeneeroverzichten",
   "settings.general.row.reasoningSummaries.description":
     "Geef samenvattingen van modelredeneringen weer in de tijdlijn",

@@ -8,7 +8,6 @@ import {
   maximumSunsetTimeout,
   newLayoutDesignsDefault,
   nextSunsetCheckDelay,
-  resolveDecoMode,
   resolveNewLayoutDesigns,
   shouldDisplayTabsToast,
   shouldEnableNewLayout,
@@ -120,20 +119,4 @@ describe("hidden skills", () => {
   })
 })
 
-describe("background decoration", () => {
-  test("defaults to dynamic", () => {
-    expect(defaultSettings.general.backgroundDeco).toBe("dynamic")
-  })
 
-  test("passes through the user setting when reduced motion is not preferred", () => {
-    expect(resolveDecoMode("dynamic", false)).toBe("dynamic")
-    expect(resolveDecoMode("static", false)).toBe("static")
-    expect(resolveDecoMode("off", false)).toBe("off")
-  })
-
-  test("forces off when reduced motion is preferred regardless of setting", () => {
-    expect(resolveDecoMode("dynamic", true)).toBe("off")
-    expect(resolveDecoMode("static", true)).toBe("off")
-    expect(resolveDecoMode("off", true)).toBe("off")
-  })
-})

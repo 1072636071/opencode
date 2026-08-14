@@ -889,12 +889,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "Mostra agente",
   "settings.general.row.showCustomAgents.description":
     "Passa da un agente all'altro nel campo di composizione. Se nascosto, viene usato l'agente Build.",
-  "settings.general.row.backgroundDeco.title": "Decorazione dello sfondo",
-  "settings.general.row.backgroundDeco.description":
-    "Mostra effetti decorativi sullo sfondo. Rispetta la preferenza del sistema per il movimento ridotto.",
-  "settings.general.row.backgroundDeco.off": "Off",
-  "settings.general.row.backgroundDeco.static": "Statico",
-  "settings.general.row.backgroundDeco.dynamic": "Dinamico",
   "settings.general.row.reasoningSummaries.title": "Mostra riassunti del ragionamento",
   "settings.general.row.reasoningSummaries.description":
     "Visualizza i riepiloghi del ragionamento del modello nella sequenza temporale",

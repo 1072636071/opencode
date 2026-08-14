@@ -892,12 +892,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "Wybór agenta",
   "settings.general.row.showCustomAgents.description":
     "Umożliwiaj przełączanie agentów w edytorze wiadomości. Po ukryciu domyślnie używany jest agent Build.",
-  "settings.general.row.backgroundDeco.title": "Dekoracja tła",
-  "settings.general.row.backgroundDeco.description":
-    "Pokaż efekty dekoracyjne w tle. Respektuje preferencję zmniejszonego ruchu systemu.",
-  "settings.general.row.backgroundDeco.off": "Wyłączone",
-  "settings.general.row.backgroundDeco.static": "Statyczne",
-  "settings.general.row.backgroundDeco.dynamic": "Dynamiczne",
   "settings.general.row.reasoningSummaries.title": "Pokaż podsumowania wnioskowania",
   "settings.general.row.reasoningSummaries.description": "Wyświetlaj podsumowania wnioskowania modelu na osi czasu",
   "settings.general.row.shellToolPartsExpanded.title": "Rozwijaj elementy narzędzia shell",

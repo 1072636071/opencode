@@ -942,12 +942,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.description":
     "สลับระหว่างเอเจนต์ในช่องเขียนข้อความ เมื่อซ่อน ระบบจะใช้เอเจนต์ Build เป็นค่าเริ่มต้น",
   "settings.general.row.skillCommands.title": "Skill commands",
-  "settings.general.row.backgroundDeco.title": "การตกแต่งพื้นหลัง",
-  "settings.general.row.backgroundDeco.description":
-    "แสดงเอฟเฟกต์ตกแต่งบนพื้นหลัง เคาร่อการตั้งค่าลดการเคลื่อนไหวของระบบ",
-  "settings.general.row.backgroundDeco.off": "ปิด",
-  "settings.general.row.backgroundDeco.static": "คงที่",
-  "settings.general.row.backgroundDeco.dynamic": "ไดนามิก",
   "settings.general.row.reasoningSummaries.title": "แสดงสรุปการใช้เหตุผล",
   "settings.general.row.reasoningSummaries.description": "แสดงสรุปการใช้เหตุผลของโมเดลในไทม์ไลน์",
   "settings.general.row.shellToolPartsExpanded.title": "ขยายส่วนเครื่องมือ shell",

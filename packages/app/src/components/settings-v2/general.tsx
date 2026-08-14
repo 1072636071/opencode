@@ -8,7 +8,7 @@ import { useDialog } from "@opencode-ai/ui/context/dialog"
 import { useLanguage } from "@/context/language"
 import { usePlatform } from "@/context/platform"
 import { useUpdaterAction } from "../updater-action"
-import { useSettings, backgroundDecoOptions } from "@/context/settings"
+import { useSettings } from "@/context/settings"
 import { useServerSync } from "@/context/server-sync"
 import { ExternalLink } from "../external-link"
 import { SettingsListV2 } from "./parts/list"
@@ -442,22 +442,6 @@ export const SettingsGeneralV2: Component<{
           </div>
         </SettingsRowV2>
 
-        <SettingsRowV2
-          title={language.t("settings.general.row.backgroundDeco.title")}
-          description={language.t("settings.general.row.backgroundDeco.description")}
-        >
-          <SelectV2
-            appearance="inline"
-            data-action="settings-background-deco"
-            options={backgroundDecoOptions}
-            current={backgroundDecoOptions.find((option) => option.value === settings.general.backgroundDeco())}
-            value={(option) => option.value}
-            label={(option) => language.t(option.label)}
-            onSelect={(option) => option && settings.general.setBackgroundDeco(option.value)}
-            placement="bottom-end"
-            gutter={6}
-          />
-        </SettingsRowV2>
       </SettingsListV2>
     </div>
   )

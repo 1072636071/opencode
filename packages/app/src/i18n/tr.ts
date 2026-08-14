@@ -962,12 +962,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.description":
     "Düzenleyicide ajanlar arasında geçiş yapın. Gizlendiğinde varsayılan olarak Build ajanı kullanılır.",
   "settings.general.row.skillCommands.title": "Skill commands",
-  "settings.general.row.backgroundDeco.title": "Arka plan dekorasyonu",
-  "settings.general.row.backgroundDeco.description":
-    "Arka planda dekoratif efektler göster. Sistemin azaltılmış hareket tercihine saygı duyar.",
-  "settings.general.row.backgroundDeco.off": "Kapalı",
-  "settings.general.row.backgroundDeco.static": "Statik",
-  "settings.general.row.backgroundDeco.dynamic": "Dinamik",
   "settings.general.row.reasoningSummaries.title": "Akıl yürütme özetlerini göster",
   "settings.general.row.reasoningSummaries.description": "Zaman çizelgesinde model akıl yürütme özetlerini görüntüle",
   "settings.general.row.shellToolPartsExpanded.title": "Kabuk araç bileşenlerini genişlet",

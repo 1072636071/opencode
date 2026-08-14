@@ -1046,12 +1046,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "에이전트 표시",
   "settings.general.row.showCustomAgents.description":
     "입력창에서 에이전트를 전환합니다. 숨기면 기본적으로 Build 에이전트를 사용합니다.",
-  "settings.general.row.backgroundDeco.title": "배경 장식",
-  "settings.general.row.backgroundDeco.description":
-    "배경에 장식 효과를 표시합니다. 시스템의 모션 감소 설정을 준수합니다.",
-  "settings.general.row.backgroundDeco.off": "끄기",
-  "settings.general.row.backgroundDeco.static": "정적",
-  "settings.general.row.backgroundDeco.dynamic": "동적",
   "settings.general.row.newInterface.title": "새 레이아웃",
   "settings.general.row.newInterface.badge": "신규",
   "settings.general.row.newInterface.description":

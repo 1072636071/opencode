@@ -1048,12 +1048,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.description":
     "Beralih antaragen di penyusun. Saat disembunyikan, Agen Build digunakan sebagai bawaan.",
   "settings.general.row.skillCommands.title": "Skill commands",
-  "settings.general.row.backgroundDeco.title": "Dekorasi latar belakang",
-  "settings.general.row.backgroundDeco.description":
-    "Tampilkan efek dekoratif di latar belakang. Menghormati preferensi gerakan yang dikurangi sistem.",
-  "settings.general.row.backgroundDeco.off": "Mati",
-  "settings.general.row.backgroundDeco.static": "Statis",
-  "settings.general.row.backgroundDeco.dynamic": "Dinamis",
   "settings.general.row.reasoningSummaries.title": "Tampilkan ringkasan penalaran",
   "settings.general.row.reasoningSummaries.description": "Tampilkan ringkasan penalaran model di linimasa",
   "settings.general.row.shellToolPartsExpanded.title": "Bentangkan bagian alat shell",

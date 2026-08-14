@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { execFile } from "node:child_process"
-import { existsSync } from "node:fs"
+import { existsSync, cpSync } from "node:fs"
 import { createServer } from "node:net"
 import { promisify } from "node:util"
 import { join } from "node:path"
@@ -129,6 +129,23 @@ function applyStartEnv(opts: StartOptions): () => void {
 // 工单 09：打包场景把 omos-jx 插件路径注入 opencode 配置（OPENCODE_CONFIG_CONTENT）。
 // 仅当安装包内 `resources/omos-jx` 存在时注入；dev 场景沿用 fork 预置配置（工单 08），
 // 不注入，避免与 fork preset 的 `../oh-my-opencode-slim` 重复加载。返回还原函数。
+// omos-jx 作为打包插件被孤立放进 resources/omos-jx，运行时依赖（zod/jsdom/@opencode-ai 等）
+// 不会随 bundle 进入（大型库如 css-tree 含相对路径数据文件，bundle 会断裂路径），也不在宿主
+// opencode 的解析链路上。故把依赖预装进 dist/omos_deps（electron-builder 默认忽略 node_modules 目录名），
+// 运行时首次启动时复制为 node_modules，使 ESM 正常解析。
+function ensureOmosJxNodeModules(pluginPath: string): void {
+  try {
+    const depsSrc = join(pluginPath, "omos_deps")
+    const nodeModules = join(pluginPath, "node_modules")
+    if (!existsSync(depsSrc)) return
+    if (existsSync(nodeModules)) return
+    cpSync(depsSrc, nodeModules, { recursive: true })
+  } catch (err) {
+    // 复制失败不应阻断启动；仅记录
+    console.error("ensureOmosJxNodeModules failed:", err)
+  }
+}
+
 function applyOmosJxPackagedEnv(logger: Logger): () => void {
   let resolution: OmosJxPluginResolution
   try {
@@ -152,6 +169,7 @@ function applyOmosJxPackagedEnv(logger: Logger): () => void {
   const plugin = Array.isArray(existingObj.plugin) ? [...(existingObj.plugin as unknown[])] : []
   if (!plugin.includes(resolution.pluginPath)) plugin.push(resolution.pluginPath)
   process.env.OPENCODE_CONFIG_CONTENT = JSON.stringify({ ...existingObj, plugin })
+  ensureOmosJxNodeModules(resolution.pluginPath)
   logger.log("omos-jx plugin injected from packaged resources", { pluginPath: resolution.pluginPath })
   return () => {
     if (existing === undefined) delete process.env.OPENCODE_CONFIG_CONTENT

@@ -2988,6 +2988,7 @@ function ThemeSwitchPanel() {
           )}
         </For>
       </div>
+    </div>
   )
 }
 

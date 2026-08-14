@@ -976,12 +976,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "ایجنٹ دکھائیں۔",
   "settings.general.row.showCustomAgents.description":
     "کمپوزر میں ایجنٹس تبدیل کریں۔ چھپانے پر Build ایجنٹ بطور طے شدہ استعمال ہوگا۔",
-  "settings.general.row.backgroundDeco.title": "پس منظر کی سجاوٹ",
-  "settings.general.row.backgroundDeco.description":
-    "پس منظر پر سجاوتی اثرات دکھائیں۔ سسٹم کی کم حرکت ترجیح کا احترام کرتا ہے۔",
-  "settings.general.row.backgroundDeco.off": "بند",
-  "settings.general.row.backgroundDeco.static": "جامد",
-  "settings.general.row.backgroundDeco.dynamic": "متحرک",
   "settings.general.row.reasoningSummaries.title": "استدلال کے خلاصے دکھائیں۔",
   "settings.general.row.reasoningSummaries.description": "ٹائم لائن میں ماڈل استدلال کے خلاصے ڈسپلے کریں۔",
   "settings.general.row.shellToolPartsExpanded.title": "شیل ٹول کے حصے پھیلائیں",

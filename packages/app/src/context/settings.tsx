@@ -1,6 +1,5 @@
 import { createStore, reconcile } from "solid-js/store"
 import { batch, createEffect, createMemo, createSignal, onCleanup } from "solid-js"
-import { createMediaQuery } from "@solid-primitives/media"
 import { createSimpleContext } from "@opencode-ai/ui/context"
 import { persisted } from "@/utils/persist"
 import { usePlatform } from "@/context/platform"
@@ -20,14 +19,6 @@ export interface SoundSettings {
   errors: string
 }
 
-export type DecoMode = "off" | "static" | "dynamic"
-
-export const backgroundDecoOptions: { value: DecoMode; label: string }[] = [
-  { value: "off", label: "settings.general.row.backgroundDeco.off" },
-  { value: "static", label: "settings.general.row.backgroundDeco.static" },
-  { value: "dynamic", label: "settings.general.row.backgroundDeco.dynamic" },
-]
-
 export interface Settings {
   general: {
     autoSave: boolean
@@ -44,7 +35,6 @@ export interface Settings {
     showCustomAgents: boolean
     hiddenSkills: string[]
     mobileTitlebarPosition: "top" | "bottom"
-    backgroundDeco: DecoMode
     newLayoutDesigns?: boolean
     layoutTransitionEligible?: boolean
     agentVisibilityInitialized?: boolean
@@ -142,11 +132,6 @@ export function resolveNewLayoutDesigns(retired: boolean, preference: boolean | 
   return preference ?? fallback
 }
 
-export function resolveDecoMode(setting: DecoMode, prefersReducedMotion: boolean): DecoMode {
-  if (prefersReducedMotion) return "off"
-  return setting
-}
-
 const monoFallback =
   'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
 const sansFallback = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
@@ -218,7 +203,6 @@ export const defaultSettings: Settings = {
     showCustomAgents: false,
     hiddenSkills: [],
     mobileTitlebarPosition: "top",
-    backgroundDeco: "dynamic",
   },
   appearance: {
     fontSize: 14,
@@ -271,11 +255,6 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
       () => store.general?.showCustomAgents,
       defaultSettings.general.showCustomAgents,
     )
-    const backgroundDeco = withFallback(
-      () => store.general?.backgroundDeco,
-      defaultSettings.general.backgroundDeco,
-    )
-    const prefersReducedMotion = createMediaQuery("(prefers-reduced-motion: reduce)")
     const sunset = oldInterfaceSunset
     const [oldInterfaceRetired, setOldInterfaceRetired] = createSignal(sunset ? Date.now() >= sunset.getTime() : false)
     const layoutTransitionClassified = createMemo(() => typeof store.general?.layoutTransitionEligible === "boolean")
@@ -380,20 +359,6 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
     })
 
     createEffect(() => {
-      if (typeof document === "undefined") return
-      const root = document.documentElement
-      const mode = resolveDecoMode(
-        store.general?.backgroundDeco ?? defaultSettings.general.backgroundDeco,
-        prefersReducedMotion(),
-      )
-      if (mode === "off") {
-        root.removeAttribute("data-oc-deco")
-        return
-      }
-      root.setAttribute("data-oc-deco", mode)
-    })
-
-    createEffect(() => {
       if (store.general?.followup !== "queue") return
       setStore("general", "followup", "steer")
     })
@@ -474,10 +439,6 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
         ),
         setMobileTitlebarPosition(value: "top" | "bottom") {
           setStore("general", "mobileTitlebarPosition", value)
-        },
-        backgroundDeco,
-        setBackgroundDeco(value: DecoMode) {
-          setStore("general", "backgroundDeco", value)
         },
         newLayoutDesigns,
         setNewLayoutDesigns(value: boolean) {

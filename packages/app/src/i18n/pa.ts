@@ -971,12 +971,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.title": "ایجنٹ وکھاؤ",
   "settings.general.row.showCustomAgents.description":
     "کمپوزر چ ایجنٹاں دے وچکار سوئچ کرو۔ جدوں لُکیا ہوندا اے، تے بلڈ ایجنٹ تے ڈیفالٹ ہوندا اے۔",
-  "settings.general.row.backgroundDeco.title": "ਬੈਕਗ੍ਰਾਊਂਡ ਸਜਾਵਟ",
-  "settings.general.row.backgroundDeco.description":
-    "ਬੈਕਗ੍ਰਾਊਂਡ 'ਤੇ ਸਜਾਵਟੀ ਪ੍ਰਭਾਵ ਦਿਖਾਓ। ਸਿਸਟਮ ਦੀ ਘੱਟ ਗਤੀ ਤਰਜੀਹੀ ਦਾ ਸਨਮਾਨ ਕਰਦਾ ਹੈ।",
-  "settings.general.row.backgroundDeco.off": "ਬੰਦ",
-  "settings.general.row.backgroundDeco.static": "ਸਥਿਰ",
-  "settings.general.row.backgroundDeco.dynamic": "ਡਾਇਨਾਮਿਕ",
   "settings.general.row.reasoningSummaries.title": "استدلال دے خلاصے وکھاؤ",
   "settings.general.row.reasoningSummaries.description": "ٹائم لائن وچ ماڈل دی استدلال دے خلاصے وکھاؤ",
   "settings.general.row.shellToolPartsExpanded.title": "شیل ٹول دے حصیاں نو ودھاؤ",

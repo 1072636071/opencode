@@ -1,5 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  // 工单 08（ADR-032）：默认加载 omos-jx 插件（dev 场景）。
+  // 相对路径相对本配置文件目录（.opencode/）解析 → ../../oh-my-opencode-slim → monorepo 根。
+  // 注：fork 根 /opencode.json 被 .gitignore 排除，故声明放在本 .opencode/opencode.jsonc。
+  "plugin": ["../../oh-my-opencode-slim"],
   "provider": {},
   "permission": {},
   "references": {

@@ -308,12 +308,10 @@ export function StatusPopoverBody(props: { shown: Accessor<boolean> }) {
         variant="alt"
       >
         <Tabs.List data-slot="tablist" class="bg-transparent border-b-0 px-4 pt-2 pb-0 gap-4 h-10">
-          {!settings.general.newLayoutDesigns() && (
-            <Tabs.Trigger value="servers" data-slot="tab" class="text-12-regular">
-              {sortedServers().length > 0 ? `${sortedServers().length} ` : ""}
-              {language.t("status.popover.tab.servers")}
-            </Tabs.Trigger>
-          )}
+          <Tabs.Trigger value="servers" data-slot="tab" class="text-12-regular">
+            {sortedServers().length > 0 ? `${sortedServers().length} ` : ""}
+            {language.t("status.popover.tab.servers")}
+          </Tabs.Trigger>
           <Tabs.Trigger value="mcp" data-slot="tab" class="text-12-regular">
             {mcpConnected() > 0 ? `${mcpConnected()} ` : ""}
             {language.t("status.popover.tab.mcp")}
@@ -330,10 +328,9 @@ export function StatusPopoverBody(props: { shown: Accessor<boolean> }) {
           </Show>
         </Tabs.List>
 
-        {!settings.general.newLayoutDesigns() && (
-          <Tabs.Content value="servers">
-            <div class="flex flex-col px-2 pb-2">
-              <div class="flex flex-col p-3 bg-background-base rounded-sm min-h-14">
+        <Tabs.Content value="servers">
+          <div class="flex flex-col px-2 pb-2">
+            <div class="flex flex-col p-3 bg-background-base rounded-sm min-h-14">
                 <For each={sortedServers()}>
                   {(s) => {
                     const key = ServerConnection.key(s)
@@ -394,8 +391,7 @@ export function StatusPopoverBody(props: { shown: Accessor<boolean> }) {
                 </Button>
               </div>
             </div>
-          </Tabs.Content>
-        )}
+        </Tabs.Content>
 
         <Tabs.Content value="mcp">
           <div class="flex flex-col px-2 pb-2">

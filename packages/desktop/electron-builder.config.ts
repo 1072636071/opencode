@@ -79,6 +79,9 @@ const getBase = (appId: string): Configuration => ({
     {
       from: path.join(repoRootDir, "oh-my-opencode-slim", "dist"),
       to: "omos-jx",
+      // electron-builder 的 copyDir 默认忽略 node_modules；omos-jx 运行依赖（zod 等）
+      // 必须随 dist 打入，否则 sidecar 加载报 "Cannot find package 'zod'"。filter 覆盖默认忽略。
+      filter: ["**/*"],
     },
   ],
   mac: {

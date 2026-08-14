@@ -1064,12 +1064,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.description":
     "Перемикатися між агентами в редакторі запиту. Якщо приховано, типовим є агент Build.",
   "settings.general.row.skillCommands.title": "Skill commands",
-  "settings.general.row.backgroundDeco.title": "Фонове прикраса",
-  "settings.general.row.backgroundDeco.description":
-    "Показувати декоративні ефекти на фоні. Поважає системну настройку зменшення руху.",
-  "settings.general.row.backgroundDeco.off": "Вимк.",
-  "settings.general.row.backgroundDeco.static": "Статично",
-  "settings.general.row.backgroundDeco.dynamic": "Динамічно",
   "settings.general.row.reasoningSummaries.title": "Показувати підсумки мислення",
   "settings.general.row.reasoningSummaries.description": "Відображати підсумки мислення моделі на часовій шкалі",
   "settings.general.row.shellToolPartsExpanded.title": "Розгортати частини інструменту оболонки",

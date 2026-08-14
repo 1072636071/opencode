@@ -962,12 +962,6 @@ export const dict = {
   "settings.general.row.showCustomAgents.description":
     "Cambiar de agente en el editor. Si se oculta, se usa el agente Build de forma predeterminada.",
   "settings.general.row.skillCommands.title": "Skill commands",
-  "settings.general.row.backgroundDeco.title": "Decoración de fondo",
-  "settings.general.row.backgroundDeco.description":
-    "Mostrar efectos decorativos en el fondo. Respeta la preferencia de movimiento reducido del sistema.",
-  "settings.general.row.backgroundDeco.off": "Desactivado",
-  "settings.general.row.backgroundDeco.static": "Estático",
-  "settings.general.row.backgroundDeco.dynamic": "Dinámico",
   "settings.general.row.reasoningSummaries.title": "Mostrar resúmenes de razonamiento",
   "settings.general.row.reasoningSummaries.description":
     "Mostrar resúmenes del razonamiento del modelo en la línea de tiempo",
